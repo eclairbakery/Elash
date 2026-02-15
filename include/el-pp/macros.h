@@ -2,6 +2,7 @@
 
 #include <el-defs/sv.h>
 
+#include <el-lexer/tokbuf.h>
 #include <el-lexer/token.h>
 
 #include <inttypes.h>
@@ -13,8 +14,5 @@ typedef struct ElPpMacro {
         ElStringView* arr;
         usize count;
     } args;
-    struct {
-        ElToken* toks;
-        usize count;
-    } replacement;
+    ElTokenBuf replacement;
 } ElPpMacro;
