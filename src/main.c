@@ -57,6 +57,7 @@ int main(int argc, const char* const* argv) {
         }
 
         el_token_print(t, stdout);
+        putchar('\n');
     } while (t.type != EL_TT_EOF);
 
     //free(buffer);
