@@ -18,12 +18,12 @@ typedef enum ElPpVarType {
 bool el_pp_var_type_is_trivial(ElPpVarType type);
 
 typedef union ElPpVarValue {
-    int i;
-    float f;
-    bool b;
-    char c;
-    ElStringView s;
-    ElPpVarArr a;
+    int i;              // EL_PP_VAR_INT
+    float f;            // EL_PP_VAR_FLOAT
+    bool b;             // EL_PP_VAR_BOOL
+    char c;             // EL_PP_VAR_CHAR
+    ElStringView s;     // EL_PP_VAR_STRING
+    ElPpVarArr a;       // EL_PP_VAR_ARRAY
 } ElPpVarValue;
 
 typedef struct ElPpVar {

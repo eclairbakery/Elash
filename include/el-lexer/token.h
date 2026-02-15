@@ -129,14 +129,17 @@ typedef enum ElTokenType {
     ///////////////////////////////////////////////////////////////
     EL_TT_PP_INCLUDE,              // (contextual) include
     EL_TT_PP_EMBED,                // (contextual) embed
-    
+
     EL_TT_PP_PRAGMA,               // (contextual) pragma
     EL_TT_PP_ANNOTE,               // (contextual) annote
     EL_TT_PP_ERROR,                // (contextual) error
     EL_TT_PP_WARNING,              // (contextual) warning
     EL_TT_PP_NOTE,                 // (contextual) note
 
+    EL_TT_PP_EMIT,                 // (contextual) emit 
+
     EL_TT_PP_DEFINE,               // (contextual) define
+    EL_TT_PP_ENDDEF,               // (contextual) enddef
     EL_TT_PP_UNDEF,                // (contextual) undef
     
     EL_TT_PP_ASSIGN,               // (contextual) assign

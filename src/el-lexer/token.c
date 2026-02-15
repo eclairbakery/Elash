@@ -108,7 +108,10 @@ static ElStringView el_token_type_to_string_map[] = {
     [EL_TT_PP_INCLUDE] = EL_SV("PP_INCLUDE"),
     [EL_TT_PP_EMBED] = EL_SV("PP_EMBED"),
 
+    [EL_TT_PP_EMIT] = EL_SV("PP_EMIT"),
+
     [EL_TT_PP_DEFINE] = EL_SV("PP_DEFINE"),
+    [EL_TT_PP_ENDDEF] = EL_SV("PP_ENDDEF"),
     [EL_TT_PP_UNDEF] = EL_SV("PP_UNDEF"),
 
     [EL_TT_PP_PRAGMA] = EL_SV("PP_PRAGMA"),

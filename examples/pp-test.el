@@ -3,7 +3,7 @@
 
 #define A 123
 
-#ifdef A
+#if defined(A)
     #if A == 123 
         #define A_IS_123 true
     #else
@@ -17,6 +17,20 @@
 #else
     #include "nah.h"
 #endif
+
+#define CREATE_ENUM(NAME, ENUMERATORS):
+    typedef enum NAME {
+    #foreach enumerator: ENUMERATORS
+        #eval enumerator
+    #endfor
+    } NAME;
+
+    char[*][] NAME_names = {
+    #foreach enumerator: ENUMERATORS
+        #eval stringify(enumerator)
+    #endfor
+    };
+#enddef
 
 const byte[] elash_logo = #embed "../assets/logo.png";
 const usize elash_logo_size = sizeof(elash_logo);
