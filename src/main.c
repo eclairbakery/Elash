@@ -4,8 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define RAM_SHORTAGE
-
 int main(int argc, const char* const* argv) {
     if (argc < 2) {
         printf("usage: elc file\n");
