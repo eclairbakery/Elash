@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -std=c11 -Wall -Wextra -O2 -Iinclude
-DEBUG_FLAGS = -std=c11 -Wall -Wextra -g -Iinclude
+DEBUG_FLAGS = -std=c11 -Wall -Wextra -Og -g -Iinclude
 
 TARGET = bin/elc
 SRC_DIR = src
@@ -25,8 +25,10 @@ debug: clean all
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
 
+
+
 run: all
-	./$(TARGET) examples/hello_world.el
+	./$(TARGET) examples/hello-world.el
 
 .PHONY: all clean debug run
 

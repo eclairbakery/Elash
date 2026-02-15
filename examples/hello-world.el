@@ -1,9 +1,7 @@
-// test
-/* test */
-
 #include <stdio.h>
 
-export int main() {
+int main() {
+    // this line prints hello world
     printf("goodbye world");
     return 0;
 }
