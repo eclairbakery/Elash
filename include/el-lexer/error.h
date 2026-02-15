@@ -79,7 +79,7 @@ typedef struct ElLexerErrorDetails {
     /// @brief Additional details about the error.
     /// The interpretation of this union depends on the `code` field.
     union {
-        char ch; ///< Relevant character for errors like @ref EL_LEXERR_UNEXPECTED_CHAR, @ref EL_LEXERR_INVALID_ESCAPE.
+        char ch;     ///< Relevant character for errors like @ref EL_LEXERR_UNEXPECTED_CHAR, @ref EL_LEXERR_INVALID_ESCAPE.
         void* other; ///< Placeholder for future, more complex error details.
     } error_details;
 } ElLexerErrorDetails;

@@ -36,6 +36,7 @@ typedef struct ElLexer {
     ElSourceLocation current_loc;
     ElSourceLocation token_start_loc;
     ElLexerContext ctx;
+    ElLexerContext prev_ctx;
 
     ElLexerErrorDetails last_err_details;
     ElLexerFlags flags;
@@ -48,6 +49,11 @@ ElLexerErrorCode el_lexer_reset(ElLexer* lexer);
 ElLexerErrorCode el_lexer_set_input(ElLexer* lexer, ElStringView input);
 
 ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out_tok);
+
+ElLexerContext el_lexer_get_current_context(const ElLexer* lexer);
+ElLexerContext el_lexer_get_previous_context(const ElLexer* lexer);
+bool el_lexer_entered_context(const ElLexer* lexer, ElLexerContext context);
+bool el_lexer_exited_context(const ElLexer* lexer, ElLexerContext context);
 
 ////// IMPLEMENTATION DETAILS //////////////////////
 // note: those functions are implementation

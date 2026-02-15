@@ -85,6 +85,7 @@ ElLexerErrorCode el_lexer_init(ElLexer* lexer, ElStringView input, ElLexerFlags 
     lexer->last_err_details = EL_LEXER_RESULT_SUCCESS;
     lexer->flags = flags;
     lexer->ctx = EL_LEXER_CTX_DEFAULT;
+    lexer->prev_ctx = EL_LEXER_CTX_DEFAULT;
     return EL_LEXERR_SUCCESS;
 }
 
@@ -99,6 +100,7 @@ ElLexerErrorCode el_lexer_reset(ElLexer* lexer) {
     lexer->input = EL_SV_NULL;
     lexer->last_err_details.code = EL_LEXERR_SUCCESS;
     lexer->ctx = EL_LEXER_CTX_DEFAULT;
+    lexer->prev_ctx = EL_LEXER_CTX_DEFAULT;
     return EL_LEXERR_SUCCESS;
 }
 
@@ -145,17 +147,24 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
 
     static StringToKeyword pp_keywords[] = {
         { EL_SV("if"),       EL_TT_PP_IF       },
+        { EL_SV("for"),      EL_TT_PP_FOR      },
         { EL_SV("dec"),      EL_TT_PP_DEC      },
         { EL_SV("inc"),      EL_TT_PP_INC      },
+        { EL_SV("elif"),     EL_TT_PP_ELSE     },
         { EL_SV("else"),     EL_TT_PP_ELSE     },
+        { EL_SV("embed"),    EL_TT_PP_EMBED    },
         { EL_SV("endif"),    EL_TT_PP_ENDIF    },
         { EL_SV("undef"),    EL_TT_PP_UNDEF    },
         { EL_SV("while"),    EL_TT_PP_WHILE    },
         { EL_SV("assign"),   EL_TT_PP_ASSIGN   },
+        { EL_SV("pragma"),   EL_TT_PP_PRAGMA   },
+        { EL_SV("annote"),   EL_TT_PP_ANNOTE   },
         { EL_SV("define"),   EL_TT_PP_DEFINE   },
-        { EL_SV("embed"),    EL_TT_PP_EMBED    },
+        { EL_SV("endfor"),   EL_TT_PP_ENDFOR   },
         { EL_SV("include"),  EL_TT_PP_INCLUDE  },
+        { EL_SV("deassign"), EL_TT_PP_DEASSIGN },
         { EL_SV("endwhile"), EL_TT_PP_ENDWHILE },
+        { EL_SV("foreach"),  EL_TT_PP_FOREACH  },
     };
     static usize pp_keywords_size = sizeof(pp_keywords) / sizeof(pp_keywords[0]);
 
@@ -282,6 +291,7 @@ static ElLexerErrorCode lex_number(ElLexer* lexer, ElToken* out) {
 }
 
 ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
+    lexer->prev_ctx = lexer->ctx;
     while (true) {
         lexer->token_start_loc = lexer->current_loc;
 
@@ -461,4 +471,20 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
 
         if (!(lexer->flags & EL_LF_SKIP_UNKNOWN)) EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNEXPECTED_CHAR, lexer->token_start_loc, {});
     }
+}
+
+ElLexerContext el_lexer_get_current_context(const ElLexer* lexer) {
+    return lexer->ctx;
+}
+
+ElLexerContext el_lexer_get_previous_context(const ElLexer* lexer) {
+    return lexer->prev_ctx;
+}
+
+bool el_lexer_entered_context(const ElLexer* lexer, ElLexerContext context) {
+    return lexer->ctx == context && lexer->prev_ctx != context;
+}
+
+bool el_lexer_exited_context(const ElLexer* lexer, ElLexerContext context) {
+    return lexer->ctx != context && lexer->prev_ctx == context;
 }
