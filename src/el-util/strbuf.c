@@ -121,3 +121,12 @@ bool el_strbuf_append(ElStringBuf* sb, ElStringView sv) {
     sb->len += sv.len;
     return true;
 }
+
+bool el_strbuf_append_char(ElStringBuf* sb, char c) {
+    if (!el_strbuf_reserve(sb, sb->len + 1)) {
+        return false;
+    }
+    sb->data[sb->len] = c;
+    sb->len += 1;
+    return true;
+}
