@@ -3,25 +3,23 @@
 #include <el-util/dynarena.h>
 
 #include <el-lexer/tokbuf.h>
+#include <el-lexer/tokque.h>
 #include <el-lexer/token.h>
 
 #include <el-pp/error.h>
+#include <el-pp/instr.h>
 #include <el-pp/vars.h>
 
-typedef enum ElPpState {
-    EL_PP_STATE_IDLE,
-    EL_PP_STATE_EXECUTING_INCLUDE,
-    EL_PP_STATE_EXPADING_MACRO,
-    EL_PP_STATE_EVALUATING_EXPR,
-} ElPpState;
+#include <stdbool.h>
 
 typedef struct ElPreprocessor {
-    ElPpVars vars;
-
-    ElTokenBuf buf;
-    usize buf_offset;
+    ElToken input;
+    ElTokenQueue pending;
 
     ElDynArena arena;
+
+    ElPpInstr currently_parsing;
+    ElPpVars vars;
 
     ElPpErrorDetails last_err_details;
 } ElPreprocessor;
@@ -31,7 +29,10 @@ void          el_pp_destroy(ElPreprocessor* pp);
 
 ElPpErrorCode el_pp_reset(ElPreprocessor* pp);
 
-ElPpErrorCode el_pp_preprocess(ElPreprocessor* pp, ElToken in_tok, ElToken* out_tok);
+bool          el_pp_want_next_token(ElPreprocessor* pp);
+void          el_pp_pass_token(ElPreprocessor* pp, ElToken tok);
+
+ElPpErrorCode el_pp_preprocess(ElPreprocessor* pp, ElToken* out_tok);
 
 ////// IMPLEMENTATION DETAILS //////////////////////
 // note: those functions are implementation

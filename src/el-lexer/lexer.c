@@ -152,6 +152,7 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
         { EL_SV("inc"),      EL_TT_PP_INC      },
         { EL_SV("elif"),     EL_TT_PP_ELSE     },
         { EL_SV("else"),     EL_TT_PP_ELSE     },
+        { EL_SV("note"),     EL_TT_PP_NOTE     },
         { EL_SV("emit"),     EL_TT_PP_EMIT     },
         { EL_SV("embed"),    EL_TT_PP_EMBED    },
         { EL_SV("endif"),    EL_TT_PP_ENDIF    },
