@@ -34,7 +34,11 @@ static bool el_tkque_grow(ElTokenQueue* tkque) {
     return true;
 }
 
-bool el_tkque_init(ElTokenQueue* tkque, usize initial_cap) {
+bool el_tkque_init(ElTokenQueue* tkque) {
+    return el_tkque_init_with_cap(tkque, EL_TKQUE_DEFAULT_CAP);
+}
+
+bool el_tkque_init_with_cap(ElTokenQueue* tkque, usize initial_cap) {
     memset(tkque, 0, sizeof(*tkque));
     if (initial_cap <= 0) {
         initial_cap = EL_TKQUE_DEFAULT_CAP;

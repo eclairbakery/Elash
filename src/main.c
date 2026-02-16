@@ -1,3 +1,4 @@
+#include "el-pp/preproc.h"
 #include <el-lexer/lexer.h>
 #include <el-defs/sv.h>
 
@@ -19,14 +20,6 @@ int main(int argc, const char* const* argv) {
     long size = ftell(f);
     rewind(f);
 
-#ifdef RAM_SHORTAGE
-    // Due to the ongoing RAM shortage and our heroic mission 
-    // to make our compiler accessible to all, regardless of social 
-    // or financial status, the maximum size of this buffer has been 
-    // bravely capped at 256 bytes.
-    if (size > 256) size = 256;
-#endif
-
     char* buffer = malloc(size + 1);
     if (!buffer) {
         perror("Failed to allocate buffer");
@@ -46,21 +39,29 @@ int main(int argc, const char* const* argv) {
         return 1;
     }
 
+    ElPreprocessor pp;
+    el_pp_init(&pp);
+
     ElToken t;
     do {
-        err = el_lexer_next_token(&lexer, &t);
-        if (err != EL_LEXERR_SUCCESS) {
-            el_lexer_result_print(lexer.last_err_details, stderr);
-            free(buffer);
-            el_lexer_destroy(&lexer);
-            return 1;
+        if (el_pp_want_next_token(&pp)) {
+            err = el_lexer_next_token(&lexer, &t);
+            if (err != EL_LEXERR_SUCCESS) {
+                el_lexer_result_print(lexer.last_err_details, stderr);
+                free(buffer);
+                el_lexer_destroy(&lexer);
+                return 1;
+            }
+            el_pp_pass_token(&pp, t);
         }
+        el_pp_preprocess(&pp, &t);
 
         el_token_print(t, stdout);
         putchar('\n');
     } while (t.type != EL_TT_EOF);
 
-    //free(buffer);
+    free(buffer);
+    el_pp_destroy(&pp);
     el_lexer_destroy(&lexer);
     return 0;
 }

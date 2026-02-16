@@ -13,6 +13,7 @@ typedef enum ElPpInstr {
     EL_PP_INSTR_NOTE,
 
     EL_PP_INSTR_DEFINE,
+    EL_PP_INSTR_ENDDEF,
     EL_PP_INSTR_UNDEF,
 
     EL_PP_INSTR_ASSIGN,
@@ -35,4 +36,5 @@ typedef enum ElPpInstr {
     EL_PP_INSTR_UNKNOWN,
 } ElPpInstr;
 
+bool      el_pp_is_instr_token_type(ElTokenType tt);
 ElPpInstr el_pp_extract_instr_from_token_type(ElTokenType tt);

@@ -2,6 +2,7 @@
 #include <png.h>
 
 #define A 123
+#note "siema"
 
 #if defined(A)
     #if A == 123 
