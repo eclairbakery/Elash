@@ -8,16 +8,16 @@ typedef struct ElTokenBuf {
     usize cap;
 } ElTokenBuf;
 
-bool el_token_buf_init(ElTokenBuf* tkbuf);
-void el_token_buf_destroy(ElTokenBuf* tkbuf);
+bool el_tkbuf_init(ElTokenBuf* tkbuf);
+void el_tkbuf_destroy(ElTokenBuf* tkbuf);
 
-bool el_token_buf_copy(const ElTokenBuf* src, ElTokenBuf* dst);
-bool el_token_buf_move(ElTokenBuf* src, ElTokenBuf* dst);
+bool el_tkbuf_copy(const ElTokenBuf* src, ElTokenBuf* dst);
+bool el_tkbuf_move(ElTokenBuf* src, ElTokenBuf* dst);
 
-bool el_token_buf_resize(ElTokenBuf* tkbuf, usize new_size);
-bool el_token_buf_reserve(ElTokenBuf* tkbuf, usize min_cap);
-bool el_token_buf_reserve_exact(ElTokenBuf* tkbuf, usize new_cap);
+bool el_tkbuf_resize(ElTokenBuf* tkbuf, usize new_size);
+bool el_tkbuf_reserve(ElTokenBuf* tkbuf, usize min_cap);
+bool el_tkbuf_reserve_exact(ElTokenBuf* tkbuf, usize new_cap);
 
-bool el_token_buf_push(ElTokenBuf* tkbuf, ElToken tok);
+bool el_tkbuf_push(ElTokenBuf* tkbuf, ElToken tok);
 
-bool el_token_buf_clear(ElTokenBuf* tkbuf);
+bool el_tkbuf_clear(ElTokenBuf* tkbuf);

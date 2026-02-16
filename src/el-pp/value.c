@@ -17,7 +17,7 @@ bool el_pp_value_copy(const ElPpValue* src, ElPpValue* dst) {
     case EL_PP_VAR_CHAR:   dst->asChar =  src->asChar;  return true;
     case EL_PP_VAR_STRING: dst->asStr =   src->asStr;   return true;
     case EL_PP_VAR_ARRAY:  return el_pp_valarr_copy(&src->asArr, &dst->asArr);
-    case EL_PP_VAR_TOKENS: return el_token_buf_copy(&src->asToks, &dst->asToks);
+    case EL_PP_VAR_TOKENS: return el_tkbuf_copy(&src->asToks, &dst->asToks);
     }
     return false;
 }
@@ -29,7 +29,7 @@ void el_pp_value_move(ElPpValue* src, ElPpValue* dst) {
     if (src->type == EL_PP_VAR_ARRAY) {
         el_pp_valarr_move(&src->asArr, &src->asArr);
     } else if (src->type == EL_PP_VAR_TOKENS) {
-        el_token_buf_move(&src->asToks, &dst->asToks);
+        el_tkbuf_move(&src->asToks, &dst->asToks);
     }
 }
 
@@ -38,7 +38,7 @@ void el_pp_value_free(ElPpValue* val) {
     if (val->type == EL_PP_VAR_ARRAY) {
         el_pp_valarr_destroy(&val->asArr);
     } else if (val->type == EL_PP_VAR_TOKENS) {
-        el_token_buf_destroy(&val->asToks);
+        el_tkbuf_destroy(&val->asToks);
     }
 }
 
