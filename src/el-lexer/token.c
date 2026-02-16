@@ -1,5 +1,6 @@
 #include <el-lexer/token.h>
 
+#include <el-util/strbuf.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -214,3 +215,44 @@ usize el_token_print(ElToken tok, FILE* out) {
 
     return bytes_written;
 }
+
+bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb) {
+    bool success = true;
+
+    switch (tok->type) {
+    case EL_TT_STRING_LITERAL: {
+        success &= el_strbuf_append_char(sb, '"');
+        success &= el_strbuf_append(sb, tok->lexeme);
+        success &= el_strbuf_append_char(sb, '"');
+        break;
+    }
+    case EL_TT_CHAR_LITERAL: {
+        success &= el_strbuf_append_char(sb, '\'');
+        success &= el_strbuf_append(sb, tok->lexeme);
+        success &= el_strbuf_append_char(sb, '\'');
+        break;
+    }
+    case EL_TT_LINE_COMMENT:
+        success &= el_strbuf_append(sb, EL_SV("//"));
+        success &= el_strbuf_append(sb, tok->lexeme);
+        break;
+    case EL_TT_BLOCK_COMMENT:
+        success &= el_strbuf_append(sb, EL_SV("/*"));
+        success &= el_strbuf_append(sb, tok->lexeme);
+        success &= el_strbuf_append(sb, EL_SV("*/"));
+        break;
+    case EL_TT_NEWLINE: success &= el_strbuf_append_char(sb, '\n'); break;
+
+    case EL_TT_UNKNOWN:
+    case EL_TT_EOF:
+        break;
+    default:
+        // for all other token types, append the lexeme directly
+        success &= el_strbuf_append(sb, tok->lexeme);
+        break;
+    }
+
+    return success;
+}
+
+

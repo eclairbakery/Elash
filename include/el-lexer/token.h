@@ -3,6 +3,8 @@
 #include <el-defs/source-loc.h>
 #include <el-defs/sv.h>
 
+#include <el-util/strbuf.h>
+
 #include <stdio.h>
 
 // clang-format off
@@ -201,3 +203,9 @@ usize el_token_to_string(ElToken tok, char** out);
 /// @param out File stream to write to.
 /// @return Number of bytes written.
 usize el_token_print(ElToken tok, FILE* out);
+
+/// @brief Convert a token into its raw string representation and append to a string buffer.
+/// @param tok Token to convert.
+/// @param sb String buffer to append to.
+/// @return True on success, false on memory allocation failure.
+bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb);
