@@ -33,6 +33,8 @@ static inline bool el_strbuf_append_buf(ElStringBuf* sb, const ElStringBuf* othe
     return el_strbuf_append(sb, el_strbuf_view(other));
 }
 
+bool el_strbuf_append_char(ElStringBuf* sb, char c);
+
 static inline bool el_strbuf_eql_to(const ElStringBuf* lhs, ElStringView rhs) {
     return el_sv_eql(el_strbuf_view(lhs), rhs);
 }
