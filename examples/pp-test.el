@@ -21,13 +21,13 @@
 #define CREATE_ENUM(NAME, ENUMERATORS):
     typedef enum NAME {
     #foreach enumerator: ENUMERATORS
-        #eval enumerator
+        #emit enumerator
     #endfor
     } NAME;
 
     char[*][] NAME_names = {
     #foreach enumerator: ENUMERATORS
-        #eval stringify(enumerator)
+        #emit stringify(enumerator)
     #endfor
     };
 #enddef

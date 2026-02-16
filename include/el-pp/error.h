@@ -13,3 +13,5 @@ typedef enum ElPpErrorCode {
 typedef struct ElPpErrorDetails {
     ElPpErrorCode code;
 } ElPpErrorDetails;
+
+#define EL_PP_RESULT_OK ((ElPpErrorDetails) { .code = EL_PPERR_SUCCESS })
