@@ -10,6 +10,6 @@ typedef enum ElPpErrorCode {
     EL_PPERR_EMBED_FILE_NOT_FOUND,
 } ElPpErrorCode;
 
-typedef struct ElPpResult {
+typedef struct ElPpErrorDetails {
     ElPpErrorCode code;
-} ElPpResult;
+} ElPpErrorDetails;
