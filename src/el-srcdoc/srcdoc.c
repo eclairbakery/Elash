@@ -102,8 +102,8 @@ void el_srcdoc_clear(ElSourceDocument* srcdoc) {
     el_strbuf_clear(&srcdoc->content);
 }
 
-ElSrcDocErrorCode el_srcdoc_append_token(ElSourceDocument* srcdoc, ElToken tok) {
-    if (!el_token_to_raw_string(&tok, &srcdoc->content)) {
+ElSrcDocErrorCode el_srcdoc_append_token(ElSourceDocument* srcdoc, const ElToken* tok) {
+    if (!el_token_to_raw_string(tok, &srcdoc->content)) {
         return EL_SRCDOC_ERR_ALLOC_FAILED;
     }
     return EL_SRCDOC_ERR_SUCCESS;

@@ -23,7 +23,7 @@ void              el_srcdoc_move(ElSourceDocument* src, ElSourceDocument* dst);
 void              el_srcdoc_destroy(ElSourceDocument* srcdoc);
 void              el_srcdoc_clear(ElSourceDocument* srcdoc);
 
-ElSrcDocErrorCode el_srcdoc_append_token(ElSourceDocument* srcdoc, ElToken tok);
+ElSrcDocErrorCode el_srcdoc_append_token(ElSourceDocument* srcdoc, const ElToken* tok);
 ElSrcDocErrorCode el_srcdoc_append_str(ElSourceDocument* srcdoc, ElStringView sv);
 
 ElSrcDocErrorCode el_srcdoc_concat(const ElSourceDocument* src1,
