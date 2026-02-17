@@ -87,7 +87,11 @@ bool el_tkbuf_resize(ElTokenBuf* tkbuf, usize new_size) {
     }
 
     if (new_size > tkbuf->len) {
-        memset(tkbuf->data + tkbuf->len, 0, (new_size - tkbuf->len) * sizeof(ElToken));
+        memset(
+            tkbuf->data + tkbuf->len, 
+            0, 
+            (new_size - tkbuf->len) * sizeof(ElToken)
+        );
     }
 
     tkbuf->len = new_size;
