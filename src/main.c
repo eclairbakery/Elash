@@ -1,5 +1,7 @@
-#include "el-pp/preproc.h"
+#include <el-srcdoc/srcdoc.h>
 #include <el-lexer/lexer.h>
+#include <el-pp/preproc.h>
+
 #include <el-defs/sv.h>
 
 #include <stdio.h>
@@ -32,7 +34,7 @@ int main(int argc, const char* const* argv) {
 
     ElLexer lexer;
     ElStringView input_sv = el_sv_from_data_and_len(buffer, size);
-    ElLexerErrorCode err = el_lexer_init(&lexer, input_sv, EL_LF_SKIP_WHITESPACE);
+    ElLexerErrorCode err = el_lexer_init(&lexer, input_sv, EL_LF_ALLOW_UTF8_IDENTS);
     if (err != EL_LEXERR_SUCCESS) {
         fprintf(stderr, "Lexer initialization error: %d\n", err);
         free(buffer);
@@ -41,6 +43,9 @@ int main(int argc, const char* const* argv) {
 
     ElPreprocessor pp;
     el_pp_init(&pp);
+
+    ElSourceDocument preprocessed;
+    el_srcdoc_init_empty(&preprocessed);
 
     ElToken t;
     do {
@@ -57,11 +62,15 @@ int main(int argc, const char* const* argv) {
         el_pp_preprocess(&pp, &t);
 
         el_token_print(t, stdout);
+        el_srcdoc_append_token(&preprocessed, &t);
         putchar('\n');
     } while (t.type != EL_TT_EOF);
+
+    el_srcdoc_print(&preprocessed, stdout);
 
     free(buffer);
     el_pp_destroy(&pp);
     el_lexer_destroy(&lexer);
+    el_srcdoc_destroy(&preprocessed);
     return 0;
 }
