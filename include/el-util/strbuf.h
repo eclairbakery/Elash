@@ -25,6 +25,8 @@ bool el_strbuf_resize(ElStringBuf* sb, usize new_len);
 bool el_strbuf_reserve(ElStringBuf* sb, usize min_cap);
 bool el_strbuf_reserve_exact(ElStringBuf* sb, usize new_cap);
 
+void el_strbuf_clear(ElStringBuf* sb);
+
 bool el_strbuf_append(ElStringBuf* sb, ElStringView sv);
 static inline bool el_strbuf_append_cstr(ElStringBuf* sb, const char* cstr) {
     return el_strbuf_append(sb, el_sv_from_cstr(cstr));

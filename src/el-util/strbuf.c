@@ -109,6 +109,10 @@ bool el_strbuf_reserve_exact(ElStringBuf* sb, usize new_cap) {
     return true;
 }
 
+void el_strbuf_clear(ElStringBuf* sb) {
+    sb->len = 0;
+}
+
 bool el_strbuf_append(ElStringBuf* sb, ElStringView sv) {
     if (sv.len == 0) return true;
     if (!el_strbuf_reserve(sb, sb->len + sv.len)) {
