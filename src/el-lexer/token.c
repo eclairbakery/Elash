@@ -155,18 +155,18 @@ ElStringView el_token_type_to_string(ElTokenType tt) {
     return s;
 }
 
-usize el_token_format(ElToken tok, usize n, char buf[static n]) {
-    ElStringView type_string = el_token_type_to_string(tok.type);
+usize el_token_debug_format(const ElToken* tok, usize n, char buf[static n]) {
+    ElStringView type_string = el_token_type_to_string(tok->type);
     usize count = 0;
 
     usize copy_len = (type_string.len < n - 1) ? type_string.len : n - 1;
     memcpy(buf, type_string.data, copy_len);
     count += copy_len;
 
-    if (!el_sv_is_null(tok.lexeme) && count < n - 2) {
+    if (!el_sv_is_null(tok->lexeme) && count < n - 2) {
         buf[count++] = '(';
-        usize lex_len = (tok.lexeme.len < n - count - 1) ? tok.lexeme.len : n - count - 1;
-        memcpy(buf + count, tok.lexeme.data, lex_len);
+        usize lex_len = (tok->lexeme.len < n - count - 1) ? tok->lexeme.len : n - count - 1;
+        memcpy(buf + count, tok->lexeme.data, lex_len);
         count += lex_len;
         if (count < n - 1) {
             buf[count++] = ')';
@@ -177,39 +177,36 @@ usize el_token_format(ElToken tok, usize n, char buf[static n]) {
     return count;
 }
 
-usize el_token_to_string(ElToken tok, char** out) {
-    ElStringView type_string = el_token_type_to_string(tok.type);
+usize el_token_to_debug_string(const ElToken* tok, char** out) {
+    ElStringView type_string = el_token_type_to_string(tok->type);
 
-    if (tok.lexeme.data == NULL) {
+    if (el_sv_is_null(tok->lexeme)) {
         *out = malloc(type_string.len + 1); // +1 for \0
         *out = memcpy(*out, type_string.data, type_string.len + 1);
         return type_string.len;
     }
 
-    const char* value_string = tok.lexeme.data;
-    const usize value_string_len = tok.lexeme.len;
-
     const usize full_len = type_string.len + 1 // '('
-        + value_string_len + 1; // ')'
+                         + tok->lexeme.len + 1; // ')'
 
     *out = malloc(full_len + 1); // +1 for \0
     memcpy(*out, type_string.data, type_string.len);
     (*out)[type_string.len] = '(';
-    memcpy(*out + type_string.len + 1, value_string, value_string_len);
-    (*out)[type_string.len + 1 + value_string_len] = ')';
+    memcpy(*out + type_string.len + 1, tok->lexeme.data, tok->lexeme.len);
+    (*out)[type_string.len + 1 + tok->lexeme.len] = ')';
     (*out)[full_len] = '\0';
     return type_string.len;
 }
 
-usize el_token_print(ElToken tok, FILE* out) {
+usize el_token_print(const ElToken* tok, FILE* out) {
     usize bytes_written = 0;
-    ElStringView type_string = el_token_type_to_string(tok.type);
+    ElStringView type_string = el_token_type_to_string(tok->type);
 
     bytes_written += el_sv_print(type_string, out);
 
-    if (!el_sv_is_null(tok.lexeme)) {
+    if (!el_sv_is_null(tok->lexeme)) {
         bytes_written += fputc('(', out) == EOF ? 0 : 1;
-        bytes_written += el_sv_print(tok.lexeme, out);
+        bytes_written += el_sv_print(tok->lexeme, out);
         bytes_written += fputc(')', out) == EOF ? 0 : 1;
     }
 
@@ -220,18 +217,21 @@ bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb) {
     bool success = true;
 
     switch (tok->type) {
-    case EL_TT_STRING_LITERAL: {
+    case EL_TT_STRING_LITERAL:
         success &= el_strbuf_append_char(sb, '"');
         success &= el_strbuf_append(sb, tok->lexeme);
         success &= el_strbuf_append_char(sb, '"');
         break;
-    }
-    case EL_TT_CHAR_LITERAL: {
+    case EL_TT_CHAR_LITERAL:
         success &= el_strbuf_append_char(sb, '\'');
         success &= el_strbuf_append(sb, tok->lexeme);
         success &= el_strbuf_append_char(sb, '\'');
         break;
-    }
+    case EL_TT_PP_ANGLE_HEADER:
+        success &= el_strbuf_append_char(sb, '<');
+        success &= el_strbuf_append(sb, tok->lexeme);
+        success &= el_strbuf_append_char(sb, '>');
+        break;
     case EL_TT_LINE_COMMENT:
         success &= el_strbuf_append(sb, EL_SV("//"));
         success &= el_strbuf_append(sb, tok->lexeme);
@@ -241,7 +241,9 @@ bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb) {
         success &= el_strbuf_append(sb, tok->lexeme);
         success &= el_strbuf_append(sb, EL_SV("*/"));
         break;
-    case EL_TT_NEWLINE: success &= el_strbuf_append_char(sb, '\n'); break;
+    case EL_TT_NEWLINE:
+        success &= el_strbuf_append_char(sb, '\n');
+        break;
 
     case EL_TT_UNKNOWN:
     case EL_TT_EOF:
