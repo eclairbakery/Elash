@@ -3,7 +3,7 @@
 ## 0. Project Setup
 
 - [x] Initialize repository
-- [ ] Configure build system
+- [x] Configure build system
 - [ ] Add LLVM C bindings as dependency
 - [x] Create compiler entry point
 - [x] Implement source file loader
@@ -36,7 +36,6 @@
 - [ ] Implement conditional compilation directives
 - [ ] Evaluate constant expressions in conditionals
 - [ ] Support predefined compiler macros
-- [ ] Integrate preprocessor output with lexer
 - [ ] Add preprocessor test suite (includes, macros, conditionals, edge cases)
 
 
