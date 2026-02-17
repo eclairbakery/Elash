@@ -6,7 +6,7 @@
 - [ ] Configure build system
 - [ ] Add LLVM C bindings as dependency
 - [x] Create compiler entry point
-- [ ] Implement source file loader
+- [x] Implement source file loader
 - [ ] Implement diagnostic system (line/column + spans)
 - [ ] Setup automated tests
 
