@@ -4,11 +4,9 @@ typedef enum ElSrcDocErrorCode {
     EL_SRCDOC_ERR_SUCCESS,
 
     EL_SRCDOC_ERR_ALLOC_FAILED,
+    EL_SRCDOC_ERR_FOPEN_FAILED,
+    EL_SRCDOC_ERR_FTELL_FAILED,
+    EL_SRCDOC_ERR_FREAD_FAILED,
+    EL_SRCDOC_ERR_FWRITE_FAILED,
 } ElSrcDocErrorCode;
 
-typedef struct ElSrcDocErrorDetails {
-    ElSrcDocErrorCode code;
-} ElSrcDocErrorDetails;
-
-#define EL_SRCDOC_ERR_DETAILS_OK \
-    ((ElSrcDocErrorDetails) { .code = EL_SRCDOC_ERR_SUCCESS })
