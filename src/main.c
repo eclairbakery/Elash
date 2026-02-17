@@ -61,7 +61,7 @@ int main(int argc, const char* const* argv) {
         }
         el_pp_preprocess(&pp, &t);
 
-        el_token_print(t, stdout);
+        el_token_print(&t, stdout);
         el_srcdoc_append_token(&preprocessed, &t);
         putchar('\n');
     } while (t.type != EL_TT_EOF);
