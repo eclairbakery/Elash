@@ -190,19 +190,19 @@ ElStringView el_token_type_to_string(ElTokenType tt);
 /// @param n Size of the destination buffer.
 /// @param buf Output buffer (must have at least `n` bytes).
 /// @return Number of bytes written (excluding null terminator).
-usize el_token_format(ElToken tok, usize n, char buf[static n]);
+usize el_token_debug_format(const ElToken* tok, usize n, char buf[static n]);
 
 /// @brief Convert a token into a newly allocated string representation.
 /// @param tok Token to convert.
 /// @param out Pointer to store the allocated string.
 /// @return Length of the resulting string (excluding null terminator).
-usize el_token_to_string(ElToken tok, char** out);
+usize el_token_to_debug_string(const ElToken* tok, char** out);
 
 /// @brief Print a token to a file stream.
 /// @param tok Token to print.
 /// @param out File stream to write to.
 /// @return Number of bytes written.
-usize el_token_print(ElToken tok, FILE* out);
+usize el_token_print(const ElToken* tok, FILE* out);
 
 /// @brief Convert a token into its raw string representation and append to a string buffer.
 /// @param tok Token to convert.
