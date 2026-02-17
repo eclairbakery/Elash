@@ -5,7 +5,6 @@
 #include <el-defs/sv.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 
 int main(int argc, const char* const* argv) {
     if (argc < 2) {
@@ -13,31 +12,18 @@ int main(int argc, const char* const* argv) {
         return 1;
     }
 
-    FILE* f = fopen(argv[1], "r");
-    if (!f) {
-        perror("Failed to open file");
-        return 1;
-    }
-    fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    rewind(f);
+    const char* input_file = argv[1];
 
-    char* buffer = malloc(size + 1);
-    if (!buffer) {
-        perror("Failed to allocate buffer");
-        fclose(f);
-        return 1;
-    }
-    fread(buffer, 1, size, f);
-    buffer[size] = '\0';
-    fclose(f);
+    ElSourceDocument input;
+    el_srcdoc_init_from_file(&input, input_file);
+    
+    ElStringView input_content = el_srcdoc_content(&input);
 
     ElLexer lexer;
-    ElStringView input_sv = el_sv_from_data_and_len(buffer, size);
-    ElLexerErrorCode err = el_lexer_init(&lexer, input_sv, EL_LF_ALLOW_UTF8_IDENTS);
+    ElLexerErrorCode err = el_lexer_init(&lexer, input_content, EL_LF_ALLOW_UTF8_IDENTS);
     if (err != EL_LEXERR_SUCCESS) {
         fprintf(stderr, "Lexer initialization error: %d\n", err);
-        free(buffer);
+        el_srcdoc_destroy(&input);
         return 1;
     }
 
@@ -53,8 +39,10 @@ int main(int argc, const char* const* argv) {
             err = el_lexer_next_token(&lexer, &t);
             if (err != EL_LEXERR_SUCCESS) {
                 el_lexer_result_print(lexer.last_err_details, stderr);
-                free(buffer);
+                el_srcdoc_destroy(&input); 
+                el_pp_destroy(&pp);
                 el_lexer_destroy(&lexer);
+                el_srcdoc_destroy(&preprocessed);
                 return 1;
             }
             el_pp_pass_token(&pp, t);
@@ -68,7 +56,7 @@ int main(int argc, const char* const* argv) {
 
     el_srcdoc_print(&preprocessed, stdout);
 
-    free(buffer);
+    el_srcdoc_destroy(&input); 
     el_pp_destroy(&pp);
     el_lexer_destroy(&lexer);
     el_srcdoc_destroy(&preprocessed);
