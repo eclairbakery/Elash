@@ -75,10 +75,12 @@ usize el_lexer_result_print(ElLexerErrorDetails r, FILE* out) {
     ulong written = 0;
 
     if (r.code != EL_LEXERR_SUCCESS) {
-        written += fprintf(out, "(%u:%u): ",
+        written += fprintf(
+            out, "(%u:%u): ",
             // line and column are 0-indexed but we want 1-indexed numbers
             // human readable 👍
-            r.error_location.line + 1, r.error_location.column + 1);
+            r.error_location.line + 1, r.error_location.column + 1
+        );
     }
 
     written += el_sv_print(el_lexer_err_code_to_string(r.code), out);

@@ -4,35 +4,24 @@
 #include <el-defs/source-loc.h>
 #include <el-defs/sv.h>
 
+#include <el-lexer/macros.h>
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
 
-#define EL_LEXER_SET_ERROR(LEXER, CODE, LOC, DETAILS_INIT)     \
-    do {                                                       \
-        (LEXER)->last_err_details = (ElLexerErrorDetails) {    \
-            .code = (CODE),                                    \
-            .error_location = (LOC),                           \
-            .error_details = DETAILS_INIT,                     \
-        };                                                     \
-    } while (0)
-
-#define EL_LEXER_RETURN_ERROR(lexer, code, loc, detail_ch)     \
-    do {                                                       \
-        EL_LEXER_SET_ERROR(lexer, code, loc, detail_ch);       \
-        return (code);                                         \
-    } while (0)
-
 static inline char peek(const ElLexer* lexer) {
     if (lexer->current_loc.offset >= lexer->input.len)
         return '\0';
+
     return lexer->input.data[lexer->current_loc.offset];
 }
 
 static inline char peek_next(const ElLexer* lexer) {
     if (lexer->current_loc.offset + 1 >= lexer->input.len)
         return '\0';
+
     return lexer->input.data[lexer->current_loc.offset + 1];
 }
 
@@ -47,17 +36,20 @@ static inline char next(ElLexer* lexer) {
         if (peek(lexer) == '\n') { // CRLF
             lexer->current_loc.offset++;
         }
+
         lexer->current_loc.line++;
         lexer->current_loc.column = 0;
     } else if (c == '\n') {
         lexer->current_loc.line++;
         lexer->current_loc.column = 0;
     }
+
     return c;
 }
 
 static inline ElStringView el_make_lexeme_from_token_start(ElLexer* lexer) {
-    return el_sv_slice(lexer->input, lexer->token_start_loc.offset, lexer->current_loc.offset);
+    return 
+        el_sv_slice(lexer->input, lexer->token_start_loc.offset, lexer->current_loc.offset);
 }
 
 ElLexerErrorCode _el_lexer_ret_token(ElLexer* lexer, ElTokenType type, ElToken* out_tok) {
@@ -66,6 +58,7 @@ ElLexerErrorCode _el_lexer_ret_token(ElLexer* lexer, ElTokenType type, ElToken* 
     out_tok->type = type;
     out_tok->loc = lexer->token_start_loc;
     out_tok->lexeme = (ElStringView) { .data = lexer->input.data + lexer->token_start_loc.offset, .len = 0 };
+
     return EL_LEXERR_SUCCESS;
 }
 
@@ -75,6 +68,7 @@ ElLexerErrorCode _el_lexer_ret_token_with_lexeme(ElLexer* lexer, ElTokenType typ
     out_tok->type = type;
     out_tok->loc = lexer->token_start_loc;
     out_tok->lexeme = lexeme;
+
     return EL_LEXERR_SUCCESS;
 }
 
@@ -86,11 +80,13 @@ ElLexerErrorCode el_lexer_init(ElLexer* lexer, ElStringView input, ElLexerFlags 
     lexer->flags = flags;
     lexer->ctx = EL_LEXER_CTX_DEFAULT;
     lexer->prev_ctx = EL_LEXER_CTX_DEFAULT;
+
     return EL_LEXERR_SUCCESS;
 }
 
 ElLexerErrorCode el_lexer_destroy(ElLexer* lexer) {
-    memset(lexer, 0, sizeof(ElLexer)); // probably useless, but why not
+    memset(lexer, 0, sizeof(ElLexer)); // probably useless, but why not 
+
     return EL_LEXERR_SUCCESS;
 }
 
@@ -101,12 +97,15 @@ ElLexerErrorCode el_lexer_reset(ElLexer* lexer) {
     lexer->last_err_details.code = EL_LEXERR_SUCCESS;
     lexer->ctx = EL_LEXER_CTX_DEFAULT;
     lexer->prev_ctx = EL_LEXER_CTX_DEFAULT;
+
     return EL_LEXERR_SUCCESS;
 }
 
 ElLexerErrorCode el_lexer_set_input(ElLexer* lexer, ElStringView input) {
     ElLexerErrorCode err = el_lexer_reset(lexer);
+
     lexer->input = input;
+
     return err;
 }
 
@@ -190,7 +189,8 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
 ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out);
 
 static inline ElLexerErrorCode _el_lexer_ret_tok_with_lexeme_auto(ElLexer* lexer, ElTokenType t, ElToken* out) {
-    return _el_lexer_ret_token_with_lexeme(lexer, t, el_make_lexeme_from_token_start(lexer), out);
+    return 
+        _el_lexer_ret_token_with_lexeme(lexer, t, el_make_lexeme_from_token_start(lexer), out);
 }
 
 ElLexerErrorCode _el_lexer_lex_op2(ElLexer* lexer, char expect, ElTokenType single, ElTokenType dbl, ElToken* out) {
@@ -198,7 +198,9 @@ ElLexerErrorCode _el_lexer_lex_op2(ElLexer* lexer, char expect, ElTokenType sing
         next(lexer);
         return _el_lexer_ret_tok_with_lexeme_auto(lexer, dbl, out);
     }
-    return _el_lexer_ret_tok_with_lexeme_auto(lexer, single, out);
+
+    return 
+        _el_lexer_ret_tok_with_lexeme_auto(lexer, single, out);
 }
 
 ElLexerErrorCode _el_lexer_lex_op3(
