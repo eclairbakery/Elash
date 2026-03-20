@@ -23,13 +23,13 @@ bool el_pp_value_type_is_trivial(ElPpValueType type);
 
 typedef struct ElPpValue {
     union {
-        int asInt;          // EL_PP_VAR_INT
-        float asFloat;      // EL_PP_VAR_FLOAT
-        bool asBool;        // EL_PP_VAR_BOOL
-        char asChar;        // EL_PP_VAR_CHAR
-        ElStringView asStr; // EL_PP_VAR_STRING
-        ElPpValueArr asArr; // EL_PP_VAR_ARRAY
-        ElTokenBuf asToks;  // EL_PP_VAR_TOKENS
+        int as_int;          // EL_PP_VAR_INT
+        float as_float;      // EL_PP_VAR_FLOAT
+        bool as_bool;        // EL_PP_VAR_BOOL
+        char as_char;        // EL_PP_VAR_CHAR
+        ElStringView as_str; // EL_PP_VAR_STRING
+        ElPpValueArr as_arr; // EL_PP_VAR_ARRAY
+        ElTokenBuf as_toks;  // EL_PP_VAR_TOKENS
     };
     ElPpValueType type;
 } ElPpValue;
