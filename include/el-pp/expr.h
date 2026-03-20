@@ -14,6 +14,13 @@ typedef enum _ElPpBinaryOp {
     _EL_PP_BINARY_OP_SUB,
     _EL_PP_BINARY_OP_MUL,
     _EL_PP_BINARY_OP_DIV,
+
+    _EL_PP_BINARY_OP_EQ,
+    _EL_PP_BINARY_OP_NEQ,
+    _EL_PP_BINARY_OP_LT,
+    _EL_PP_BINARY_OP_GT,
+    _EL_PP_BINARY_OP_GTE,
+    _EL_PP_BINARY_OP_LTE,
 } _ElPpBinaryOp;
 typedef struct _ElPpBinaryExpr {
     _ElPpExpr* lhs;
@@ -48,3 +55,5 @@ struct _ElPpExpr {
     _ElPpExprType type;
     _ElPpExprData data; 
 };
+
+typedef _ElPpExpr ElPpExpr;
