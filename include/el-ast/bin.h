@@ -1,5 +1,7 @@
 #pragma once
 
+#include <el-util/dynarena.h>
+
 typedef struct ElAstNode ElAstNode;
 
 typedef enum ElAstBinExprType {
@@ -31,3 +33,5 @@ typedef struct ElAstBinExprNode {
     ElAstBinExprType type;
     ElAstNode* right;
 } ElAstBinExprNode;
+
+ElAstNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinExprType type, ElAstNode* left, ElAstNode* right);
