@@ -473,7 +473,6 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
                 .len = lexer->current_loc.offset - start_header_offset - 1
             };
 
-            lexer->ctx = EL_LEXER_CTX_DEFAULT;
             return _el_lexer_ret_token_with_lexeme(lexer, EL_TT_PP_ANGLE_HEADER, lexeme, out);
         }
 

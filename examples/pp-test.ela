@@ -1,5 +1,5 @@
-#include <std/io.eh>
-#include <png.eh>
+#include <std/io.elh>
+#include <png.elh>
 
 #define A 123
 #note "siema"
@@ -13,10 +13,10 @@
 #endif
 
 #if A_IS_123
-    #include <sys-header.h>
-    #include "a-is-123.h"
+    #include <sys-header.elh>
+    #include "a-is-123.elh"
 #else
-    #include "nah.h"
+    #include "nah.elh"
 #endif
 
 #define CREATE_ENUM(NAME, ENUMERATORS):

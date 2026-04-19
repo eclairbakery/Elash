@@ -1,4 +1,4 @@
-#include <std/io.eh>
+#include <std/io.elh>
 
 int main() {
     for (int i = 0; i < 10; ++i) {
