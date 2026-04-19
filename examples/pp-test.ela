@@ -1,5 +1,5 @@
-#include <stdio.h>
-#include <png.h>
+#include <std/io.eh>
+#include <png.eh>
 
 #define A 123
 #note "siema"
