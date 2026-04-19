@@ -8,7 +8,7 @@ static ElAstNode* el_ast_new_literal(ElDynArena* arena, ElAstLiteralType type) {
     return node;
 }
 
-ElAstNode* el_ast_new_int_literal(ElDynArena* arena, uint64_t value) {
+ElAstNode* el_ast_new_int_literal(ElDynArena* arena, int64_t value) {
     ElAstNode* node = el_ast_new_literal(arena, EL_AST_LIT_INT);
     node->as.literal.of.int_.value = value;
     return node;
