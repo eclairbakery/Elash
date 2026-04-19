@@ -1,5 +1,7 @@
 #pragma once
 
+#include <el-util/dynarena.h>
+
 typedef struct ElAstNode ElAstNode;
 
 typedef enum ElAstUnaryExprType {
@@ -19,3 +21,5 @@ typedef struct ElAstUnaryExprNode {
     ElAstUnaryExprType type;
     ElAstNode* operand;
 } ElAstUnaryExprNode;
+
+ElAstNode* el_ast_new_unary_expr(ElDynArena* arena, ElAstUnaryExprType type, ElAstNode* operand);
