@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <std/io.eh>
 
 int main() {
     // this line prints hello world
