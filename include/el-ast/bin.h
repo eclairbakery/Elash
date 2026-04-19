@@ -3,27 +3,27 @@
 typedef struct ElAstNode ElAstNode;
 
 typedef enum ElAstBinExprType {
-    ADD, // +
-    SUB, // -
-    MUL, // *
-    DIV, // /
-    MOD, // %
+    EL_AST_BIN_EXPR_ADD, // +
+    EL_AST_BIN_EXPR_SUB, // -
+    EL_AST_BIN_EXPR_MUL, // *
+    EL_AST_BIN_EXPR_DIV, // /
+    EL_AST_BIN_EXPR_MOD, // %
 
-    EQ,  // ==
-    NEQ, // !=
-    LT,  // <
-    LTE, // <=
-    GT,  // >
-    GTE, // >=
+    EL_AST_BIN_EXPR_EQ,  // ==
+    EL_AST_BIN_EXPR_NEQ, // !=
+    EL_AST_BIN_EXPR_LT,  // <
+    EL_AST_BIN_EXPR_LTE, // <=
+    EL_AST_BIN_EXPR_GT,  // >
+    EL_AST_BIN_EXPR_GTE, // >=
     
-    AND, // &&
-    OR,  // ||
+    EL_AST_BIN_EXPR_AND, // &&
+    EL_AST_BIN_EXPR_OR,  // ||
 
-    BW_AND, // &
-    BW_OR,  // |
-    BW_XOR, // ^
-    SHL,    // <<
-    SHR,    // >>
+    EL_AST_BIN_EXPR_BW_AND, // &
+    EL_AST_BIN_EXPR_BW_OR,  // |
+    EL_AST_BIN_EXPR_BW_XOR, // ^
+    EL_AST_BIN_EXPR_SHL,    // <<
+    EL_AST_BIN_EXPR_SHR,    // >>
 } ElAstBinExprType;
 
 typedef struct ElAstBinExprNode {
