@@ -7,6 +7,11 @@ ElPpErrorCode _el_pp_ret_error(ElPreprocessor* pp, ElPpErrorCode code) {
     return code;
 }
 
+ElPpErrorCode _el_pp_ret_skip(ElPreprocessor* pp) {
+    pp ->last_err_details.code = EL_PPERR_SKIPPED;
+    return EL_PPERR_SKIPPED;
+}
+
 ElPpErrorCode _el_pp_ret_success(ElPreprocessor* pp) {
     pp->last_err_details.code = EL_PPERR_SUCCESS;
     return EL_PPERR_SUCCESS;
@@ -63,7 +68,7 @@ ElPpErrorCode el_pp_preprocess(ElPreprocessor* pp, ElToken* out_tok) {
     case EL_TT_LINE_COMMENT:
     case EL_TT_BLOCK_COMMENT:
         // Skip whitespace, new lines and comments 
-        return _el_pp_ret_success(pp);
+        return _el_pp_ret_skip(pp);
 
     case EL_TT_PP_NOTE:
         el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_INT_LITERAL, .lexeme = EL_SV("123") });
