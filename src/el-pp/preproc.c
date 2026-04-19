@@ -57,13 +57,25 @@ ElPpErrorCode el_pp_preprocess(ElPreprocessor* pp, ElToken* out_tok) {
         return _el_pp_ret_success(pp);
     }
     
-    if (pp->input.type == EL_TT_PP_NOTE) {
+    switch (pp->input.type) {
+    case EL_TT_WHITESPACE:
+    case EL_TT_LINE_COMMENT:
+    case EL_TT_BLOCK_COMMENT:
+        // Skip whitespace and comments 
+        return _el_pp_ret_success(pp);
+
+    case EL_TT_PP_NOTE:
         el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_INT_LITERAL, .lexeme = EL_SV("123") });
         el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_PLUS });
         el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_INT_LITERAL, .lexeme = EL_SV("321") });
         *out_tok = (ElToken) { .type = EL_TT_IDENT, .lexeme = EL_SV("hello") };
         return _el_pp_ret_success(pp);
+
+    default:
+        *out_tok = pp->input;
+        return _el_pp_ret_success(pp);
     }
+
     *out_tok = pp->input;
     return _el_pp_ret_success(pp);
 }
