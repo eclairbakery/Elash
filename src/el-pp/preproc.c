@@ -58,10 +58,11 @@ ElPpErrorCode el_pp_preprocess(ElPreprocessor* pp, ElToken* out_tok) {
     }
     
     switch (pp->input.type) {
+    case EL_TT_NEWLINE:
     case EL_TT_WHITESPACE:
     case EL_TT_LINE_COMMENT:
     case EL_TT_BLOCK_COMMENT:
-        // Skip whitespace and comments 
+        // Skip whitespace, new lines and comments 
         return _el_pp_ret_success(pp);
 
     case EL_TT_PP_NOTE:
