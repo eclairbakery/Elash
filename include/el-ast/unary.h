@@ -3,16 +3,16 @@
 typedef struct ElAstNode ElAstNode;
 
 typedef enum ElAstUnaryExprType {
-    POS, // +
-    NEG, // -
+    EL_AST_UNARY_EXPR_POS, // +
+    EL_AST_UNARY_EXPR_NEG, // -
 
-    NOT,    // !
-    BW_NOT, // ~
+    EL_AST_UNARY_EXPR_NOT,    // !
+    EL_AST_UNARY_EXPR_BW_NOT, // ~
 
-    PRE_INC,  // ++x
-    PRE_DEC,  // --x
-    POST_INC, // x++
-    POST_DEC, // x--
+    EL_AST_UNARY_EXPR_PRE_INC,  // ++x
+    EL_AST_UNARY_EXPR_PRE_DEC,  // --x
+    EL_AST_UNARY_EXPR_POST_INC, // x++
+    EL_AST_UNARY_EXPR_POST_DEC, // x--
 } ElAstUnaryExprType;
 
 typedef struct ElAstUnaryExprNode {
