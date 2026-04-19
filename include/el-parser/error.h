@@ -15,5 +15,5 @@ typedef struct ElParserErrorDetails {
     union {
         ElToken token;
         ElTokenType expected;
-    } data;
+    };
 } ElParserErrorDetails;
