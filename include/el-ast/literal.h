@@ -15,7 +15,7 @@ typedef enum ElAstLiteralType {
 } ElAstLiteralType;
 
 typedef struct ElAstIntLiteralNode {
-    uint64_t value;
+    int64_t value;
 } ElAstIntLiteralNode;
 
 typedef struct ElAstFloatLiteralNode {
@@ -45,7 +45,7 @@ typedef struct ElAstLiteralNode {
     } of;
 } ElAstLiteralNode;
 
-ElAstNode* el_ast_new_int_literal(ElDynArena* arena, uint64_t value);
+ElAstNode* el_ast_new_int_literal(ElDynArena* arena, int64_t value);
 ElAstNode* el_ast_new_float_literal(ElDynArena* arena, long double value);
 ElAstNode* el_ast_new_char_literal(ElDynArena* arena, char value);
 ElAstNode* el_ast_new_string_literal(ElDynArena* arena, ElStringView value);
