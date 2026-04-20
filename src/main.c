@@ -1,6 +1,8 @@
 #include <el-srcdoc/srcdoc.h>
 #include <el-lexer/lexer.h>
 #include <el-pp/preproc.h>
+#include <el-parser/parser.h>
+#include <el-util/dynarena.h>
 
 #include <el-defs/sv.h>
 
@@ -47,7 +49,13 @@ int main(int argc, const char* const* argv) {
             }
             el_pp_pass_token(&pp, t);
         }
-        el_pp_preprocess(&pp, &t);
+
+
+        ElPpErrorCode pperr = el_pp_preprocess(&pp, &t);
+        if (pperr == EL_PPERR_SKIPPED) continue;
+        if (pperr != EL_PPERR_SUCCESS) {
+            // TODO: handle error
+        }
 
         el_token_print(&t, stdout);
         el_srcdoc_append_token(&preprocessed, &t);
@@ -55,6 +63,27 @@ int main(int argc, const char* const* argv) {
     } while (t.type != EL_TT_EOF);
 
     el_srcdoc_print(&preprocessed, stdout);
+
+    printf("\n--- AST ---\n");
+    el_lexer_set_input(&lexer, input_content);
+    el_pp_reset(&pp);
+
+    ElDynArena arena;
+    el_dynarena_init(&arena);
+
+    ElParser parser;
+    el_parser_init(&parser, &pp, &lexer, &arena);
+
+    ElAstNode* ast = NULL;
+    ElParserErrorCode perr = el_parser_parse(&parser, &ast);
+    if (perr == EL_PARSER_ERR_OK) {
+        el_ast_dump(ast, stdout);
+    } else {
+        fprintf(stderr, "Parser error: %d\n", perr);
+    }
+
+    el_dynarena_free(&arena);
+    el_parser_destroy(&parser);
 
     el_srcdoc_destroy(&input); 
     el_pp_destroy(&pp);
