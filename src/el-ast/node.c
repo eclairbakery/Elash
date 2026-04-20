@@ -4,7 +4,7 @@
 
 void el_ast_dump_print_ident(size_t ident, FILE* out) {
     for (size_t i = 0; i < ident; ++i) {
-        fputs("    ", out);
+        fputs("  ", out);
     }
 }
 
@@ -33,22 +33,22 @@ void el_ast_dump_literal(ElAstLiteralNode* lit, size_t ident, FILE* out) {
 }
 
 void el_ast_dump_impl(ElAstNode* node, size_t ident, FILE* out) {
-    el_ast_dump_print_ident(ident, out);
     switch (node->type) {
     case EL_AST_NODE_BINARY_EXPR: {
         ElStringView op = el_ast_bin_op_to_string(node->as.binary.type);
+        el_ast_dump_print_ident(ident, out);
         fprintf(out, "BinaryExpr('"EL_SV_FMT"'):\n", EL_SV_FARG(op));
         el_ast_dump_print_ident(ident + 1, out);
-        fprintf(out, "left:  "); el_ast_dump_impl(node->as.binary.left,  0, out);
+        fprintf(out, "left: \n"); el_ast_dump_impl(node->as.binary.left,  ident + 2, out);
         el_ast_dump_print_ident(ident + 1, out);
-        fprintf(out, "right: "); el_ast_dump_impl(node->as.binary.right, 0, out);
-        fputs("\n", out);
+        fprintf(out, "right: \n"); el_ast_dump_impl(node->as.binary.right, ident + 2, out);
         break;
     }
     case EL_AST_NODE_UNARY_EXPR: {
         ElStringView op = el_ast_unary_op_to_string(node->as.unary.type);
+        el_ast_dump_print_ident(ident, out);
         fprintf(out, "UnaryExpr('"EL_SV_FMT"'):", EL_SV_FARG(op));
-        el_ast_dump_impl(node->as.binary.right, ident + 1, out);
+        el_ast_dump_impl(node->as.unary.operand, ident + 1, out);
         break;
     }
     case EL_AST_NODE_LITERAL:
