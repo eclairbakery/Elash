@@ -1,6 +1,7 @@
 #pragma once
 
 #include <el-util/dynarena.h>
+#include <el-defs/sv.h>
 
 typedef struct ElAstNode ElAstNode;
 
@@ -23,3 +24,5 @@ typedef struct ElAstUnaryExprNode {
 } ElAstUnaryExprNode;
 
 ElAstNode* el_ast_new_unary_expr(ElDynArena* arena, ElAstUnaryExprType type, ElAstNode* operand);
+
+ElStringView el_ast_unary_op_to_string(ElAstUnaryExprType type);
