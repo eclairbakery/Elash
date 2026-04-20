@@ -19,3 +19,5 @@ typedef struct ElAstNode {
         ElAstLiteralNode literal;
     } as;
 } ElAstNode;
+
+void el_ast_dump(ElAstNode* root, FILE* out);
