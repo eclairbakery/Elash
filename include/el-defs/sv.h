@@ -14,6 +14,9 @@ typedef struct ElStringView {
 #define EL_SV_NULL ((ElStringView) { .data = NULL, .len = 0 })
 #define EL_SV(STRING_LITERAL) ((ElStringView) { .data = STRING_LITERAL, .len = sizeof(STRING_LITERAL) - 1 })
 
+#define EL_SV_FMT "%.*s"
+#define EL_SV_FARG(SV) ((int)((SV).len)), ((SV).data ? (SV).data : "(nil)")
+
 static inline ulong el_sv_print(ElStringView sv, FILE* out) {
     return fwrite(sv.data, 1, sv.len, out);
 }
