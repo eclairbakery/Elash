@@ -47,7 +47,7 @@ void el_ast_dump_impl(ElAstNode* node, size_t ident, FILE* out) {
     case EL_AST_NODE_UNARY_EXPR: {
         ElStringView op = el_ast_unary_op_to_string(node->as.unary.type);
         el_ast_dump_print_ident(ident, out);
-        fprintf(out, "UnaryExpr('"EL_SV_FMT"'):", EL_SV_FARG(op));
+        fprintf(out, "UnaryExpr('"EL_SV_FMT"'):\n", EL_SV_FARG(op));
         el_ast_dump_impl(node->as.unary.operand, ident + 1, out);
         break;
     }
