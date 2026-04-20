@@ -31,7 +31,7 @@ endif
 TARGET := $(BIN_DIR)/elc$(EXE_EXT)
 
 CSTD     := -std=c11
-WARNINGS := -Wall -Wextra
+WARNINGS := -Wall -Wextra -Werror=implicit-fallthrough
 PIC_CFLAGS := -fPIC
 
 COMMON_CFLAGS := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
