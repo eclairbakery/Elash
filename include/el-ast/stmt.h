@@ -1,5 +1,7 @@
 #pragma once
 
+#include <el-util/dynarena.h>
+
 #include "expr.h"
 
 typedef enum ElAstStmtType {
@@ -12,3 +14,6 @@ typedef struct ElAstStmtNode {
         ElAstExprNode expr;
     } as;
 } ElAstStmtNode;
+
+ElAstStmtNode el_ast_expr_stmt(ElAstExprNode expr);
+ElAstStmtNode* el_ast_new_expr_stmt(ElDynArena* arena, ElAstExprNode expr);
