@@ -6,6 +6,7 @@
 #include <el-ast/expr.h>
 #include <el-ast/stmt.h>
 #include <el-ast/toplevel.h>
+#include <el-ast/common/type.h>
 
 #include <el-parser/error.h>
 
@@ -26,6 +27,9 @@ ElParserErrorCode el_parser_advance(ElParser* parser);
 ElParserErrorCode el_parser_expect(ElParser* parser, ElTokenType type);
 bool el_parser_match(ElParser* parser, ElTokenType type); 
 bool el_parser_check(ElParser* parser, ElTokenType type);
+
+ElParserErrorCode _el_parser_parse_ident(ElParser* parser, ElAstIdentNode** out);
+ElParserErrorCode _el_parser_parse_type(ElParser* parser, ElAstTypeNode** out);
 
 ElParserErrorCode _el_parser_parse_expression(ElParser* parser, ElAstExprNode** out);
 ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out);
