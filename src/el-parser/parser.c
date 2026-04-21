@@ -41,6 +41,10 @@ bool el_parser_match(ElParser* parser, ElTokenType type) {
     return false;
 }
 
+bool el_parser_check(ElParser* parser, ElTokenType type) {
+    return parser->current.type == type;
+}
+
 ElParserErrorCode el_parser_expect(ElParser* parser, ElTokenType type) {
     if (parser->current.type == type) {
         return el_parser_advance(parser);
