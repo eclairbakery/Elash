@@ -26,34 +26,30 @@ void el_ast_stmt_list_append(ElAstStmtNode** head, ElAstStmtNode** tail, ElAstSt
     }
 }
 
-void el_ast_dump_stmt_impl(ElAstStmtNode* node, usize ident, FILE* out) {
+void el_ast_dump_stmt(ElAstStmtNode* node, usize indent, FILE* out) {
     switch (node->type) {
     case EL_AST_STMT_EXPR:
-        el_ast_dump_expr_print_ident(ident, out);
+        el_ast_dump_print_indent(indent, out);
         fprintf(out, "ExprStmt:\n");
-        el_ast_dump_expr_impl(node->as.expr, ident + 1, out);
+        el_ast_dump_expr(node->as.expr, indent + 1, out);
         break;
     case EL_AST_STMT_RETURN:
-        el_ast_dump_expr_print_ident(ident, out);
+        el_ast_dump_print_indent(indent, out);
         fprintf(out, "ReturnStmt:\n");
         if (node->as.return_.value) {
-            el_ast_dump_expr_impl(node->as.return_.value, ident + 1, out);
+            el_ast_dump_expr(node->as.return_.value, indent + 1, out);
         } else {
-            el_ast_dump_expr_print_ident(ident + 1, out);
+            el_ast_dump_print_indent(indent + 1, out);
             fprintf(out, "void\n");
         }
         break;
     case EL_AST_STMT_BLOCK:
-        el_ast_dump_expr_print_ident(ident, out);
+        el_ast_dump_print_indent(indent, out);
         fprintf(out, "BlockStmt:\n");
         for (ElAstStmtNode* stmt = node->as.block.stmts; stmt; stmt = stmt->next) {
-            el_ast_dump_stmt_impl(stmt, ident + 1, out);
+            el_ast_dump_stmt(stmt, indent + 1, out);
         }
         break;
     }
-}
-
-void el_ast_dump_stmt(ElAstStmtNode* root, FILE* out) {
-    el_ast_dump_stmt_impl(root, 0, out);
 }
 
