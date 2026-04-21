@@ -20,4 +20,8 @@ typedef struct ElAstExprNode {
     } as;
 } ElAstExprNode;
 
+// TODO: this sucks
 void el_ast_dump_expr(ElAstExprNode* root, FILE* out);
+void el_ast_dump_expr_impl(ElAstExprNode* node, size_t ident, FILE* out);
+void el_ast_dump_expr_print_ident(size_t ident, FILE* out);
+
