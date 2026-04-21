@@ -41,8 +41,8 @@
 
 ## 3. Parser - AST
 
-- [ ] Define AST node structures
-- [ ] Implement expression parser with precedence handling
+- [x] Define AST node structures
+- [x] Implement expression parser with precedence handling
 - [ ] Implement variable declarations
 - [ ] Implement function declarations
 - [ ] Implement blocks
