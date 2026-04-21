@@ -44,8 +44,8 @@
 - [x] Define AST node structures
 - [x] Implement expression parser with precedence handling
 - [ ] Implement variable declarations
-- [ ] Implement function declarations
-- [ ] Implement blocks
+- [x] Implement function declarations
+- [x] Implement blocks
 - [ ] Implement control flow statements
 - [ ] Implement return statements
 - [ ] Implement top-level/module parsing
