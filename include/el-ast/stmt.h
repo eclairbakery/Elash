@@ -14,10 +14,10 @@ typedef enum ElAstStmtType {
 typedef struct ElAstStmtNode {
     ElAstStmtType type;
     union {
-        ElAstExprNode expr;
+        ElAstExprNode* expr;
         ElAstReturnStmtNode return_;
     } as;
 } ElAstStmtNode;
 
-ElAstStmtNode el_ast_expr_stmt(ElAstExprNode expr);
-ElAstStmtNode* el_ast_new_expr_stmt(ElDynArena* arena, ElAstExprNode expr);
+ElAstStmtNode el_ast_expr_stmt(ElAstExprNode* expr);
+ElAstStmtNode* el_ast_new_expr_stmt(ElDynArena* arena, ElAstExprNode* expr);
