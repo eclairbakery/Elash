@@ -5,14 +5,14 @@
 
 #include "expr/literal.h"
 
-typedef enum ElAstExprNodeType {
+typedef enum ElAstExprType {
     EL_AST_EXPR_BINARY,
     EL_AST_EXPR_UNARY,
     EL_AST_EXPR_LITERAL,
-} ElAstExprNodeType;
+} ElAstExprType;
 
 typedef struct ElAstExprNode {
-    ElAstExprNodeType type;
+    ElAstExprType type;
     union {
         ElAstBinExprNode binary;
         ElAstUnaryExprNode unary;
