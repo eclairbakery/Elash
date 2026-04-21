@@ -3,7 +3,7 @@
 #include <el-util/dynarena.h>
 #include <el-defs/sv.h>
 
-typedef struct ElAstNode ElAstNode;
+typedef struct ElAstExprNode ElAstExprNode;
 
 typedef enum ElAstLiteralType {
     EL_AST_LIT_INT,
@@ -45,9 +45,9 @@ typedef struct ElAstLiteralNode {
     } of;
 } ElAstLiteralNode;
 
-ElAstNode* el_ast_new_int_literal(ElDynArena* arena, int64_t value);
-ElAstNode* el_ast_new_float_literal(ElDynArena* arena, long double value);
-ElAstNode* el_ast_new_char_literal(ElDynArena* arena, char value);
-ElAstNode* el_ast_new_string_literal(ElDynArena* arena, ElStringView value);
-ElAstNode* el_ast_new_bool_literal(ElDynArena* arena, bool value);
-ElAstNode* el_ast_new_null_literal(ElDynArena* arena);
+ElAstExprNode* el_ast_new_int_literal(ElDynArena* arena, int64_t value);
+ElAstExprNode* el_ast_new_float_literal(ElDynArena* arena, long double value);
+ElAstExprNode* el_ast_new_char_literal(ElDynArena* arena, char value);
+ElAstExprNode* el_ast_new_string_literal(ElDynArena* arena, ElStringView value);
+ElAstExprNode* el_ast_new_bool_literal(ElDynArena* arena, bool value);
+ElAstExprNode* el_ast_new_null_literal(ElDynArena* arena);

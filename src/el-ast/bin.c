@@ -1,5 +1,5 @@
 #include <el-ast/bin.h>
-#include <el-ast/node.h>
+#include <el-ast/expr.h>
 
 ElStringView el_ast_bin_op_to_string(ElAstBinExprType type) {
     switch (type) {
@@ -27,9 +27,9 @@ ElStringView el_ast_bin_op_to_string(ElAstBinExprType type) {
     }
 }
 
-ElAstNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinExprType type, ElAstNode* left, ElAstNode* right) {
-    ElAstNode* node = EL_DYNARENA_NEW(arena, ElAstNode);
-    node->type = EL_AST_NODE_BINARY_EXPR;
+ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinExprType type, ElAstExprNode* left, ElAstExprNode* right) {
+    ElAstExprNode* node = EL_DYNARENA_NEW(arena, ElAstExprNode);
+    node->type = EL_AST_EXPR_BINARY;
     node->as.binary.type = type;
     node->as.binary.left = left;
     node->as.binary.right = right;

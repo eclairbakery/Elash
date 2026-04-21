@@ -3,7 +3,7 @@
 #include <el-util/dynarena.h>
 #include <el-util/strconv.h>
 
-#include <el-ast/node.h>
+#include <el-ast/expr.h>
 #include <el-ast/bin.h>
 #include <el-ast/unary.h>
 #include <el-ast/literal.h>
@@ -67,9 +67,9 @@ void el_parser_destroy(ElParser* parser) {
     (void) parser;
 }
 
-static ElAstNode* parse_expression(ElParser* parser);
+static ElAstExprNode* parse_expression(ElParser* parser);
 
-static ElAstNode* parse_primary(ElParser* parser) {
+static ElAstExprNode* parse_primary(ElParser* parser) {
     if (parser->current.type == EL_TT_INT_LITERAL) {
         ElToken tok = parser->current;
         el_parser_advance(parser);
@@ -122,7 +122,7 @@ static ElAstNode* parse_primary(ElParser* parser) {
     }
 
     if (el_parser_match(parser, EL_TT_LPAREN)) {
-        ElAstNode* node = parse_expression(parser);
+        ElAstExprNode* node = parse_expression(parser);
         el_parser_expect(parser, EL_TT_RPAREN);
         return node;
     }
@@ -130,8 +130,8 @@ static ElAstNode* parse_primary(ElParser* parser) {
     return NULL;
 }
 
-static ElAstNode* parse_postfix(ElParser* parser) {
-    ElAstNode* node = parse_primary(parser);
+static ElAstExprNode* parse_postfix(ElParser* parser) {
+    ElAstExprNode* node = parse_primary(parser);
     if (!node) return NULL;
     while (true) {
         if (el_parser_match(parser, EL_TT_INC)) {
@@ -145,7 +145,7 @@ static ElAstNode* parse_postfix(ElParser* parser) {
     return node;
 }
 
-static ElAstNode* parse_unary(ElParser* parser) {
+static ElAstExprNode* parse_unary(ElParser* parser) {
     if (el_parser_match(parser, EL_TT_PLUS))
         return el_ast_new_unary_expr(parser->arena, EL_AST_UNARY_EXPR_POS, parse_unary(parser));
     if (el_parser_match(parser, EL_TT_MINUS))
@@ -162,8 +162,8 @@ static ElAstNode* parse_unary(ElParser* parser) {
     return parse_postfix(parser);
 }
 
-static ElAstNode* parse_multiplicative(ElParser* parser) {
-    ElAstNode* node = parse_unary(parser);
+static ElAstExprNode* parse_multiplicative(ElParser* parser) {
+    ElAstExprNode* node = parse_unary(parser);
     if (!node) return NULL;
     while (true) {
         ElAstBinExprType type;
@@ -172,15 +172,15 @@ static ElAstNode* parse_multiplicative(ElParser* parser) {
         else if (el_parser_match(parser, EL_TT_PERCENT)) type = EL_AST_BIN_EXPR_MOD;
         else break;
 
-        ElAstNode* right = parse_unary(parser);
+        ElAstExprNode* right = parse_unary(parser);
         if (!right) return NULL;
         node = el_ast_new_bin_expr(parser->arena, type, node, right);
     }
     return node;
 }
 
-static ElAstNode* parse_additive(ElParser* parser) {
-    ElAstNode* node = parse_multiplicative(parser);
+static ElAstExprNode* parse_additive(ElParser* parser) {
+    ElAstExprNode* node = parse_multiplicative(parser);
     if (!node) return NULL;
     while (true) {
         ElAstBinExprType type;
@@ -188,15 +188,15 @@ static ElAstNode* parse_additive(ElParser* parser) {
         else if (el_parser_match(parser, EL_TT_MINUS)) type = EL_AST_BIN_EXPR_SUB;
         else break;
 
-        ElAstNode* right = parse_multiplicative(parser);
+        ElAstExprNode* right = parse_multiplicative(parser);
         if (!right) return NULL;
         node = el_ast_new_bin_expr(parser->arena, type, node, right);
     }
     return node;
 }
 
-static ElAstNode* parse_shift(ElParser* parser) {
-    ElAstNode* node = parse_additive(parser);
+static ElAstExprNode* parse_shift(ElParser* parser) {
+    ElAstExprNode* node = parse_additive(parser);
     if (!node) return NULL;
     while (true) {
         ElAstBinExprType type;
@@ -204,15 +204,15 @@ static ElAstNode* parse_shift(ElParser* parser) {
         else if (el_parser_match(parser, EL_TT_SHR)) type = EL_AST_BIN_EXPR_SHR;
         else break;
 
-        ElAstNode* right = parse_additive(parser);
+        ElAstExprNode* right = parse_additive(parser);
         if (!right) return NULL;
         node = el_ast_new_bin_expr(parser->arena, type, node, right);
     }
     return node;
 }
 
-static ElAstNode* parse_relational(ElParser* parser) {
-    ElAstNode* node = parse_shift(parser);
+static ElAstExprNode* parse_relational(ElParser* parser) {
+    ElAstExprNode* node = parse_shift(parser);
     if (!node) return NULL;
     while (true) {
         ElAstBinExprType type;
@@ -222,15 +222,15 @@ static ElAstNode* parse_relational(ElParser* parser) {
         else if (el_parser_match(parser, EL_TT_GTE)) type = EL_AST_BIN_EXPR_GTE;
         else break;
 
-        ElAstNode* right = parse_shift(parser);
+        ElAstExprNode* right = parse_shift(parser);
         if (!right) return NULL;
         node = el_ast_new_bin_expr(parser->arena, type, node, right);
     }
     return node;
 }
 
-static ElAstNode* parse_equality(ElParser* parser) {
-    ElAstNode* node = parse_relational(parser);
+static ElAstExprNode* parse_equality(ElParser* parser) {
+    ElAstExprNode* node = parse_relational(parser);
     if (!node) return NULL;
     while (true) {
         ElAstBinExprType type;
@@ -238,73 +238,73 @@ static ElAstNode* parse_equality(ElParser* parser) {
         else if (el_parser_match(parser, EL_TT_NEQ)) type = EL_AST_BIN_EXPR_NEQ;
         else break;
 
-        ElAstNode* right = parse_relational(parser);
+        ElAstExprNode* right = parse_relational(parser);
         if (!right) return NULL;
         node = el_ast_new_bin_expr(parser->arena, type, node, right);
     }
     return node;
 }
 
-static ElAstNode* parse_bitwise_and(ElParser* parser) {
-    ElAstNode* node = parse_equality(parser);
+static ElAstExprNode* parse_bitwise_and(ElParser* parser) {
+    ElAstExprNode* node = parse_equality(parser);
     if (!node) return NULL;
     while (el_parser_match(parser, EL_TT_BITWISE_AND)) {
-        ElAstNode* right = parse_equality(parser);
+        ElAstExprNode* right = parse_equality(parser);
         if (!right) return NULL;
         node = el_ast_new_bin_expr(parser->arena, EL_AST_BIN_EXPR_BW_AND, node, right);
     }
     return node;
 }
 
-static ElAstNode* parse_bitwise_xor(ElParser* parser) {
-    ElAstNode* node = parse_bitwise_and(parser);
+static ElAstExprNode* parse_bitwise_xor(ElParser* parser) {
+    ElAstExprNode* node = parse_bitwise_and(parser);
     if (!node) return NULL;
     while (el_parser_match(parser, EL_TT_BITWISE_XOR)) {
-        ElAstNode* right = parse_bitwise_and(parser);
+        ElAstExprNode* right = parse_bitwise_and(parser);
         if (!right) return NULL;
         node = el_ast_new_bin_expr(parser->arena, EL_AST_BIN_EXPR_BW_XOR, node, right);
     }
     return node;
 }
 
-static ElAstNode* parse_bitwise_or(ElParser* parser) {
-    ElAstNode* node = parse_bitwise_xor(parser);
+static ElAstExprNode* parse_bitwise_or(ElParser* parser) {
+    ElAstExprNode* node = parse_bitwise_xor(parser);
     if (!node) return NULL;
     while (el_parser_match(parser, EL_TT_BITWISE_OR)) {
-        ElAstNode* right = parse_bitwise_xor(parser);
+        ElAstExprNode* right = parse_bitwise_xor(parser);
         if (!right) return NULL;
         node = el_ast_new_bin_expr(parser->arena, EL_AST_BIN_EXPR_BW_OR, node, right);
     }
     return node;
 }
 
-static ElAstNode* parse_logical_and(ElParser* parser) {
-    ElAstNode* node = parse_bitwise_or(parser);
+static ElAstExprNode* parse_logical_and(ElParser* parser) {
+    ElAstExprNode* node = parse_bitwise_or(parser);
     if (!node) return NULL;
     while (el_parser_match(parser, EL_TT_LOGICAL_AND)) {
-        ElAstNode* right = parse_bitwise_or(parser);
+        ElAstExprNode* right = parse_bitwise_or(parser);
         if (!right) return NULL;
         node = el_ast_new_bin_expr(parser->arena, EL_AST_BIN_EXPR_AND, node, right);
     }
     return node;
 }
 
-static ElAstNode* parse_logical_or(ElParser* parser) {
-    ElAstNode* node = parse_logical_and(parser);
+static ElAstExprNode* parse_logical_or(ElParser* parser) {
+    ElAstExprNode* node = parse_logical_and(parser);
     if (!node) return NULL;
     while (el_parser_match(parser, EL_TT_LOGICAL_OR)) {
-        ElAstNode* right = parse_logical_and(parser);
+        ElAstExprNode* right = parse_logical_and(parser);
         if (!right) return NULL;
         node = el_ast_new_bin_expr(parser->arena, EL_AST_BIN_EXPR_OR, node, right);
     }
     return node;
 }
 
-static ElAstNode* parse_expression(ElParser* parser) {
+static ElAstExprNode* parse_expression(ElParser* parser) {
     return parse_logical_or(parser);
 }
 
-ElParserErrorCode el_parser_parse(ElParser* parser, ElAstNode** out) {
+ElParserErrorCode el_parser_parse(ElParser* parser, ElAstExprNode** out) {
     if (parser->current.type == EL_TT_UNKNOWN) {
         ElParserErrorCode err = el_parser_advance(parser);
         if (err != EL_PARSER_ERR_OK) return err;
