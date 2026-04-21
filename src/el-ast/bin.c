@@ -1,6 +1,8 @@
 #include <el-ast/bin.h>
 #include <el-ast/expr.h>
 
+#include <el-util/assert.h>
+
 ElStringView el_ast_bin_op_to_string(ElAstBinExprType type) {
     switch (type) {
     case EL_AST_BIN_EXPR_ADD: return EL_SV("+");
@@ -25,6 +27,7 @@ ElStringView el_ast_bin_op_to_string(ElAstBinExprType type) {
     case EL_AST_BIN_EXPR_SHL:    return EL_SV("<<");
     case EL_AST_BIN_EXPR_SHR:    return EL_SV(">>");
     }
+    EL_UNREACHABLE_ENUM_VAL(ElAstBinExprType, type);
 }
 
 ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinExprType type, ElAstExprNode* left, ElAstExprNode* right) {
