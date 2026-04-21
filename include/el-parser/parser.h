@@ -4,6 +4,7 @@
 #include <el-pp/preproc.h>
 
 #include <el-ast/expr.h>
+#include <el-ast/stmt.h>
 
 #include <el-parser/error.h>
 
@@ -39,4 +40,8 @@ ElParserErrorCode _el_parser_parse_bitwise_or(ElParser* parser, ElAstExprNode** 
 ElParserErrorCode _el_parser_parse_logical_and(ElParser* parser, ElAstExprNode** out);
 ElParserErrorCode _el_parser_parse_logical_or(ElParser* parser, ElAstExprNode** out);
 
-ElParserErrorCode el_parser_parse(ElParser* parser, ElAstExprNode** out);
+ElParserErrorCode _el_parser_parse_return(ElParser* parser, ElAstStmtNode** out);
+ElParserErrorCode _el_parser_parse_expr_stmt(ElParser* parser, ElAstStmtNode** out);
+ElParserErrorCode _el_parser_parse_stmt(ElParser* parser, ElAstStmtNode** out);
+
+ElParserErrorCode el_parser_parse(ElParser* parser, ElAstStmtNode** out);
