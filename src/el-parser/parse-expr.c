@@ -10,7 +10,7 @@
 #include <el-ast/expr/literal.h>
 
 ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out) {
-    if (parser->current.type == EL_TT_INT_LITERAL) {
+    if (el_parser_check(parser, EL_TT_INT_LITERAL)) {
         ElToken tok = parser->current;
         el_parser_advance(parser);
 
@@ -22,7 +22,7 @@ ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out
         return _el_parser_ret_ok(parser);
     }
     
-    if (parser->current.type == EL_TT_FLOAT_LITERAL) {
+    if (el_parser_check(parser, EL_TT_FLOAT_LITERAL)) {
         ElToken tok = parser->current;
         el_parser_advance(parser);
 
@@ -34,14 +34,14 @@ ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out
         return _el_parser_ret_ok(parser);
     }
 
-    if (parser->current.type == EL_TT_STRING_LITERAL) {
+    if (el_parser_check(parser, EL_TT_STRING_LITERAL)) {
         ElToken tok = parser->current;
         el_parser_advance(parser);
         *out = el_ast_new_string_literal(parser->arena, tok.lexeme);
         return _el_parser_ret_ok(parser);
     }
 
-    if (parser->current.type == EL_TT_CHAR_LITERAL) {
+    if (el_parser_check(parser, EL_TT_CHAR_LITERAL)) {
         ElToken tok = parser->current;
         el_parser_advance(parser);
 
