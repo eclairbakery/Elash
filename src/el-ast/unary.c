@@ -1,6 +1,8 @@
 #include <el-ast/unary.h>
 #include <el-ast/expr.h>
 
+#include <el-util/assert.h>
+
 ElStringView el_ast_unary_op_to_string(ElAstUnaryExprType type) {
     switch (type) {
     case EL_AST_UNARY_EXPR_POS: return EL_SV("+");
@@ -14,6 +16,7 @@ ElStringView el_ast_unary_op_to_string(ElAstUnaryExprType type) {
     case EL_AST_UNARY_EXPR_POST_INC: return EL_SV("post x++");
     case EL_AST_UNARY_EXPR_POST_DEC: return EL_SV("post x--");
     }
+    EL_UNREACHABLE_ENUM_VAL(ElAstUnaryExprType, type);
 }
 
 ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElAstUnaryExprType type, ElAstExprNode* operand) {
