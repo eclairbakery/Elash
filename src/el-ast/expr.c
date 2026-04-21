@@ -32,6 +32,11 @@ void el_ast_dump_expr_literal(ElAstLiteralNode* lit, size_t ident, FILE* out) {
     }
 }
 
+void el_ast_dump_expr_ident(ElAstIdentNode* node, size_t ident, FILE* out) {
+    el_ast_dump_expr_print_ident(ident, out);
+    fprintf(out, "IdentExpr(\""EL_SV_FMT"\")\n", EL_SV_FARG(node->name));
+}
+
 void el_ast_dump_expr_impl(ElAstExprNode* node, size_t ident, FILE* out) {
     switch (node->type) {
     case EL_AST_EXPR_BINARY: {
@@ -53,7 +58,8 @@ void el_ast_dump_expr_impl(ElAstExprNode* node, size_t ident, FILE* out) {
     }
     case EL_AST_EXPR_LITERAL:
         return el_ast_dump_expr_literal(&node->as.literal, ident, out);
-        break;
+    case EL_AST_EXPR_IDENT:
+        return el_ast_dump_expr_ident(&node->as.ident, ident, out);
     }
 }
 
