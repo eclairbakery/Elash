@@ -16,6 +16,16 @@ ElAstStmtNode* el_ast_new_expr_stmt(ElDynArena* arena, ElAstExprNode* expr) {
     return node;
 }
 
+void el_ast_stmt_list_append(ElAstStmtNode** head, ElAstStmtNode** tail, ElAstStmtNode* stmt) {
+    if (*head == NULL) {
+        *head = stmt;
+        *tail = stmt;
+    } else {
+        (*tail)->next = stmt;
+        *tail = stmt;
+    }
+}
+
 void el_ast_dump_stmt_impl(ElAstStmtNode* node, size_t ident, FILE* out) {
     switch (node->type) {
     case EL_AST_STMT_EXPR:
