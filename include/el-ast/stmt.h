@@ -4,14 +4,18 @@
 
 #include "expr.h"
 
+#include "stmt/return.h"
+
 typedef enum ElAstStmtType {
     EL_AST_STMT_EXPR,
+    EL_AST_STMT_RETURN,
 } ElAstStmtType;
 
 typedef struct ElAstStmtNode {
     ElAstStmtType type;
     union {
         ElAstExprNode expr;
+        ElAstReturnStmtNode return_;
     } as;
 } ElAstStmtNode;
 
