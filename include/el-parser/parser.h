@@ -22,8 +22,9 @@ void el_parser_init(ElParser* parser, ElPreprocessor* pp, ElLexer* lexer, ElDynA
 void el_parser_destroy(ElParser* parser);
 
 ElParserErrorCode el_parser_advance(ElParser* parser);
-bool el_parser_match(ElParser* parser, ElTokenType type); 
 ElParserErrorCode el_parser_expect(ElParser* parser, ElTokenType type);
+bool el_parser_match(ElParser* parser, ElTokenType type); 
+bool el_parser_check(ElParser* parser, ElTokenType type);
 
 ElParserErrorCode _el_parser_parse_expression(ElParser* parser, ElAstExprNode** out);
 ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out);
