@@ -2,13 +2,13 @@
 
 #include <inttypes.h>
 
-void el_ast_dump_expr_print_ident(size_t ident, FILE* out) {
-    for (size_t i = 0; i < ident; ++i) {
+void el_ast_dump_expr_print_ident(usize ident, FILE* out) {
+    for (usize i = 0; i < ident; ++i) {
         fputs("  ", out);
     }
 }
 
-void el_ast_dump_expr_literal(ElAstLiteralNode* lit, size_t ident, FILE* out) {
+void el_ast_dump_expr_literal(ElAstLiteralNode* lit, usize ident, FILE* out) {
     el_ast_dump_expr_print_ident(ident, out);
     switch (lit->type) {
     case EL_AST_LIT_BOOL:
@@ -32,12 +32,12 @@ void el_ast_dump_expr_literal(ElAstLiteralNode* lit, size_t ident, FILE* out) {
     }
 }
 
-void el_ast_dump_expr_ident(ElAstIdentNode* node, size_t ident, FILE* out) {
+void el_ast_dump_expr_ident(ElAstIdentNode* node, usize ident, FILE* out) {
     el_ast_dump_expr_print_ident(ident, out);
     fprintf(out, "IdentExpr(\""EL_SV_FMT"\")\n", EL_SV_FARG(node->name));
 }
 
-void el_ast_dump_expr_impl(ElAstExprNode* node, size_t ident, FILE* out) {
+void el_ast_dump_expr_impl(ElAstExprNode* node, usize ident, FILE* out) {
     switch (node->type) {
     case EL_AST_EXPR_BINARY: {
         ElStringView op = el_ast_bin_op_to_string(node->as.binary.type);
