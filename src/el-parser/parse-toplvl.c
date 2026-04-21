@@ -11,18 +11,18 @@ static ElParserErrorCode _el_parser_parse_func_params(ElParser* parser, ElAstFun
     *out = el_ast_make_func_param_list();
 
     while (parser->current.type != EL_TT_RPAREN) {
-        ElToken p_type_tok = parser->current;
-        result = el_parser_expect(parser, EL_TT_IDENT);
+        ElAstTypeNode* p_type;
+        result = _el_parser_parse_type(parser, &p_type);
         if (result != EL_PARSER_ERR_OK) return result;
 
-        ElToken p_name_tok = parser->current;
-        result = el_parser_expect(parser, EL_TT_IDENT);
+        ElAstIdentNode* p_name;
+        result = _el_parser_parse_ident(parser, &p_name);
         if (result != EL_PARSER_ERR_OK) return result;
 
         el_ast_func_param_list_append(out, el_ast_new_func_param(
             parser->arena,
-            &el_ast_new_ident_node(parser->arena, p_type_tok.lexeme)->as.ident,
-            &el_ast_new_ident_node(parser->arena, p_name_tok.lexeme)->as.ident
+            p_type,
+            p_name
         ));
 
         if (parser->current.type == EL_TT_COMMA) {
@@ -38,12 +38,12 @@ static ElParserErrorCode _el_parser_parse_func_params(ElParser* parser, ElAstFun
 ElParserErrorCode _el_parser_parse_func_def(ElParser* parser, ElAstTopLevelNode** out) {
     ElParserErrorCode result;
 
-    ElToken ret_type_tok = parser->current;
-    result = el_parser_expect(parser, EL_TT_IDENT);
+    ElAstTypeNode* ret_type;
+    result = _el_parser_parse_type(parser, &ret_type);
     if (result != EL_PARSER_ERR_OK) return result;
 
-    ElToken name_tok = parser->current;
-    result = el_parser_expect(parser, EL_TT_IDENT);
+    ElAstIdentNode* name;
+    result = _el_parser_parse_ident(parser, &name);
     if (result != EL_PARSER_ERR_OK) return result;
 
     result = el_parser_expect(parser, EL_TT_LPAREN);
@@ -65,8 +65,8 @@ ElParserErrorCode _el_parser_parse_func_def(ElParser* parser, ElAstTopLevelNode*
 
     *out = el_ast_new_func_definition(
         parser->arena,
-        &el_ast_new_ident_node(parser->arena, ret_type_tok.lexeme)->as.ident,
-        &el_ast_new_ident_node(parser->arena, name_tok.lexeme)->as.ident,
+        ret_type,
+        name,
         params,
         &body_stmt->as.block
     );
