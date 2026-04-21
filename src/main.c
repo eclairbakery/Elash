@@ -74,10 +74,10 @@ int main(int argc, const char* const* argv) {
     ElParser parser;
     el_parser_init(&parser, &pp, &lexer, &arena);
 
-    ElAstExprNode* ast = NULL;
+    ElAstStmtNode* ast = NULL;
     ElParserErrorCode perr = el_parser_parse(&parser, &ast);
     if (perr == EL_PARSER_ERR_OK) {
-        el_ast_dump_expr(ast, stdout);
+        el_ast_dump_stmt(ast, stdout);
     } else {
         fprintf(stderr, "Parser error: %d\n", perr);
     }
