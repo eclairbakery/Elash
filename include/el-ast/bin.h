@@ -3,7 +3,7 @@
 #include <el-util/dynarena.h>
 #include <el-defs/sv.h>
 
-typedef struct ElAstNode ElAstNode;
+typedef struct ElAstExprNode ElAstExprNode;
 
 typedef enum ElAstBinExprType {
     EL_AST_BIN_EXPR_ADD, // +
@@ -30,11 +30,11 @@ typedef enum ElAstBinExprType {
 } ElAstBinExprType;
 
 typedef struct ElAstBinExprNode {
-    ElAstNode* left;
+    ElAstExprNode* left;
     ElAstBinExprType type;
-    ElAstNode* right;
+    ElAstExprNode* right;
 } ElAstBinExprNode;
 
-ElAstNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinExprType type, ElAstNode* left, ElAstNode* right);
+ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinExprType type, ElAstExprNode* left, ElAstExprNode* right);
 
 ElStringView el_ast_bin_op_to_string(ElAstBinExprType type);

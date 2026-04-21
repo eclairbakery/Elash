@@ -1,5 +1,5 @@
 #include <el-ast/unary.h>
-#include <el-ast/node.h>
+#include <el-ast/expr.h>
 
 ElStringView el_ast_unary_op_to_string(ElAstUnaryExprType type) {
     switch (type) {
@@ -16,9 +16,9 @@ ElStringView el_ast_unary_op_to_string(ElAstUnaryExprType type) {
     }
 }
 
-ElAstNode* el_ast_new_unary_expr(ElDynArena* arena, ElAstUnaryExprType type, ElAstNode* operand) {
-    ElAstNode* node = EL_DYNARENA_NEW(arena, ElAstNode);
-    node->type = EL_AST_NODE_UNARY_EXPR;
+ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElAstUnaryExprType type, ElAstExprNode* operand) {
+    ElAstExprNode* node = EL_DYNARENA_NEW(arena, ElAstExprNode);
+    node->type = EL_AST_EXPR_UNARY;
     node->as.unary.type = type;
     node->as.unary.operand = operand;
     return node;
