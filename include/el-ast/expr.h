@@ -5,6 +5,8 @@
 #include "expr/literal.h"
 #include "common/ident.h"
 
+#include <el-defs/inttypes.h>
+
 typedef enum ElAstExprType {
     EL_AST_EXPR_BINARY,
     EL_AST_EXPR_UNARY,
@@ -24,6 +26,6 @@ typedef struct ElAstExprNode {
 
 // TODO: this sucks
 void el_ast_dump_expr(ElAstExprNode* root, FILE* out);
-void el_ast_dump_expr_impl(ElAstExprNode* node, size_t ident, FILE* out);
+void el_ast_dump_expr_impl(ElAstExprNode* node, usize ident, FILE* out);
 void el_ast_dump_expr_print_ident(size_t ident, FILE* out);
 
