@@ -4,9 +4,9 @@
 #include <el-util/strconv.h>
 
 #include <el-ast/expr.h>
-#include <el-ast/bin.h>
-#include <el-ast/unary.h>
-#include <el-ast/literal.h>
+#include <el-ast/expr/bin.h>
+#include <el-ast/expr/unary.h>
+#include <el-ast/expr/literal.h>
 
 #include <stdlib.h>
 #include <string.h>

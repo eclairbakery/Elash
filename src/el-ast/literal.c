@@ -1,4 +1,4 @@
-#include <el-ast/literal.h>
+#include <el-ast/expr/literal.h>
 #include <el-ast/expr.h>
 
 static ElAstExprNode* el_ast_new_literal(ElDynArena* arena, ElAstLiteralType type) {

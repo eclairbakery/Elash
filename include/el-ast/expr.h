@@ -1,9 +1,9 @@
 #pragma once
 
-#include "bin.h"
-#include "unary.h"
+#include "expr/bin.h"
+#include "expr/unary.h"
 
-#include "literal.h"
+#include "expr/literal.h"
 
 typedef enum ElAstExprNodeType {
     EL_AST_EXPR_BINARY,
