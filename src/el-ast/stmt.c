@@ -26,7 +26,7 @@ void el_ast_stmt_list_append(ElAstStmtNode** head, ElAstStmtNode** tail, ElAstSt
     }
 }
 
-void el_ast_dump_stmt_impl(ElAstStmtNode* node, size_t ident, FILE* out) {
+void el_ast_dump_stmt_impl(ElAstStmtNode* node, usize ident, FILE* out) {
     switch (node->type) {
     case EL_AST_STMT_EXPR:
         el_ast_dump_expr_print_ident(ident, out);
