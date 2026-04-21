@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-ElAstFuncParam el_ast_func_param(ElAstIdentNode* type, ElAstIdentNode* name) {
+ElAstFuncParam el_ast_func_param(ElAstTypeNode* type, ElAstIdentNode* name) {
     return (ElAstFuncParam) {
         .type = type,
         .name = name,
@@ -12,7 +12,7 @@ ElAstFuncParam el_ast_func_param(ElAstIdentNode* type, ElAstIdentNode* name) {
     };
 }
 
-ElAstFuncParam* el_ast_new_func_param(ElDynArena* arena, ElAstIdentNode* type, ElAstIdentNode* name) {
+ElAstFuncParam* el_ast_new_func_param(ElDynArena* arena, ElAstTypeNode* type, ElAstIdentNode* name) {
     ElAstFuncParam* param = EL_DYNARENA_NEW(arena, ElAstFuncParam);
     *param = el_ast_func_param(type, name);
     return param;
@@ -40,7 +40,7 @@ void el_ast_func_param_list_append(ElAstFuncParamList* list, ElAstFuncParam* par
 
 // this sucks, but it exists only for consistency with other nodes
 ElAstFuncDefinition el_ast_func_definition(
-    ElAstIdentNode* ret_type,
+    ElAstTypeNode* ret_type,
     ElAstIdentNode* name,
     ElAstFuncParamList params,
     ElAstBlockStmtNode* block
@@ -55,7 +55,7 @@ ElAstFuncDefinition el_ast_func_definition(
 
 ElAstTopLevelNode* el_ast_new_func_definition(
     ElDynArena* arena,
-    ElAstIdentNode* ret_type,
+    ElAstTypeNode* ret_type,
     ElAstIdentNode* name,
     ElAstFuncParamList params,
     ElAstBlockStmtNode* block
