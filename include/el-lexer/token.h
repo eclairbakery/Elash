@@ -23,6 +23,10 @@ typedef enum ElTokenType {
     EL_TT_FALSE_LITERAL,        // false
     EL_TT_NULL_LITERAL,         // null
 
+    // Group enumerator - DO NOT USE as a token type. Marks the start of the keyword group.
+    // Used internally for bounds checking or iteration over keyword tokens.
+    _EL_TT_GROUP_BEGIN_KEYWORDS,
+
     EL_TT_KW_IF,                // if
     EL_TT_KW_ELSE,              // else
     EL_TT_KW_SWITCH,            // switch
@@ -49,6 +53,10 @@ typedef enum ElTokenType {
     EL_TT_KW_UNION,             // union
     EL_TT_KW_STRUCT,            // struct
     EL_TT_KW_TYPEDEF,           // typedef
+
+    // Group enumerator - DO NOT USE as a token type. Marks the end of the keyword group.
+    // Used internally for bounds checking or iteration over keyword tokens.
+    _EL_TT_GROUP_END_KEYWORDS,
 
     EL_TT_SIZEOF,               // sizeof
 
@@ -179,6 +187,8 @@ typedef struct ElToken {
     ElStringView lexeme;
     ElSourceLocation loc;
 } ElToken;
+
+bool el_token_type_is_keyword(ElTokenType tt);
 
 /// @brief Convert a token type to its string representation.
 /// @param tt Token type.
