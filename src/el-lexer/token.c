@@ -148,6 +148,10 @@ static ElStringView el_token_type_to_string_map[] = {
     [EL_TT_UNKNOWN] = EL_SV("UNKNOWN"),
 };
 
+bool el_token_type_is_keyword(ElTokenType tt) {
+    return tt > _EL_TT_GROUP_BEGIN_KEYWORDS && tt < _EL_TT_GROUP_END_KEYWORDS;
+}
+
 ElStringView el_token_type_to_string(ElTokenType tt) {
     if (tt < 0 || tt >= _EL_TT_COUNT) return EL_SV_NULL;
     ElStringView s = el_token_type_to_string_map[tt];
