@@ -1,4 +1,5 @@
 #include <el-parser/parser.h>
+#include <el-parser/utility.h>
 
 #include <el-util/dynarena.h>
 #include <el-util/strconv.h>
@@ -8,16 +9,13 @@
 #include <el-ast/expr/unary.h>
 #include <el-ast/expr/literal.h>
 
-#include <stdlib.h>
-#include <string.h>
-
 ElParserErrorCode el_parser_advance(ElParser* parser) {
     while (true) {
         if (el_pp_want_next_token(parser->pp)) {
             ElToken tok;
             ElLexerErrorCode lerr = el_lexer_next_token(parser->lexer, &tok);
             if (lerr != EL_LEXERR_SUCCESS) {
-                return EL_PARSER_ERR_UNEXPECTED_TOKEN; 
+                return _el_parser_ret_err(parser, .code = EL_PARSER_ERR_UNEXPECTED_TOKEN, .token = tok); 
             }
             el_pp_pass_token(parser->pp, tok);
         }
@@ -28,11 +26,10 @@ ElParserErrorCode el_parser_advance(ElParser* parser) {
         }
         
         if (pperr != EL_PPERR_SUCCESS) {
-            parser->last_err_details.code = EL_PARSER_ERR_PP_ERROR;
-            return EL_PARSER_ERR_PP_ERROR;
+            return _el_parser_ret_err(parser, .code = EL_PARSER_ERR_PP_ERROR);
         }
 
-        return EL_PARSER_ERR_OK;
+        return _el_parser_ret_ok(parser);
     }
 }
 
@@ -48,10 +45,10 @@ ElParserErrorCode el_parser_expect(ElParser* parser, ElTokenType type) {
     if (parser->current.type == type) {
         return el_parser_advance(parser);
     }
-    parser->last_err_details.code = EL_PARSER_ERR_EXPECTED_TOKEN;
-    parser->last_err_details.token = parser->current;
-    parser->last_err_details.expected = type;
-    return EL_PARSER_ERR_EXPECTED_TOKEN;
+    return _el_parser_ret_err(parser,
+        .code = EL_PARSER_ERR_EXPECTED_TOKEN,
+        .expected = type
+    );
 }
 
 void el_parser_init(ElParser* parser, ElPreprocessor* pp, ElLexer* lexer, ElDynArena* arena) {
@@ -74,11 +71,5 @@ ElParserErrorCode el_parser_parse(ElParser* parser, ElAstExprNode** out) {
     }
 
     // TODO: parsing statements, top level declarations etc.
-    *out = _el_parser_parse_expression(parser);
-    if (*out == NULL) {
-        // TODO: better error handling
-        return EL_PARSER_ERR_UNEXPECTED_TOKEN;
-    }
-
-    return EL_PARSER_ERR_OK;
+    return _el_parser_parse_expression(parser, out);
 }
