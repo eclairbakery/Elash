@@ -23,6 +23,7 @@ typedef struct ElAstUnaryExprNode {
     ElAstExprNode* operand;
 } ElAstUnaryExprNode;
 
+ElAstUnaryExprNode el_ast_unary_expr(ElAstUnaryExprType type, ElAstExprNode* operand);
 ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElAstUnaryExprType type, ElAstExprNode* operand);
 
 ElStringView el_ast_unary_op_to_string(ElAstUnaryExprType type);

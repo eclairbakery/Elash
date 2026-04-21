@@ -45,6 +45,13 @@ typedef struct ElAstLiteralNode {
     } of;
 } ElAstLiteralNode;
 
+ElAstLiteralNode el_ast_int_literal(int64_t value);
+ElAstLiteralNode el_ast_float_literal(long double value);
+ElAstLiteralNode el_ast_char_literal(char value);
+ElAstLiteralNode el_ast_string_literal(ElStringView value);
+ElAstLiteralNode el_ast_bool_literal(bool value);
+ElAstLiteralNode el_ast_null_literal();
+
 ElAstExprNode* el_ast_new_int_literal(ElDynArena* arena, int64_t value);
 ElAstExprNode* el_ast_new_float_literal(ElDynArena* arena, long double value);
 ElAstExprNode* el_ast_new_char_literal(ElDynArena* arena, char value);

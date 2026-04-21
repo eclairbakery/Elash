@@ -30,11 +30,17 @@ ElStringView el_ast_bin_op_to_string(ElAstBinExprType type) {
     EL_UNREACHABLE_ENUM_VAL(ElAstBinExprType, type);
 }
 
+ElAstBinExprNode el_ast_bin_expr(ElAstBinExprType type, ElAstExprNode* left, ElAstExprNode* right) {
+    return (ElAstBinExprNode) {
+        .left = left,
+        .type = type,
+        .right = right,
+    };
+}
+
 ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinExprType type, ElAstExprNode* left, ElAstExprNode* right) {
     ElAstExprNode* node = EL_DYNARENA_NEW(arena, ElAstExprNode);
     node->type = EL_AST_EXPR_BINARY;
-    node->as.binary.type = type;
-    node->as.binary.left = left;
-    node->as.binary.right = right;
+    node->as.binary = el_ast_bin_expr(type, left, right);
     return node;
 }
