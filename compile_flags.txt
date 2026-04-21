@@ -1,5 +1,0 @@
--Iinclude 
--std=c11 
--Wall 
--Wextra 
--O2
