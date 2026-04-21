@@ -2,13 +2,14 @@
 
 #include "expr/bin.h"
 #include "expr/unary.h"
-
 #include "expr/literal.h"
+#include "common/ident.h"
 
 typedef enum ElAstExprType {
     EL_AST_EXPR_BINARY,
     EL_AST_EXPR_UNARY,
     EL_AST_EXPR_LITERAL,
+    EL_AST_EXPR_IDENT,
 } ElAstExprType;
 
 typedef struct ElAstExprNode {
@@ -17,6 +18,7 @@ typedef struct ElAstExprNode {
         ElAstBinExprNode binary;
         ElAstUnaryExprNode unary;
         ElAstLiteralNode literal;
+        ElAstIdentNode ident;
     } as;
 } ElAstExprNode;
 
