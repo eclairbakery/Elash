@@ -35,6 +35,7 @@ typedef struct ElAstBinExprNode {
     ElAstExprNode* right;
 } ElAstBinExprNode;
 
+ElAstBinExprNode el_ast_bin_expr(ElAstBinExprType type, ElAstExprNode* left, ElAstExprNode* right);
 ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinExprType type, ElAstExprNode* left, ElAstExprNode* right);
 
 ElStringView el_ast_bin_op_to_string(ElAstBinExprType type);

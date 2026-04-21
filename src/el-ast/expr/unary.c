@@ -19,10 +19,16 @@ ElStringView el_ast_unary_op_to_string(ElAstUnaryExprType type) {
     EL_UNREACHABLE_ENUM_VAL(ElAstUnaryExprType, type);
 }
 
+ElAstUnaryExprNode el_ast_unary_expr(ElAstUnaryExprType type, ElAstExprNode* operand) {
+    return (ElAstUnaryExprNode) {
+        .type = type,
+        .operand = operand,
+    };
+}
+
 ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElAstUnaryExprType type, ElAstExprNode* operand) {
     ElAstExprNode* node = EL_DYNARENA_NEW(arena, ElAstExprNode);
     node->type = EL_AST_EXPR_UNARY;
-    node->as.unary.type = type;
-    node->as.unary.operand = operand;
+    node->as.unary = el_ast_unary_expr(type, operand);
     return node;
 }
