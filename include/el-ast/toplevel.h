@@ -13,3 +13,5 @@ typedef struct ElAstTopLevelNode {
     } as;
     ElAstTopLevelNode* next;
 } ElAstTopLevelNode;
+
+void el_ast_dump_toplevel(ElAstTopLevelNode* node, usize indent, FILE* out);

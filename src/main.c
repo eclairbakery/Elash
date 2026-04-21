@@ -77,7 +77,7 @@ int main(int argc, const char* const* argv) {
     ElAstStmtNode* ast = NULL;
     ElParserErrorCode perr = el_parser_parse(&parser, &ast);
     if (perr == EL_PARSER_ERR_OK) {
-        el_ast_dump_stmt(ast, stdout);
+        el_ast_dump_stmt(ast, 0, stdout);
     } else {
         fprintf(stderr, "Parser error: %d\n", perr);
     }
