@@ -26,3 +26,5 @@ ElAstTypeNode el_ast_type_ptr(ElAstTypeNode* base);
 
 ElAstTypeNode* el_ast_new_type_name(ElDynArena* arena, ElAstIdentNode* name);
 ElAstTypeNode* el_ast_new_type_ptr(ElDynArena* arena, ElAstTypeNode* base);
+
+void el_ast_dump_type(ElAstTypeNode* node, FILE* out);
