@@ -9,7 +9,17 @@
 #include <el-ast/expr/unary.h>
 #include <el-ast/expr/literal.h>
 
+#include <el-ast/common/ident.h>
+
 ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out) {
+    if (el_parser_check(parser, EL_TT_IDENT)) {
+        ElToken tok = parser->current;
+        el_parser_advance(parser);
+
+        *out = el_ast_new_ident_node(parser->arena, tok.lexeme);
+        return _el_parser_ret_ok(parser);
+    }
+
     if (el_parser_check(parser, EL_TT_INT_LITERAL)) {
         ElToken tok = parser->current;
         el_parser_advance(parser);
