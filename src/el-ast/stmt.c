@@ -3,10 +3,10 @@
 #include <stdio.h>
 
 ElAstStmtNode el_ast_expr_stmt(ElAstExprNode* expr) {
-
     return (ElAstStmtNode) {
         .type = EL_AST_STMT_EXPR,
         .as.expr = expr,
+        .next = NULL,
     };
 }
 
