@@ -258,7 +258,7 @@ bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb) {
         break;
     }
 
-    if (el_token_type_is_keyword(tok->type)) {
+    if (el_token_type_is_keyword(tok->type) || tok->type == EL_TT_IDENT) {
         success &= el_strbuf_append_char(sb, ' ');
     }
 
