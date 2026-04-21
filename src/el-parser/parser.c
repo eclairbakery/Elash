@@ -34,7 +34,7 @@ ElParserErrorCode el_parser_advance(ElParser* parser) {
 }
 
 bool el_parser_match(ElParser* parser, ElTokenType type) {
-    if (parser->current.type == type) {
+    if (el_parser_check(parser, type)) {
         el_parser_advance(parser);
         return true;
     }
@@ -46,7 +46,7 @@ bool el_parser_check(ElParser* parser, ElTokenType type) {
 }
 
 ElParserErrorCode el_parser_expect(ElParser* parser, ElTokenType type) {
-    if (parser->current.type == type) {
+    if (el_parser_check(parser, type)) {
         return el_parser_advance(parser);
     }
     return _el_parser_ret_err(parser,
