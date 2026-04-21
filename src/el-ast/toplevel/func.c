@@ -61,8 +61,8 @@ ElAstTopLevelNode* el_ast_new_func_definition(
     ElAstBlockStmtNode* block
 ) {
     ElAstTopLevelNode* node = EL_DYNARENA_NEW(arena, ElAstTopLevelNode);
-    node->type = EL_AST_TOPLEVEL_FUNC;
-    node->as.func = el_ast_func_definition(ret_type, name, params, block);
+    node->type = EL_AST_TOPLVL_FUNC_DEF;
+    node->as.func_def = el_ast_func_definition(ret_type, name, params, block);
     node->next = NULL;
     return node;
 }
