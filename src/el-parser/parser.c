@@ -68,12 +68,12 @@ void el_parser_destroy(ElParser* parser) {
     (void) parser;
 }
 
-ElParserErrorCode el_parser_parse(ElParser* parser, ElAstStmtNode** out) {
+ElParserErrorCode el_parser_parse(ElParser* parser, ElAstTopLevelNode** out) {
     if (parser->current.type == EL_TT_UNKNOWN) {
         ElParserErrorCode err = el_parser_advance(parser);
         if (err != EL_PARSER_ERR_OK) return err;
     }
 
     // TODO: parsing statements, top level declarations etc.
-    return _el_parser_parse_stmt(parser, out);
+    return _el_parser_parse_toplevel(parser, out);
 }
