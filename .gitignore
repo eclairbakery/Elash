@@ -1,2 +1,7 @@
+# Build artifacts
 build
 out
+
+# IDEs configuration
+compile_flags.txt
+.vscode/
