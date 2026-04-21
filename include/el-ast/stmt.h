@@ -17,6 +17,7 @@ typedef struct ElAstStmtNode {
         ElAstExprNode* expr;
         ElAstReturnStmtNode return_;
     } as;
+    ElAstStmtNode* next; // linked list; used in block stmt
 } ElAstStmtNode;
 
 ElAstStmtNode el_ast_expr_stmt(ElAstExprNode* expr);
