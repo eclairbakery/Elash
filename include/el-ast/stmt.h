@@ -5,16 +5,20 @@
 #include "expr.h"
 
 #include "stmt/return.h"
+#include "stmt/block.h"
 
 typedef enum ElAstStmtType {
     EL_AST_STMT_EXPR,
     EL_AST_STMT_RETURN,
+    EL_AST_STMT_BLOCK,
 } ElAstStmtType;
 
 typedef struct ElAstStmtNode {
     ElAstStmtType type;
     union {
         ElAstExprNode* expr;
+
+        ElAstBlockStmtNode block;
         ElAstReturnStmtNode return_;
     } as;
     ElAstStmtNode* next; // linked list; used in block stmt

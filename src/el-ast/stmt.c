@@ -33,6 +33,13 @@ void el_ast_dump_stmt_impl(ElAstStmtNode* node, size_t ident, FILE* out) {
             fprintf(out, "void\n");
         }
         break;
+    case EL_AST_STMT_BLOCK:
+        el_ast_dump_expr_print_ident(ident, out);
+        fprintf(out, "BlockStmt:\n");
+        for (ElAstStmtNode* stmt = node->as.block.stmts; stmt; stmt = stmt->next) {
+            el_ast_dump_stmt_impl(stmt, ident + 1, out);
+        }
+        break;
     }
 }
 
