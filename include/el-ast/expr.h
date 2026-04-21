@@ -20,4 +20,4 @@ typedef struct ElAstExprNode {
     } as;
 } ElAstExprNode;
 
-void el_ast_dump(ElAstExprNode* root, FILE* out);
+void el_ast_dump_expr(ElAstExprNode* root, FILE* out);
