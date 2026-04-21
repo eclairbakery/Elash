@@ -20,3 +20,9 @@ struct ElAstTypeNode {
         ElAstTypeNode* base;  // for EL_AST_TYPE_PTR
     };
 };
+
+ElAstTypeNode el_ast_type_name(ElAstIdentNode* name);
+ElAstTypeNode el_ast_type_ptr(ElAstTypeNode* base);
+
+ElAstTypeNode* el_ast_new_type_name(ElDynArena* arena, ElAstIdentNode* name);
+ElAstTypeNode* el_ast_new_type_ptr(ElDynArena* arena, ElAstTypeNode* base);
