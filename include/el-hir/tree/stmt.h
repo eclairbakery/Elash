@@ -1,3 +1,8 @@
+#pragma once
+
+#include <el-sema/type.h>
+#include <el-hir/symbol.h>
+
 #include "expr.h"
 
 typedef struct ElHirStmtNode ElHirStmtNode;
