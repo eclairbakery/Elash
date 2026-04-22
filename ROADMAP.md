@@ -47,7 +47,7 @@
 - [x] Implement function declarations
 - [x] Implement blocks
 - [ ] Implement control flow statements
-- [ ] Implement return statements
+- [x] Implement return statements
 - [ ] Implement top-level/module parsing
 - [ ] Attach source spans to AST nodes
 - [ ] Implement error recovery
@@ -56,7 +56,7 @@
 
 ## 4. Semantic Analysis & ELHIR Generation (Binder)
 
-- [ ] Implement symbol table
+- [x] Implement symbol table (scope)
 - [ ] Implement scope handling
 - [ ] Implement built-in functions
 - [ ] Perform name resolution
