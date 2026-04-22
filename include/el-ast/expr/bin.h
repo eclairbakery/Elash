@@ -3,7 +3,7 @@
 #include <el-util/dynarena.h>
 #include <el-defs/sv.h>
 
-#include <el-sema/expr/bin.h>
+#include <el-sema/expr/bin-op.h>
 
 typedef struct ElAstExprNode ElAstExprNode;
 
