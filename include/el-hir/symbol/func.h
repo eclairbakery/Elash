@@ -1,7 +1,12 @@
 #pragma once
 
+#include <el-defs/inttypes.h>
+#include <el-sema/type.h>
+
 typedef struct ElHirSymbol ElHirSymbol;
 
 typedef struct ElHirFuncSymbol {
-    // TODO
+    ElType* ret_type;
+    ElType** param_types;
+    usize param_count;
 } ElHirFuncSymbol;
