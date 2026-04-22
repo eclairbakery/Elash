@@ -1,11 +1,10 @@
 #pragma once
 
-typedef enum ElTypeKind {
-    // TODO: add more integer types
-    EL_TYPE_INT,
-    EL_TYPE_UINT,
-    EL_TYPE_CHAR,
+#include "type/prim.h"
+#include "type/ptr.h"
 
+typedef enum ElTypeKind {
+    EL_TYPE_PRIM,
     EL_TYPE_PTR,
 } ElTypeKind;
 
@@ -13,8 +12,7 @@ typedef struct ElType ElType;
 struct ElType {
     ElTypeKind kind;
     union {
-        struct {
-            ElType* base;
-        } ptr;
+        ElPrimitiveType prim;
+        ElPointerType ptr;
     } as;
 };
