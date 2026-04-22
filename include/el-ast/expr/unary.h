@@ -7,13 +7,13 @@
 
 typedef struct ElAstExprNode ElAstExprNode;
 
-typedef ElSemaUnaryExprType ElAstUnaryExprType;
+typedef ElSemaUnaryOp ElAstUnaryOp;
 
 typedef struct ElAstUnaryExprNode {
-    ElAstUnaryExprType type;
+    ElAstUnaryOp type;
     ElAstExprNode* operand;
 } ElAstUnaryExprNode;
 
-ElAstUnaryExprNode el_ast_unary_expr(ElAstUnaryExprType type, ElAstExprNode* operand);
-ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElAstUnaryExprType type, ElAstExprNode* operand);
+ElAstUnaryExprNode el_ast_unary_expr(ElAstUnaryOp type, ElAstExprNode* operand);
+ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElAstUnaryOp type, ElAstExprNode* operand);
 
