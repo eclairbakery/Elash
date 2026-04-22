@@ -50,10 +50,11 @@
 - [ ] Implement return statements
 - [ ] Implement top-level/module parsing
 - [ ] Attach source spans to AST nodes
+- [ ] Implement error recovery
 - [ ] Add parser test suite
 
 
-## 4. Semantic Analysis
+## 4. Semantic Analysis & ELHIR Generation
 
 - [ ] Implement symbol table
 - [ ] Implement scope handling
@@ -66,21 +67,30 @@
 - [ ] Validate function calls
 - [ ] Validate return types
 - [ ] Implement implicit and explicit conversions
-- [ ] Add semantic test suite
+- [ ] Lower AST nodes to ELHIR (Elash High-level Intermediate Representation)
+- [ ] Add semantic & ELHIR test suite
 
 
-## 5. AST → LLVM IR Lowering
+## 5. ELHIR -> ELMIR Lowering
+
+- [ ] Define ELMIR (Elash Mid-level Intermediate Representation) structure
+- [ ] Implement Control Flow Graph (CFG) construction
+- [ ] Lower structured control flow (if, loops) into basic blocks and jumps
+- [ ] Flatten nested expressions into linear ELMIR instructions
+- [ ] Implement temporary variable generation
+- [ ] Perform early ELMIR optimizations (constant folding, dead code elimination)
+
+
+## 6. ELMIR -> LLVM IR Lowering
 
 - [ ] Initialize LLVM context, module, and IR builder
 - [ ] Define mapping from language types to LLVM types
 - [ ] Lower primitive types
 - [ ] Lower function signatures
 - [ ] Create LLVM function definitions
-- [ ] Create entry blocks
-- [ ] Lower local variables using alloca in entry block
-- [ ] Lower arithmetic operations
-- [ ] Lower comparisons
-- [ ] Lower branching (if / loops)
+- [ ] Map ELMIR basic blocks to LLVM basic blocks
+- [ ] Lower local variables and temporaries using alloca in entry block
+- [ ] Lower ELMIR instructions to LLVM IR (arithmetic, comparisons, jumps)
 - [ ] Lower function calls
 - [ ] Lower return instructions
 - [ ] Handle global variables
@@ -89,7 +99,7 @@
 - [ ] Emit object file
 
 
-## 6. Linking
+## 7. Linking
 
 - [ ] Configure LLVM target triple
 - [ ] Create target machine
@@ -98,7 +108,7 @@
 - [ ] Produce final executable
 
 
-## 7. Optimizations (LLVM Passes)
+## 8. Optimizations (LLVM Passes)
 
 - [ ] Configure pass manager
 - [ ] Define optimization levels (O0, O1, O2)
@@ -107,7 +117,7 @@
 - [ ] Benchmark optimized vs non-optimized builds
 
 
-## 8. CLI
+## 9. CLI
 
 - [ ] Implement command parsing
 - [ ] Implement useful flags
@@ -116,7 +126,7 @@
 - [ ] Return proper exit codes
 
 
-## 9. Modules & Multi-file Compilation
+## 10. Modules & Multi-file Compilation
 
 - [ ] Implement import resolution
 - [ ] Support multi-file parsing
@@ -126,7 +136,7 @@
 - [ ] Merge modules into single LLVM module before emission
 
 
-## 10. Standard Library
+## 11. Standard Library
 - [ ] `io` module
 - [ ] `fs` module
 - [ ] `math` module
@@ -135,9 +145,9 @@
 - [ ] `rand` module
 - [ ] `thread` module
 - [ ] `net` module
-- 
 
-## 11. Stability & Hardening
+
+## 12. Stability & Hardening
 
 - [ ] End-to-end compilation tests
 - [ ] Invalid program test suite
