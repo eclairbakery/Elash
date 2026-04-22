@@ -1,7 +1,9 @@
 #pragma once
 
+#include <el-sema/type.h>
+
 typedef struct ElHirSymbol ElHirSymbol;
 
 typedef struct ElHirVarSymbol {
-    // TODO
+    ElType* type;
 } ElHirVarSymbol;
