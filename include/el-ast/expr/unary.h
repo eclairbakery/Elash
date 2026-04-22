@@ -10,7 +10,7 @@ typedef struct ElAstExprNode ElAstExprNode;
 typedef ElSemaUnaryOp ElAstUnaryOp;
 
 typedef struct ElAstUnaryExprNode {
-    ElAstUnaryOp type;
+    ElAstUnaryOp op;
     ElAstExprNode* operand;
 } ElAstUnaryExprNode;
 

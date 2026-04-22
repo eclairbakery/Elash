@@ -3,10 +3,10 @@
 
 #include <el-util/assert.h>
 
-ElAstBinExprNode el_ast_bin_expr(ElAstBinOp type, ElAstExprNode* left, ElAstExprNode* right) {
+ElAstBinExprNode el_ast_bin_expr(ElAstBinOp op, ElAstExprNode* left, ElAstExprNode* right) {
     return (ElAstBinExprNode) {
         .left = left,
-        .type = type,
+        .op = op,
         .right = right,
     };
 }

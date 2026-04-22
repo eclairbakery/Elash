@@ -11,7 +11,7 @@ typedef ElSemaBinOp ElAstBinOp;
 
 typedef struct ElAstBinExprNode {
     ElAstExprNode* left;
-    ElAstBinOp type;
+    ElAstBinOp op;
     ElAstExprNode* right;
 } ElAstBinExprNode;
 

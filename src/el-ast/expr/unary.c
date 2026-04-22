@@ -3,9 +3,9 @@
 
 #include <el-util/assert.h>
 
-ElAstUnaryExprNode el_ast_unary_expr(ElAstUnaryOp type, ElAstExprNode* operand) {
+ElAstUnaryExprNode el_ast_unary_expr(ElAstUnaryOp op, ElAstExprNode* operand) {
     return (ElAstUnaryExprNode) {
-        .type = type,
+        .op = op,
         .operand = operand,
     };
 }
