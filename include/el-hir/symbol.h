@@ -1,5 +1,7 @@
 #pragma once
 
+#include <el-defs/sv.h>
+
 #include "symbol/var.h"
 #include "symbol/func.h"
 #include "symbol/type.h"
@@ -11,6 +13,7 @@ typedef enum ElHirSymbolKind {
 } ElHirSymbolKind;
 
 typedef struct ElHirSymbol {
+    ElStringView name;
     ElHirSymbolKind kind;
     union {
         ElHirVarSymbol var;
