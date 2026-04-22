@@ -93,9 +93,9 @@ ElParserErrorCode _el_parser_parse_postfix(ElParser* parser, ElAstExprNode** out
 
     while (true) {
         if (el_parser_match(parser, EL_TT_INC)) {
-            *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_EXPR_POST_INC, *out);
+            *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_OP_POST_INC, *out);
         } else if (el_parser_match(parser, EL_TT_DEC)) {
-            *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_EXPR_POST_DEC, *out);
+            *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_OP_POST_DEC, *out);
         } else {
             break;
         }
@@ -107,37 +107,37 @@ ElParserErrorCode _el_parser_parse_unary(ElParser* parser, ElAstExprNode** out) 
     if (el_parser_match(parser, EL_TT_PLUS)) {
         ElParserErrorCode err = _el_parser_parse_unary(parser, out);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_EXPR_POS, *out);
+        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_OP_POS, *out);
         return _el_parser_ret_ok(parser);
     }
     if (el_parser_match(parser, EL_TT_MINUS)) {
         ElParserErrorCode err = _el_parser_parse_unary(parser, out);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_EXPR_NEG, *out);
+        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_OP_NEG, *out);
         return _el_parser_ret_ok(parser);
     }
     if (el_parser_match(parser, EL_TT_LOGICAL_NOT)) {
         ElParserErrorCode err = _el_parser_parse_unary(parser, out);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_EXPR_NOT, *out);
+        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_OP_NOT, *out);
         return _el_parser_ret_ok(parser);
     }
     if (el_parser_match(parser, EL_TT_BITWISE_NOT)) {
         ElParserErrorCode err = _el_parser_parse_unary(parser, out);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_EXPR_BW_NOT, *out);
+        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_OP_BW_NOT, *out);
         return _el_parser_ret_ok(parser);
     }
     if (el_parser_match(parser, EL_TT_INC)) {
         ElParserErrorCode err = _el_parser_parse_unary(parser, out);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_EXPR_PRE_INC, *out);
+        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_OP_PRE_INC, *out);
         return _el_parser_ret_ok(parser);
     }
     if (el_parser_match(parser, EL_TT_DEC)) {
         ElParserErrorCode err = _el_parser_parse_unary(parser, out);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_EXPR_PRE_DEC, *out);
+        *out = el_ast_new_unary_expr(parser->arena, EL_SEMA_UNARY_OP_PRE_DEC, *out);
         return _el_parser_ret_ok(parser);
     }
 
