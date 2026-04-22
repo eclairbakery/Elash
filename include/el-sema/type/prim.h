@@ -1,5 +1,7 @@
 #pragma once
 
+typedef struct ElType ElType;
+
 typedef enum ElPrimitiveTypeKind {
     // TODO: add more integer types
     EL_PRIMTYPE_INT,
