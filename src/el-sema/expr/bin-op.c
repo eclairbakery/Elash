@@ -1,4 +1,4 @@
-#include <el-sema/expr/bin.h>
+#include <el-sema/expr/bin-op.h>
 
 #include <el-util/assert.h>
 #include <el-defs/sv.h>
