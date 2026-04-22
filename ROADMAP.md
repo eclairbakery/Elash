@@ -54,7 +54,7 @@
 - [ ] Add parser test suite
 
 
-## 4. Semantic Analysis & ELHIR Generation
+## 4. Semantic Analysis & ELHIR Generation (Binder)
 
 - [ ] Implement symbol table
 - [ ] Implement scope handling
