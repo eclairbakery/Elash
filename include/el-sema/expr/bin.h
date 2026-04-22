@@ -2,28 +2,28 @@
 
 #include <el-defs/sv.h>
 
-typedef enum ElSemaBinExprType {
-    EL_SEMA_BIN_EXPR_ADD, // +
-    EL_SEMA_BIN_EXPR_SUB, // -
-    EL_SEMA_BIN_EXPR_MUL, // *
-    EL_SEMA_BIN_EXPR_DIV, // /
-    EL_SEMA_BIN_EXPR_MOD, // %
+typedef enum ElSemaBinOp {
+    EL_SEMA_BIN_OP_ADD, // +
+    EL_SEMA_BIN_OP_SUB, // -
+    EL_SEMA_BIN_OP_MUL, // *
+    EL_SEMA_BIN_OP_DIV, // /
+    EL_SEMA_BIN_OP_MOD, // %
 
-    EL_SEMA_BIN_EXPR_EQ,  // ==
-    EL_SEMA_BIN_EXPR_NEQ, // !=
-    EL_SEMA_BIN_EXPR_LT,  // <
-    EL_SEMA_BIN_EXPR_LTE, // <=
-    EL_SEMA_BIN_EXPR_GT,  // >
-    EL_SEMA_BIN_EXPR_GTE, // >=
+    EL_SEMA_BIN_OP_EQ,  // ==
+    EL_SEMA_BIN_OP_NEQ, // !=
+    EL_SEMA_BIN_OP_LT,  // <
+    EL_SEMA_BIN_OP_LTE, // <=
+    EL_SEMA_BIN_OP_GT,  // >
+    EL_SEMA_BIN_OP_GTE, // >=
     
-    EL_SEMA_BIN_EXPR_AND, // &&
-    EL_SEMA_BIN_EXPR_OR,  // ||
+    EL_SEMA_BIN_OP_AND, // &&
+    EL_SEMA_BIN_OP_OR,  // ||
 
-    EL_SEMA_BIN_EXPR_BW_AND, // &
-    EL_SEMA_BIN_EXPR_BW_OR,  // |
-    EL_SEMA_BIN_EXPR_BW_XOR, // ^
-    EL_SEMA_BIN_EXPR_SHL,    // <<
-    EL_SEMA_BIN_EXPR_SHR,    // >>
-} ElSemaBinExprType;
+    EL_SEMA_BIN_OP_BW_AND, // &
+    EL_SEMA_BIN_OP_BW_OR,  // |
+    EL_SEMA_BIN_OP_BW_XOR, // ^
+    EL_SEMA_BIN_OP_SHL,    // <<
+    EL_SEMA_BIN_OP_SHR,    // >>
+} ElSemaBinOp;
 
-ElStringView el_sema_bin_op_to_string(ElSemaBinExprType type);
+ElStringView el_sema_bin_op_to_string(ElSemaBinOp type);

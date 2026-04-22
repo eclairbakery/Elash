@@ -3,7 +3,7 @@
 
 #include <el-util/assert.h>
 
-ElAstBinExprNode el_ast_bin_expr(ElAstBinExprType type, ElAstExprNode* left, ElAstExprNode* right) {
+ElAstBinExprNode el_ast_bin_expr(ElAstBinOp type, ElAstExprNode* left, ElAstExprNode* right) {
     return (ElAstBinExprNode) {
         .left = left,
         .type = type,
@@ -11,7 +11,7 @@ ElAstBinExprNode el_ast_bin_expr(ElAstBinExprType type, ElAstExprNode* left, ElA
     };
 }
 
-ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinExprType type, ElAstExprNode* left, ElAstExprNode* right) {
+ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinOp type, ElAstExprNode* left, ElAstExprNode* right) {
     ElAstExprNode* node = EL_DYNARENA_NEW(arena, ElAstExprNode);
     node->type = EL_AST_EXPR_BINARY;
     node->as.binary = el_ast_bin_expr(type, left, right);
