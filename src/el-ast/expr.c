@@ -40,7 +40,7 @@ void el_ast_dump_expr_ident(ElAstIdentNode* node, usize indent, FILE* out) {
 void el_ast_dump_expr(ElAstExprNode* node, usize indent, FILE* out) {
     switch (node->type) {
     case EL_AST_EXPR_BINARY: {
-        ElStringView op = el_ast_bin_op_to_string(node->as.binary.type);
+        ElStringView op = el_sema_bin_op_to_string(node->as.binary.type);
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "BinaryExpr('"EL_SV_FMT"'):\n", EL_SV_FARG(op));
         el_ast_dump_print_indent(indent + 1, out);
