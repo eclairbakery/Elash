@@ -149,10 +149,10 @@ ElParserErrorCode _el_parser_parse_multiplicative(ElParser* parser, ElAstExprNod
     if (err != EL_PARSER_ERR_OK) return err;
 
     while (true) {
-        ElAstBinExprType type;
-        if (el_parser_match(parser, EL_TT_STAR)) type = EL_SEMA_BIN_EXPR_MUL;
-        else if (el_parser_match(parser, EL_TT_SLASH)) type = EL_SEMA_BIN_EXPR_DIV;
-        else if (el_parser_match(parser, EL_TT_PERCENT)) type = EL_SEMA_BIN_EXPR_MOD;
+        ElAstBinOp type;
+        if (el_parser_match(parser, EL_TT_STAR)) type = EL_SEMA_BIN_OP_MUL;
+        else if (el_parser_match(parser, EL_TT_SLASH)) type = EL_SEMA_BIN_OP_DIV;
+        else if (el_parser_match(parser, EL_TT_PERCENT)) type = EL_SEMA_BIN_OP_MOD;
         else break;
 
         ElAstExprNode* right = NULL;
@@ -168,9 +168,9 @@ ElParserErrorCode _el_parser_parse_additive(ElParser* parser, ElAstExprNode** ou
     if (err != EL_PARSER_ERR_OK) return err;
 
     while (true) {
-        ElAstBinExprType type;
-        if (el_parser_match(parser, EL_TT_PLUS)) type = EL_SEMA_BIN_EXPR_ADD;
-        else if (el_parser_match(parser, EL_TT_MINUS)) type = EL_SEMA_BIN_EXPR_SUB;
+        ElAstBinOp type;
+        if (el_parser_match(parser, EL_TT_PLUS)) type = EL_SEMA_BIN_OP_ADD;
+        else if (el_parser_match(parser, EL_TT_MINUS)) type = EL_SEMA_BIN_OP_SUB;
         else break;
 
         ElAstExprNode* right = NULL;
@@ -186,9 +186,9 @@ ElParserErrorCode _el_parser_parse_shift(ElParser* parser, ElAstExprNode** out) 
     if (err != EL_PARSER_ERR_OK) return err;
 
     while (true) {
-        ElAstBinExprType type;
-        if (el_parser_match(parser, EL_TT_SHL)) type = EL_SEMA_BIN_EXPR_SHL;
-        else if (el_parser_match(parser, EL_TT_SHR)) type = EL_SEMA_BIN_EXPR_SHR;
+        ElAstBinOp type;
+        if (el_parser_match(parser, EL_TT_SHL)) type = EL_SEMA_BIN_OP_SHL;
+        else if (el_parser_match(parser, EL_TT_SHR)) type = EL_SEMA_BIN_OP_SHR;
         else break;
 
         ElAstExprNode* right = NULL;
@@ -204,11 +204,11 @@ ElParserErrorCode _el_parser_parse_relational(ElParser* parser, ElAstExprNode** 
     if (err != EL_PARSER_ERR_OK) return err;
 
     while (true) {
-        ElAstBinExprType type;
-        if (el_parser_match(parser, EL_TT_LT)) type = EL_SEMA_BIN_EXPR_LT;
-        else if (el_parser_match(parser, EL_TT_LTE)) type = EL_SEMA_BIN_EXPR_LTE;
-        else if (el_parser_match(parser, EL_TT_GT)) type = EL_SEMA_BIN_EXPR_GT;
-        else if (el_parser_match(parser, EL_TT_GTE)) type = EL_SEMA_BIN_EXPR_GTE;
+        ElAstBinOp type;
+        if (el_parser_match(parser, EL_TT_LT)) type = EL_SEMA_BIN_OP_LT;
+        else if (el_parser_match(parser, EL_TT_LTE)) type = EL_SEMA_BIN_OP_LTE;
+        else if (el_parser_match(parser, EL_TT_GT)) type = EL_SEMA_BIN_OP_GT;
+        else if (el_parser_match(parser, EL_TT_GTE)) type = EL_SEMA_BIN_OP_GTE;
         else break;
 
         ElAstExprNode* right = NULL;
@@ -224,9 +224,9 @@ ElParserErrorCode _el_parser_parse_equality(ElParser* parser, ElAstExprNode** ou
     if (err != EL_PARSER_ERR_OK) return err;
 
     while (true) {
-        ElAstBinExprType type;
-        if (el_parser_match(parser, EL_TT_EQL)) type = EL_SEMA_BIN_EXPR_EQ;
-        else if (el_parser_match(parser, EL_TT_NEQ)) type = EL_SEMA_BIN_EXPR_NEQ;
+        ElAstBinOp type;
+        if (el_parser_match(parser, EL_TT_EQL)) type = EL_SEMA_BIN_OP_EQ;
+        else if (el_parser_match(parser, EL_TT_NEQ)) type = EL_SEMA_BIN_OP_NEQ;
         else break;
 
         ElAstExprNode* right = NULL;
@@ -245,7 +245,7 @@ ElParserErrorCode _el_parser_parse_bitwise_and(ElParser* parser, ElAstExprNode**
         ElAstExprNode* right = NULL;
         err = _el_parser_parse_equality(parser, &right);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_bin_expr(parser->arena, EL_SEMA_BIN_EXPR_BW_AND, *out, right);
+        *out = el_ast_new_bin_expr(parser->arena, EL_SEMA_BIN_OP_BW_AND, *out, right);
     }
     return _el_parser_ret_ok(parser);
 }
@@ -258,7 +258,7 @@ ElParserErrorCode _el_parser_parse_bitwise_xor(ElParser* parser, ElAstExprNode**
         ElAstExprNode* right = NULL;
         err = _el_parser_parse_bitwise_and(parser, &right);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_bin_expr(parser->arena, EL_SEMA_BIN_EXPR_BW_XOR, *out, right);
+        *out = el_ast_new_bin_expr(parser->arena, EL_SEMA_BIN_OP_BW_XOR, *out, right);
     }
     return _el_parser_ret_ok(parser);
 }
@@ -271,7 +271,7 @@ ElParserErrorCode _el_parser_parse_bitwise_or(ElParser* parser, ElAstExprNode** 
         ElAstExprNode* right = NULL;
         err = _el_parser_parse_bitwise_xor(parser, &right);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_bin_expr(parser->arena, EL_SEMA_BIN_EXPR_BW_OR, *out, right);
+        *out = el_ast_new_bin_expr(parser->arena, EL_SEMA_BIN_OP_BW_OR, *out, right);
     }
     return _el_parser_ret_ok(parser);
 }
@@ -284,7 +284,7 @@ ElParserErrorCode _el_parser_parse_logical_and(ElParser* parser, ElAstExprNode**
         ElAstExprNode* right = NULL;
         err = _el_parser_parse_bitwise_or(parser, &right);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_bin_expr(parser->arena, EL_SEMA_BIN_EXPR_AND, *out, right);
+        *out = el_ast_new_bin_expr(parser->arena, EL_SEMA_BIN_OP_AND, *out, right);
     }
     return _el_parser_ret_ok(parser);
 }
@@ -297,7 +297,7 @@ ElParserErrorCode _el_parser_parse_logical_or(ElParser* parser, ElAstExprNode** 
         ElAstExprNode* right = NULL;
         err = _el_parser_parse_logical_and(parser, &right);
         if (err != EL_PARSER_ERR_OK) return err;
-        *out = el_ast_new_bin_expr(parser->arena, EL_SEMA_BIN_EXPR_OR, *out, right);
+        *out = el_ast_new_bin_expr(parser->arena, EL_SEMA_BIN_OP_OR, *out, right);
     }
     return _el_parser_ret_ok(parser);
 }
