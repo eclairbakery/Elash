@@ -1,3 +1,5 @@
+#pragma once
+
 #include <el-sema/type.h>
 
 // TODO: this should be moved from ast to sema module, probably
