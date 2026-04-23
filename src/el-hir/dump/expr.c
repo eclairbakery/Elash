@@ -35,13 +35,14 @@ void el_hir_dump_expr(ElHirExprNode* node, usize indent, FILE* out) {
     }
 
     case EL_HIR_EXPR_LITERAL:
-        switch (node->as.literal.type) {
-        case EL_AST_LIT_INT:    fprintf(out, "%"PRId64, node->as.literal.of.int_.value);                     break;
-        case EL_AST_LIT_FLOAT:  fprintf(out, "%Lf", node->as.literal.of.float_.value);                       break;
-        case EL_AST_LIT_CHAR:   fprintf(out, "'%c'", node->as.literal.of.char_.value);                       break;
-        case EL_AST_LIT_STRING: fprintf(out, "\""EL_SV_FMT"\"", EL_SV_FARG(node->as.literal.of.str_.value)); break;
-        case EL_AST_LIT_BOOL:   fputs(node->as.literal.of.bool_.value ? "true" : "false", out);              break;
-        case EL_AST_LIT_NULL:   fputs("null", out);                                                          break;
+        if (node->type->kind == EL_TYPE_PRIM) {
+            switch (node->type->as.prim.kind) {
+            case EL_PRIMTYPE_INT:   fprintf(out, "%"PRId64, node->as.literal.as.int_);   break;
+            case EL_PRIMTYPE_UINT:  fprintf(out, "%"PRIu64, node->as.literal.as.uint_);  break;
+            case EL_PRIMTYPE_CHAR:  fprintf(out, "'%c'", node->as.literal.as.char_);     break;
+            }
+        } else {
+            fputs("<unhandled>", out);
         }
         break;
 
