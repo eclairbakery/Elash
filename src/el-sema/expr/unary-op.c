@@ -3,7 +3,7 @@
 #include <el-util/assert.h>
 #include <el-defs/sv.h>
 
-ElStringView el_ast_unary_op_to_string(ElSemaUnaryOp type) {
+ElStringView el_sema_unary_op_to_string(ElSemaUnaryOp type) {
     switch (type) {
     case EL_SEMA_UNARY_OP_POS: return EL_SV("+");
     case EL_SEMA_UNARY_OP_NEG: return EL_SV("-");
@@ -20,7 +20,7 @@ ElStringView el_ast_unary_op_to_string(ElSemaUnaryOp type) {
     EL_UNREACHABLE_ENUM_VAL(ElSemaUnaryOp, type);
 }
 
-ElStringView el_ast_unary_op_format(ElSemaUnaryOp type) {
+ElStringView el_sema_unary_op_format(ElSemaUnaryOp type) {
     switch (type) {
     case EL_SEMA_UNARY_OP_POS: return EL_SV("+");
     case EL_SEMA_UNARY_OP_NEG: return EL_SV("-");

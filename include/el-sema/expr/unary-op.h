@@ -19,5 +19,5 @@ static inline bool el_sema_unary_op_is_post(ElSemaUnaryOp op) {
     return op == EL_SEMA_UNARY_OP_POST_INC || op == EL_SEMA_UNARY_OP_POST_DEC;
 }
 
-ElStringView el_ast_unary_op_format(ElSemaUnaryOp type);
-ElStringView el_ast_unary_op_to_string(ElSemaUnaryOp type);
+ElStringView el_sema_unary_op_format(ElSemaUnaryOp type);
+ElStringView el_sema_unary_op_to_string(ElSemaUnaryOp type);
