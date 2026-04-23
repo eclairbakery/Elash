@@ -15,4 +15,5 @@ typedef enum ElSemaUnaryOp {
     EL_SEMA_UNARY_OP_POST_DEC, // x--
 } ElSemaUnaryOp;
 
+ElStringView el_ast_unary_op_format(ElSemaUnaryOp type);
 ElStringView el_ast_unary_op_to_string(ElSemaUnaryOp type);

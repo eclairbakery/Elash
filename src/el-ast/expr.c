@@ -50,7 +50,7 @@ void el_ast_dump_expr(ElAstExprNode* node, usize indent, FILE* out) {
         break;
     }
     case EL_AST_EXPR_UNARY: {
-        ElStringView op = el_ast_unary_op_to_string(node->as.unary.op);
+        ElStringView op = el_ast_unary_op_format(node->as.unary.op);
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "UnaryExpr('"EL_SV_FMT"'):\n", EL_SV_FARG(op));
         el_ast_dump_expr(node->as.unary.operand, indent + 1, out);
