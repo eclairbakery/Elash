@@ -1,4 +1,5 @@
 #include <el-hir/dump/expr.h>
+#include <el-hir/dump/symbol.h>
 #include <el-hir/dump/indent.h>
 
 #include <el-hir/tree/expr.h>
@@ -45,7 +46,7 @@ void el_hir_dump_expr(ElHirExprNode* node, usize indent, FILE* out) {
         break;
 
     case EL_HIR_EXPR_SYMBOL:
-        fprintf(out, EL_SV_FMT"#%p", EL_SV_FARG(node->as.symbol->name), &node->as.symbol);
+        el_hir_dump_symbol(node->as.symbol, out); 
         break;
     }
 
