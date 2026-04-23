@@ -2,9 +2,6 @@
 
 #include <el-sema/type.h>
 
-// TODO: this should be moved from ast to sema module, probably
-#include <el-ast/expr/literal.h>
-
 #include <el-sema/expr/bin-op.h>
 #include <el-sema/expr/unary-op.h>
 
@@ -30,13 +27,22 @@ typedef struct ElHirUnaryExprNode {
     ElHirExprNode* operand;
 } ElHirUnaryExprNode;
 
+typedef struct ElHirLiteral {
+    // tagged by the type field of ExprNode
+    union {
+        int64_t int_;
+        uint64_t uint_;
+        char char_;
+    } as;
+} ElHirLiteral;
+
 struct ElHirExprNode {
     ElHirExprKind kind;
     ElType* type;
     union {
         ElHirBinExprNode binary;
         ElHirUnaryExprNode unary;
-        ElAstLiteralNode literal;
+        ElHirLiteral literal;
         ElHirSymbol* symbol;
     } as;
 };
