@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdio.h>
+
 #include "type/prim.h"
 #include "type/ptr.h"
 
@@ -16,3 +18,5 @@ struct ElType {
         ElPointerType ptr;
     } as;
 };
+
+void el_sema_dump_type(const ElType* type, FILE* out);
