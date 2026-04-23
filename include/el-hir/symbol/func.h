@@ -7,6 +7,6 @@ typedef struct ElHirSymbol ElHirSymbol;
 
 typedef struct ElHirFuncSymbol {
     ElType* ret_type;
-    ElType** param_types;
+    ElHirSymbol** params;
     usize param_count;
 } ElHirFuncSymbol;
