@@ -42,7 +42,7 @@ ElSrcDocErrorCode el_srcdoc_init_from_str(ElSourceDocument* srcdoc, ElStringView
 ElSrcDocErrorCode el_srcdoc_init_from_file(ElSourceDocument* srcdoc, const char* path) {
     ElSrcDocErrorCode err = EL_SRCDOC_ERR_SUCCESS;
 
-    FILE* f = fopen(path, "r");
+    FILE* f = fopen(path, "rb");
     if (f == NULL) {
         err = EL_SRCDOC_ERR_FOPEN_FAILED;
         goto fail;
@@ -65,7 +65,9 @@ ElSrcDocErrorCode el_srcdoc_init_from_file(ElSourceDocument* srcdoc, const char*
         goto fail;
     }
 
-    if (fread(srcdoc->content.data, 1, size, f) != size) {
+    usize readed = fread(srcdoc->content.data, 1, size, f); 
+
+    if (readed != size) {
         err = EL_SRCDOC_ERR_FREAD_FAILED;
         el_strbuf_destroy(&srcdoc->content);
         goto fail;
