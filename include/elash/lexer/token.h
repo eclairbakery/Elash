@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/defs/source-loc.h>
+#include <elash/srcdoc/span.h>
 #include <elash/defs/sv.h>
 
 #include <elash/util/strbuf.h>
@@ -185,7 +185,7 @@ typedef enum ElTokenType {
 typedef struct ElToken {
     ElTokenType type;
     ElStringView lexeme;
-    ElSourceLocation loc;
+    ElSourceSpan span;
 } ElToken;
 
 bool el_token_type_is_keyword(ElTokenType tt);
