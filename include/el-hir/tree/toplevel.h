@@ -2,6 +2,7 @@
 
 #include <el-sema/type.h>
 #include <el-hir/symbol.h>
+#include <el-util/dynarena.h>
 
 #include "stmt.h"
 
@@ -22,3 +23,5 @@ struct ElHirTopLevelNode {
     } as;
     ElHirTopLevelNode* next;
 };
+
+ElHirTopLevelNode* el_hir_new_func_definition(ElDynArena* arena, ElHirSymbol* symbol, ElHirBlockStmtNode* block);
