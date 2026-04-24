@@ -1,7 +1,11 @@
 #pragma once
 
+#include <el-util/dynarena.h>
+
 typedef struct ElType ElType;
 
 typedef struct ElPointerType {
     ElType* base;
 } ElPointerType;
+
+ElType* el_sema_new_ptr_type(ElDynArena* arena, ElType* base);
