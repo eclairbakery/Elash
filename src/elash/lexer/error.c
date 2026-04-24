@@ -40,7 +40,10 @@ usize el_lexer_result_to_string(ElLexerErrorDetails r, char** out) {
 
     int loc_len = 0;
     if (r.code != EL_LEXERR_SUCCESS) {
-        loc_len = snprintf(NULL, 0, " (%u:%u)", r.error_location.line, r.error_location.column);
+        loc_len = snprintf(NULL, 0, " (%u:%u)",
+            // line and column are 0-indexed but we want 1-indexed numbers
+            r.span.start.line + 1, r.span.start.column + 1
+        );
         if (loc_len < 0) loc_len = 0;
     }
 
@@ -59,7 +62,10 @@ usize el_lexer_result_to_string(ElLexerErrorDetails r, char** out) {
     p += error_code_str.len;
 
     if (loc_len > 0) {
-        p += snprintf(p, (usize)loc_len + 1, " (%u:%u)", r.error_location.line, r.error_location.column);
+        p += snprintf(p, (usize)loc_len + 1, " (%u:%u)",
+            // line and column are 0-indexed but we want 1-indexed numbers
+            r.span.start.line + 1, r.span.start.column + 1
+        );
     }
 
     if (char_len > 0) {
@@ -77,9 +83,7 @@ usize el_lexer_result_print(ElLexerErrorDetails r, FILE* out) {
     if (r.code != EL_LEXERR_SUCCESS) {
         written += fprintf(
             out, "(%u:%u): ",
-            // line and column are 0-indexed but we want 1-indexed numbers
-            // human readable 👍
-            r.error_location.line + 1, r.error_location.column + 1
+            r.span.start.line + 1, r.span.start.column + 1
         );
     }
 

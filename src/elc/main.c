@@ -21,10 +21,8 @@ int main(int argc, const char* const* argv) {
     ElSrcDocErrorCode derr = el_srcdoc_init_from_file(&input, input_file);
     printf("%d", derr);
 
-    ElStringView input_content = el_srcdoc_content(&input);
-
     ElLexer lexer;
-    ElLexerErrorCode err = el_lexer_init(&lexer, input_content, EL_LF_ALLOW_UTF8_IDENTS);
+    ElLexerErrorCode err = el_lexer_init(&lexer, &input, EL_LF_ALLOW_UTF8_IDENTS);
     if (err != EL_LEXERR_SUCCESS) {
         fprintf(stderr, "Lexer initialization error: %d\n", err);
         el_srcdoc_destroy(&input);
@@ -67,7 +65,7 @@ int main(int argc, const char* const* argv) {
     el_srcdoc_print(&preprocessed, stdout);
     putchar('\n');
 
-    el_lexer_set_input(&lexer, input_content);
+    el_lexer_set_document(&lexer, &input);
     el_pp_reset(&pp);
 
     ElDynArena arena;

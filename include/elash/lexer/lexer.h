@@ -32,7 +32,7 @@ typedef enum ElLexerContext {
 } ElLexerContext;
 
 typedef struct ElLexer {
-    ElStringView input;
+    const ElSourceDocument* doc;
     ElSourceLocation current_loc;
     ElSourceLocation token_start_loc;
     ElLexerContext ctx;
@@ -42,11 +42,11 @@ typedef struct ElLexer {
     ElLexerFlags flags;
 } ElLexer;
 
-ElLexerErrorCode el_lexer_init(ElLexer* lexer, ElStringView input, ElLexerFlags flags);
+ElLexerErrorCode el_lexer_init(ElLexer* lexer, const ElSourceDocument* doc, ElLexerFlags flags);
 ElLexerErrorCode el_lexer_destroy(ElLexer* lexer);
 
 ElLexerErrorCode el_lexer_reset(ElLexer* lexer);
-ElLexerErrorCode el_lexer_set_input(ElLexer* lexer, ElStringView input);
+ElLexerErrorCode el_lexer_set_document(ElLexer* lexer, const ElSourceDocument* doc);
 
 ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out_tok);
 

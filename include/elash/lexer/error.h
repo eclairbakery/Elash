@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/defs/source-loc.h>
+#include <elash/srcdoc/span.h>
 #include <elash/defs/sv.h>
 
 #include <stddef.h> // For usize
@@ -72,9 +72,9 @@ ElStringView el_lexer_err_code_to_string(ElLexerErrorCode code);
 typedef struct ElLexerErrorDetails {
     ElLexerErrorCode code; ///< The specific error code.
 
-    /// @brief Source location where the error occurred.
+    /// @brief Source span where the error occurred.
     /// This field is undefined when `code` is @ref EL_LEXERR_SUCCESS.
-    ElSourceLocation error_location;
+    ElSourceSpan span;
 
     /// @brief Additional details about the error.
     /// The interpretation of this union depends on the `code` field.
