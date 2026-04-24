@@ -1,8 +1,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <el-util/dynarena.h>
 
 typedef struct ElHirExprNode ElHirExprNode;
+typedef struct ElType ElType;
 
 typedef struct ElHirLiteral {
     // tagged by the type field of ExprNode
@@ -12,4 +14,8 @@ typedef struct ElHirLiteral {
         char char_;
     } as;
 } ElHirLiteral;
+
+ElHirExprNode* el_hir_new_int_literal(ElDynArena* arena, ElType* type, int64_t value);
+ElHirExprNode* el_hir_new_uint_literal(ElDynArena* arena, ElType* type, uint64_t value);
+ElHirExprNode* el_hir_new_char_literal(ElDynArena* arena, ElType* type, char value);
 
