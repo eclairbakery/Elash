@@ -12,7 +12,6 @@ struct _ElDynArenaChunk {
     uchar data[];
 };
 
-// TODO: STUB
 typedef struct ElDynArena {
     _ElDynArenaChunk* head;
     _ElDynArenaChunk* current;
@@ -22,7 +21,7 @@ typedef struct ElDynArena {
 bool el_dynarena_init(ElDynArena* arena);
 void el_dynarena_free(ElDynArena* arena);
 void el_dynarena_reset(ElDynArena* arena);
-//
+
 void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align);
 void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align);
 
