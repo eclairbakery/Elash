@@ -117,7 +117,7 @@ $(LIBELC_SHARED): $(LIBELC_OBJ_SHARED) $(LIBELASH_SHARED)
 
 $(ELC_BIN): $(MAIN_OBJ) $(LIBELC_STATIC) $(LIBELASH_STATIC)
 	@$(call CMD_MKDIR_P,$(dir $@))
-	$(CC) $(MAIN_OBJ) -L$(LIB_DIR) -lelc -lelash $(LDFLAGS) -o $@
+	$(CC) $(MAIN_OBJ) $(LIBELC_STATIC) $(LIBELASH_STATIC) $(LDFLAGS) -o $@
 
 $(OBJ_ROOT_DIR)/%.o: %.c
 	@$(call CMD_MKDIR_P,$(dir $@))
