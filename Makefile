@@ -30,12 +30,12 @@ else ifeq ($(PLATFORM),posix)
 endif
 
 LIBELASH_NAME    := elash
-LIBELASH_STATIC  := $(LIB_DIR)/lib$(LIBELASH_NAME).a
-LIBELASH_SHARED  := $(LIB_DIR)/lib$(LIBELASH_NAME).so
+LIBELASH_STATIC  := $(LIB_DIR)/lib$(LIBELASH_NAME)$(STATIC_EXT)
+LIBELASH_SHARED  := $(LIB_DIR)/lib$(LIBELASH_NAME)$(SHARED_EXT)
 
 LIBELC_NAME      := elc
-LIBELC_STATIC    := $(LIB_DIR)/lib$(LIBELC_NAME).a
-LIBELC_SHARED    := $(LIB_DIR)/lib$(LIBELC_NAME).so
+LIBELC_STATIC    := $(LIB_DIR)/lib$(LIBELC_NAME)$(STATIC_EXT)
+LIBELC_SHARED    := $(LIB_DIR)/lib$(LIBELC_NAME)$(SHARED_EXT)
 
 ELC_BIN := $(BIN_DIR)/elc$(EXE_EXT)
 
@@ -56,15 +56,22 @@ else
 endif
 
 ifeq ($(PLATFORM),windows)
-	CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))'"
-	CMD_RM_RF = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))'"
-else
+	CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))' | Out-Null"
+	CMD_RM_RF   = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))' | Out-Null"
+else ifeq ($(PLATFORM),posix)
 	CMD_MKDIR_P = mkdir -p "$(1)"
 	CMD_RM_RF = rm -rf "$(1)"
 endif
 
-LIBELASH_C_SRCS := $(shell find $(SRC_DIR)/elash -name "*.c")
-LIBELC_C_SRCS   := $(filter-out $(SRC_DIR)/elc/main.c, $(shell find $(SRC_DIR)/elc -name "*.c"))
+rwildcard = \
+	$(foreach d,$(wildcard $(1)/*),$(call rwildcard,$(d),$(2))) \
+	$(filter $(subst *,%,$(2)),$(wildcard $(1)/$(2)))
+
+LIBELASH_C_SRCS := $(call rwildcard,$(SRC_DIR)/elash,*.c)
+LIBELC_C_SRCS := $(filter-out \
+  $(SRC_DIR)/elc/main.c, \
+  $(call rwildcard,$(SRC_DIR)/elc,*.c))
+
 MAIN_C_SRC      := $(SRC_DIR)/elc/main.c
 
 ALL_C_SRCS := $(LIBELASH_C_SRCS) $(LIBELC_C_SRCS) $(MAIN_C_SRC)
@@ -93,18 +100,23 @@ dirs:
 	@$(call CMD_MKDIR_P,$(DEP_ROOT_DIR)/shared)
 
 $(LIBELASH_STATIC): $(LIBELASH_OBJ_STATIC)
+	@$(call CMD_MKDIR_P,$(dir $@))
 	ar rcs $@ $^
 
 $(LIBELASH_SHARED): $(LIBELASH_OBJ_SHARED)
+	@$(call CMD_MKDIR_P,$(dir $@))
 	$(CC) -shared $^ $(LDFLAGS) -o $@
 
 $(LIBELC_STATIC): $(LIBELC_OBJ_STATIC)
+	@$(call CMD_MKDIR_P,$(dir $@))
 	ar rcs $@ $^
 
 $(LIBELC_SHARED): $(LIBELC_OBJ_SHARED) $(LIBELASH_SHARED)
+	@$(call CMD_MKDIR_P,$(dir $@))
 	$(CC) -shared $(LIBELC_OBJ_SHARED) -L$(LIB_DIR) -lelash $(LDFLAGS) -o $@
 
 $(ELC_BIN): $(MAIN_OBJ) $(LIBELC_STATIC) $(LIBELASH_STATIC)
+	@$(call CMD_MKDIR_P,$(dir $@))
 	$(CC) $(MAIN_OBJ) -L$(LIB_DIR) -lelc -lelash $(LDFLAGS) -o $@
 
 $(OBJ_ROOT_DIR)/%.o: %.c
