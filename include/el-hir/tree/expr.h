@@ -2,6 +2,7 @@
 
 #include <el-sema/type.h>
 #include <el-hir/symbol.h>
+#include <el-util/dynarena.h>
 
 #include "expr/bin.h"
 #include "expr/unary.h"
@@ -24,4 +25,6 @@ typedef struct ElHirExprNode {
         ElHirSymbol* symbol;
     } as;
 } ElHirExprNode;
+
+ElHirExprNode* el_hir_new_symbol_expr(ElDynArena* arena, ElType* type, ElHirSymbol* symbol);
 
