@@ -1,5 +1,7 @@
 #pragma once
 
+#include <el-util/dynarena.h>
+
 typedef struct ElType ElType;
 
 typedef enum ElPrimitiveTypeKind {
@@ -12,3 +14,5 @@ typedef enum ElPrimitiveTypeKind {
 typedef struct ElPrimitiveType {
     ElPrimitiveTypeKind kind;
 } ElPrimitiveType;
+
+ElType* el_sema_new_prim_type(ElDynArena* arena, ElPrimitiveTypeKind kind);
