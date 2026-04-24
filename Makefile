@@ -18,6 +18,17 @@ OUT_DIR     := out/$(BUILD)
 LIB_DIR     := $(OUT_DIR)/lib
 BIN_DIR     := $(OUT_DIR)/bin
 
+EXE_EXT :=
+ifeq ($(PLATFORM),windows)
+	EXE_EXT    := .exe
+	SHARED_EXT := .dll
+	STATIC_EXT := .lib
+else ifeq ($(PLATFORM),posix)
+	EXE_EXT    :=
+	SHARED_EXT := .so
+	STATIC_EXT := .a
+endif
+
 LIBELASH_NAME    := elash
 LIBELASH_STATIC  := $(LIB_DIR)/lib$(LIBELASH_NAME).a
 LIBELASH_SHARED  := $(LIB_DIR)/lib$(LIBELASH_NAME).so
@@ -26,13 +37,7 @@ LIBELC_NAME      := elc
 LIBELC_STATIC    := $(LIB_DIR)/lib$(LIBELC_NAME).a
 LIBELC_SHARED    := $(LIB_DIR)/lib$(LIBELC_NAME).so
 
-EXE_EXT :=
-ifeq ($(PLATFORM),windows)
-	EXE_EXT := .exe
-else ifeq ($(PLATFORM),posix)
-	EXE_EXT := .elf
-endif
-TARGET := $(BIN_DIR)/elc$(EXE_EXT)
+ELC_BIN := $(BIN_DIR)/elc$(EXE_EXT)
 
 CSTD     := -std=c11
 WARNINGS := -Wall -Wextra -Werror=implicit-fallthrough
@@ -77,7 +82,7 @@ DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
 
 .PHONY: all dirs clean run tests sharedlib
 
-all: dirs $(TARGET) $(LIBELASH_STATIC) $(LIBELASH_SHARED) $(LIBELC_STATIC) $(LIBELC_SHARED)
+all: dirs $(ELC_BIN) $(LIBELASH_STATIC) $(LIBELASH_SHARED) $(LIBELC_STATIC) $(LIBELC_SHARED)
 
 dirs:
 	@$(call CMD_MKDIR_P,$(LIB_DIR))
@@ -99,7 +104,7 @@ $(LIBELC_STATIC): $(LIBELC_OBJ_STATIC)
 $(LIBELC_SHARED): $(LIBELC_OBJ_SHARED) $(LIBELASH_SHARED)
 	$(CC) -shared $(LIBELC_OBJ_SHARED) -L$(LIB_DIR) -lelash $(LDFLAGS) -o $@
 
-$(TARGET): $(MAIN_OBJ) $(LIBELC_STATIC) $(LIBELASH_STATIC)
+$(ELC_BIN): $(MAIN_OBJ) $(LIBELC_STATIC) $(LIBELASH_STATIC)
 	$(CC) $(MAIN_OBJ) -L$(LIB_DIR) -lelc -lelash $(LDFLAGS) -o $@
 
 $(OBJ_ROOT_DIR)/%.o: %.c
@@ -113,7 +118,7 @@ $(OBJ_ROOT_DIR)/shared/%.o: %.c
 	$(CC) $(CFLAGS) $(PIC_CFLAGS) -MMD -MP -MF $(DEP_ROOT_DIR)/shared/$*.d -c $< -o $@
 
 run: all
-	$(TARGET)
+	$(ELC_BIN)
 
 sharedlib: dirs $(LIBELASH_SHARED) $(LIBELC_SHARED)
 
