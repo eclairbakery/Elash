@@ -3,9 +3,8 @@
 #include <el-sema/type.h>
 #include <el-hir/symbol.h>
 
-#include "expr.h"
-
-typedef struct ElHirStmtNode ElHirStmtNode;
+#include "stmt/block.h"
+#include "stmt/return.h"
 
 typedef enum ElHirStmtKind {
     EL_HIR_STMT_EXPR,
@@ -13,15 +12,7 @@ typedef enum ElHirStmtKind {
     EL_HIR_STMT_BLOCK,
 } ElHirStmtKind;
 
-typedef struct ElHirBlockStmtNode {
-    ElHirStmtNode* stmts;
-} ElHirBlockStmtNode;
-
-typedef struct ElHirReturnStmtNode {
-    ElHirExprNode* value; // nullable
-} ElHirReturnStmtNode;
-
-struct ElHirStmtNode {
+typedef struct ElHirStmtNode {
     ElHirStmtKind kind;
     union {
         ElHirExprNode* expr;
@@ -29,5 +20,4 @@ struct ElHirStmtNode {
         ElHirReturnStmtNode return_;
     } as;
     ElHirStmtNode* next;
-};
-
+} ElHirStmtNode;
