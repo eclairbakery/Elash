@@ -18,8 +18,9 @@ int main(int argc, const char* const* argv) {
     const char* input_file = argv[1];
 
     ElSourceDocument input;
-    el_srcdoc_init_from_file(&input, input_file);
-    
+    ElSrcDocErrorCode derr = el_srcdoc_init_from_file(&input, input_file);
+    printf("%d", derr);
+
     ElStringView input_content = el_srcdoc_content(&input);
 
     ElLexer lexer;
