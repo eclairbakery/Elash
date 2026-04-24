@@ -91,3 +91,14 @@ void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align) {
     }
     return ptr;
 }
+
+ElStringView el_dynarena_clone_sv(ElDynArena* arena, ElStringView sv) {
+    if (el_sv_is_null(sv)) return EL_SV_NULL;
+    if (sv.len == 0) return (ElStringView) { .data = "", .len = 0 };
+
+    char* data = el_dynarena_alloc(arena, sv.len, 1);
+    if (!data) return EL_SV_NULL;
+
+    memcpy(data, sv.data, sv.len);
+    return el_sv_from_data_and_len(data, sv.len);
+}
