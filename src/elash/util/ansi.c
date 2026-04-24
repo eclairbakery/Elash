@@ -40,3 +40,7 @@ void el_ansi_apply_style(ElAnsiStyle style, FILE* out) {
 
     fprintf(out, "m");
 }
+
+void el_ansi_reset_style(FILE* out) {
+    fputs("\033[0", out);
+}

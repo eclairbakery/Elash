@@ -43,4 +43,6 @@ typedef struct ElAnsiStyle {
     })
 
 bool el_ansi_is_supported();
+
 void el_ansi_apply_style(ElAnsiStyle style, FILE* out);
+void el_ansi_reset_style(FILE* out);
