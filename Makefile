@@ -18,9 +18,13 @@ OUT_DIR     := out/$(BUILD)
 LIB_DIR     := $(OUT_DIR)/lib
 BIN_DIR     := $(OUT_DIR)/bin
 
-LIB_NAME    := elash
-LIB_STATIC  := $(LIB_DIR)/lib$(LIB_NAME).a
-LIB_SHARED  := $(LIB_DIR)/lib$(LIB_NAME).so
+LIBELASH_NAME    := elash
+LIBELASH_STATIC  := $(LIB_DIR)/lib$(LIBELASH_NAME).a
+LIBELASH_SHARED  := $(LIB_DIR)/lib$(LIBELASH_NAME).so
+
+LIBELC_NAME      := elc
+LIBELC_STATIC    := $(LIB_DIR)/lib$(LIBELC_NAME).a
+LIBELC_SHARED    := $(LIB_DIR)/lib$(LIBELC_NAME).so
 
 EXE_EXT :=
 ifeq ($(PLATFORM),windows)
@@ -54,30 +58,26 @@ else
 	CMD_RM_RF = rm -rf "$(1)"
 endif
 
-ifeq ($(PLATFORM),posix)
-	ALL_C_SRCS := $(shell find $(SRC_DIR) -name "*.c")
-else
-	ALL_C_SRCS := $(shell powershell -NoProfile -Command "Get-ChildItem -Path '$(SRC_DIR)' -Recurse -Include *.c | ForEach-Object { $_.FullName -replace '\\\\','/' }")
-endif
+LIBELASH_C_SRCS := $(shell find $(SRC_DIR)/elash -name "*.c")
+LIBELC_C_SRCS   := $(filter-out $(SRC_DIR)/elc/main.c, $(shell find $(SRC_DIR)/elc -name "*.c"))
+MAIN_C_SRC      := $(SRC_DIR)/elc/main.c
 
-MAIN_C_SRC := $(SRC_DIR)/main.c
-LIB_C_SRCS := $(filter $(SRC_DIR)/%, $(filter-out $(MAIN_C_SRC), $(ALL_C_SRCS)))
+ALL_C_SRCS := $(LIBELASH_C_SRCS) $(LIBELC_C_SRCS) $(MAIN_C_SRC)
+
+LIBELASH_OBJ_STATIC := $(patsubst %.c,$(OBJ_ROOT_DIR)/%.o,$(LIBELASH_C_SRCS))
+LIBELASH_OBJ_SHARED := $(patsubst %.c,$(OBJ_ROOT_DIR)/shared/%.o,$(LIBELASH_C_SRCS))
+
+LIBELC_OBJ_STATIC   := $(patsubst %.c,$(OBJ_ROOT_DIR)/%.o,$(LIBELC_C_SRCS))
+LIBELC_OBJ_SHARED   := $(patsubst %.c,$(OBJ_ROOT_DIR)/shared/%.o,$(LIBELC_C_SRCS))
 
 MAIN_OBJ := $(patsubst %.c,$(OBJ_ROOT_DIR)/%.o,$(MAIN_C_SRC))
-LIB_OBJ_STATIC := $(patsubst %.c,$(OBJ_ROOT_DIR)/%.o,$(LIB_C_SRCS))
-LIB_OBJ_SHARED := $(patsubst %.c,$(OBJ_ROOT_DIR)/shared/%.o,$(LIB_C_SRCS))
 
 DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
-        $(patsubst %.c,$(DEP_ROOT_DIR)/shared/%.d,$(LIB_C_SRCS))
-
-JFLAG := $(filter -j%,$(MAKEFLAGS))
-ifeq ($(JFLAG),)
-	JFLAG := -j1
-endif
+        $(patsubst %.c,$(DEP_ROOT_DIR)/shared/%.d,$(LIBELASH_C_SRCS) $(LIBELC_C_SRCS))
 
 .PHONY: all dirs clean run tests sharedlib
 
-all: dirs $(TARGET) $(LIB_STATIC) $(LIB_SHARED) $(TEST_BIN)
+all: dirs $(TARGET) $(LIBELASH_STATIC) $(LIBELASH_SHARED) $(LIBELC_STATIC) $(LIBELC_SHARED)
 
 dirs:
 	@$(call CMD_MKDIR_P,$(LIB_DIR))
@@ -87,14 +87,20 @@ dirs:
 	@$(call CMD_MKDIR_P,$(OBJ_ROOT_DIR)/shared)
 	@$(call CMD_MKDIR_P,$(DEP_ROOT_DIR)/shared)
 
-$(LIB_STATIC): $(LIB_OBJ_STATIC)
+$(LIBELASH_STATIC): $(LIBELASH_OBJ_STATIC)
 	ar rcs $@ $^
 
-$(LIB_SHARED): $(LIB_OBJ_SHARED)
+$(LIBELASH_SHARED): $(LIBELASH_OBJ_SHARED)
 	$(CC) -shared $^ $(LDFLAGS) -o $@
 
-$(TARGET): $(LIB_STATIC) $(MAIN_OBJ)
-	$(CC) $(MAIN_OBJ) $(LIB_STATIC) $(LDFLAGS) -o $@
+$(LIBELC_STATIC): $(LIBELC_OBJ_STATIC)
+	ar rcs $@ $^
+
+$(LIBELC_SHARED): $(LIBELC_OBJ_SHARED) $(LIBELASH_SHARED)
+	$(CC) -shared $(LIBELC_OBJ_SHARED) -L$(LIB_DIR) -lelash $(LDFLAGS) -o $@
+
+$(TARGET): $(MAIN_OBJ) $(LIBELC_STATIC) $(LIBELASH_STATIC)
+	$(CC) $(MAIN_OBJ) -L$(LIB_DIR) -lelc -lelash $(LDFLAGS) -o $@
 
 $(OBJ_ROOT_DIR)/%.o: %.c
 	@$(call CMD_MKDIR_P,$(dir $@))
@@ -109,7 +115,7 @@ $(OBJ_ROOT_DIR)/shared/%.o: %.c
 run: all
 	$(TARGET)
 
-sharedlib: dirs $(LIB_SHARED)
+sharedlib: dirs $(LIBELASH_SHARED) $(LIBELC_SHARED)
 
 -include $(DEPS)
 
