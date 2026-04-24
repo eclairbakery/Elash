@@ -6,6 +6,7 @@
 #include <el-ast/expr.h>
 #include <el-ast/stmt.h>
 #include <el-ast/toplevel.h>
+#include <el-ast/module.h>
 #include <el-ast/common/type.h>
 
 #include <el-parser/error.h>
@@ -54,4 +55,6 @@ ElParserErrorCode _el_parser_parse_stmt(ElParser* parser, ElAstStmtNode** out);
 ElParserErrorCode _el_parser_parse_func_def(ElParser* parser, ElAstTopLevelNode** out);
 ElParserErrorCode _el_parser_parse_toplevel(ElParser* parser, ElAstTopLevelNode** out);
 
-ElParserErrorCode el_parser_parse(ElParser* parser, ElAstTopLevelNode** out);
+ElParserErrorCode _el_parser_parse_module(ElParser* parser, ElAstModuleNode** out);
+
+ElParserErrorCode el_parser_parse(ElParser* parser, ElAstModuleNode** out);

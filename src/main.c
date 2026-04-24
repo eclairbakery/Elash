@@ -2,6 +2,8 @@
 #include <el-lexer/lexer.h>
 #include <el-pp/preproc.h>
 #include <el-parser/parser.h>
+#include <el-hir/binder.h>
+#include <el-hir/dump/toplevel.h>
 #include <el-util/dynarena.h>
 
 #include <el-defs/sv.h>
@@ -57,14 +59,14 @@ int main(int argc, const char* const* argv) {
             // TODO: handle error
         }
 
-        el_token_print(&t, stdout);
+        // el_token_print(&t, stdout);
         el_srcdoc_append_token(&preprocessed, &t);
-        putchar('\n');
+        // putchar('\n');
     } while (t.type != EL_TT_EOF);
 
     el_srcdoc_print(&preprocessed, stdout);
+    putchar('\n');
 
-    printf("\n--- AST ---\n");
     el_lexer_set_input(&lexer, input_content);
     el_pp_reset(&pp);
 
@@ -74,10 +76,11 @@ int main(int argc, const char* const* argv) {
     ElParser parser;
     el_parser_init(&parser, &pp, &lexer, &arena);
 
-    ElAstTopLevelNode* ast = NULL;
+    ElAstModuleNode* ast = NULL;
     ElParserErrorCode perr = el_parser_parse(&parser, &ast);
     if (perr == EL_PARSER_ERR_OK) {
-        el_ast_dump_toplevel(ast, 0, stdout);
+        printf("--- AST ---\n");
+        el_ast_dump_module(ast, 0, stdout);
     } else {
         fprintf(stderr, "Parser error: %d\n", perr);
     }
