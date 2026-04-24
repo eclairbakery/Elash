@@ -1,0 +1,93 @@
+#include <elash/util/dynarena.h>
+
+#include <stdlib.h>
+#include <string.h>
+
+typedef _ElDynArenaChunk Chunk;
+
+#define EL_DYNARENA_CHUNK_DEFAULT_SIZE (8 * 1024)
+
+bool el_dynarena_init(ElDynArena* arena) {
+    arena->head = NULL;
+    arena->current = NULL;
+    arena->offset = 0;
+    return true;
+}
+
+void el_dynarena_free(ElDynArena* arena) {
+    Chunk* chunk = arena->head;
+    while (chunk) {
+        Chunk* next = chunk->next;
+        free(chunk);
+        chunk = next;
+    }
+    arena->head = NULL;
+    arena->current = NULL;
+    arena->offset = 0;
+}
+
+void el_dynarena_reset(ElDynArena* arena) {
+    arena->current = arena->head;
+    arena->offset = 0;
+}
+
+static Chunk* _el_dynarena_alloc_chunk(usize size) {
+    usize alloc_size = size + sizeof(Chunk);
+    Chunk* chunk = malloc(alloc_size);
+    if (!chunk) return NULL;
+    chunk->next = NULL;
+    chunk->size = size;
+    return chunk;
+}
+
+void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
+    if (size == 0) return NULL;
+
+    while (arena->current) {
+        uintptr_t addr = (uintptr_t) (arena->current->data + arena->offset);
+        uintptr_t aligned_addr = (addr + align - 1) & ~((uintptr_t) (align - 1));
+        usize new_offset = (usize) (aligned_addr - (uintptr_t) arena->current->data) + size;
+
+        if (new_offset <= arena->current->size) {
+            void* ptr = (void*)aligned_addr;
+            arena->offset = new_offset;
+            return ptr;
+        }
+
+        if (arena->current->next) {
+            arena->current = arena->current->next;
+            arena->offset = 0;
+        } else {
+            break;
+        }
+    }
+
+    usize chunk_size = EL_DYNARENA_CHUNK_DEFAULT_SIZE;
+    if (size + align > chunk_size) {
+        chunk_size = size + align;
+    }
+
+    Chunk* new_chunk = _el_dynarena_alloc_chunk(chunk_size);
+    if (!new_chunk) return NULL;
+
+    if (!arena->head) {
+        arena->head = new_chunk;
+    } else {
+        arena->current->next = new_chunk;
+    }
+    arena->current = new_chunk;
+    arena->offset = 0;
+
+    uintptr_t addr = (uintptr_t) (arena->current->data + arena->offset);
+    uintptr_t aligned_addr = (addr + align - 1) & ~((uintptr_t) (align - 1));
+    arena->offset = (usize) (aligned_addr - (uintptr_t) arena->current->data) + size;
+    return (void*) aligned_addr;
+}
+
+void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align) {
+    void* ptr = el_dynarena_alloc(arena, size, align);
+    if (ptr) {
+        memset(ptr, 0, size);
+    }
+    return ptr;
+}
