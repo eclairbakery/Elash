@@ -58,7 +58,6 @@ typedef enum ElLexerErrorCode {
     /// their input parameters are incorrect.
     EL_LEXERR_INVALID_ARG,
 
-    EL_LEXERR_UNTERM_ANGLE_HEADER, // Unterminated angle bracket header in preprocessor context
     _EL_LEXERR_COUNT, // Keep this last to count the number of error codes.
 } ElLexerErrorCode;
 

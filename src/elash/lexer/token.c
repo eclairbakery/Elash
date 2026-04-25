@@ -13,7 +13,6 @@ static ElStringView el_token_type_to_string_map[] = {
     [EL_TT_FLOAT_LITERAL] = EL_SV("FLOAT_LITERAL"),
     [EL_TT_CHAR_LITERAL] = EL_SV("CHAR_LITERAL"),
     [EL_TT_STRING_LITERAL] = EL_SV("STRING_LITERAL"),
-    [EL_TT_PP_ANGLE_HEADER] = EL_SV("PP_ANGLE_HEADER"),
 
     [EL_TT_TRUE_LITERAL] = EL_SV("TRUE_LITERAL"),
     [EL_TT_FALSE_LITERAL] = EL_SV("FALSE_LITERAL"),
@@ -230,11 +229,6 @@ bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb) {
         success &= el_strbuf_append_char(sb, '\'');
         success &= el_strbuf_append(sb, tok->lexeme);
         success &= el_strbuf_append_char(sb, '\'');
-        break;
-    case EL_TT_PP_ANGLE_HEADER:
-        success &= el_strbuf_append_char(sb, '<');
-        success &= el_strbuf_append(sb, tok->lexeme);
-        success &= el_strbuf_append_char(sb, '>');
         break;
     case EL_TT_LINE_COMMENT:
         success &= el_strbuf_append(sb, EL_SV("//"));

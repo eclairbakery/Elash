@@ -17,7 +17,6 @@ typedef enum ElTokenType {
     EL_TT_FLOAT_LITERAL,        // 3.14
     EL_TT_CHAR_LITERAL,         // 'x'
     EL_TT_STRING_LITERAL,       // "Hello world!"
-    EL_TT_PP_ANGLE_HEADER,      // <stdio.h>
 
     EL_TT_TRUE_LITERAL,         // true
     EL_TT_FALSE_LITERAL,        // false
