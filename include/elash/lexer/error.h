@@ -25,19 +25,19 @@ typedef enum ElLexerErrorCode {
     /// @brief Unterminated block comment.
     /// This error occurs when a block comment (e.g., `/* ... `) is not closed.
     /// @warning This error is not reported when the lexer is configured
-    ///          with the @ref EL_LF_ALLOW_UNTERM flag (if such a flag exists).
+    ///          with the @ref EL_LF_ALLOW_UNTERM flag.
     EL_LEXERR_UNTERM_COMMENT,
 
     /// @brief Unterminated string literal.
     /// This error occurs when a string literal (e.g., `"abc`) is not closed.
     /// @warning This error is not reported when the lexer is configured
-    ///          with the @ref EL_LF_ALLOW_UNTERM flag (if such a flag exists).
+    ///          with the @ref EL_LF_ALLOW_UNTERM flag.
     EL_LEXERR_UNTERM_STRING,
 
     /// @brief Unterminated character literal.
     /// This error occurs when a character literal (e.g., `'a`) is not closed.
     /// @warning This error is not reported when the lexer is configured
-    ///          with the @ref EL_LF_ALLOW_UNTERM flag (if such a flag exists).
+    ///          with the @ref EL_LF_ALLOW_UNTERM flag.
     EL_LEXERR_UNTERM_CHAR,
 
     /// @brief Invalid number format.
@@ -111,6 +111,6 @@ usize el_lexer_result_to_string(ElLexerErrorDetails r, char** out);
 /// This function writes a human-readable description of the lexer error to the given `FILE` stream.
 ///
 /// @param r The lexer error details to print.
-/// @param out The file stream to print to (e.g., `stdout`, `stderr`).
+/// @param out The file stream to print to.
 /// @return The number of characters printed.
 usize el_lexer_result_print(ElLexerErrorDetails r, FILE* out);
