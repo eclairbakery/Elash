@@ -3,6 +3,7 @@
 #include <elash/lexer/macros.h>
 
 #include <elash/srcdoc/srcdoc.h>
+#include <elash/diag/handle.h>
 #include <elash/defs/sv.h>
 
 #include <ctype.h>
@@ -520,4 +521,29 @@ bool el_lexer_entered_context(const ElLexer* lexer, ElLexerContext context) {
 
 bool el_lexer_exited_context(const ElLexer* lexer, ElLexerContext context) {
     return lexer->ctx != context && lexer->prev_ctx == context;
+}
+
+static ElToken _el_lexer_token_stream_next(ElTokenStream* stream, ElDiagEngine* engine) {
+    ElLexer* lexer = (ElLexer*)stream->ctx;
+    ElToken tok;
+    ElLexerErrorCode err = el_lexer_next_token(lexer, &tok);
+
+    if (err != EL_LEXERR_SUCCESS) {
+        if (engine) {
+            el_diag_handle_lexer_error(engine, &lexer->last_err_details);
+        }
+
+        tok.type = EL_TT_UNKNOWN;
+        tok.span = lexer->last_err_details.span;
+        tok.lexeme = el_source_span_to_sv(tok.span);
+    }
+
+    return tok;
+}
+
+ElTokenStream el_lexer_as_token_stream(ElLexer* lexer) {
+    return (ElTokenStream) {
+        .next = _el_lexer_token_stream_next,
+        .ctx = lexer,
+    };
 }

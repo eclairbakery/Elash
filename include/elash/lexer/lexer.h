@@ -6,6 +6,7 @@
 
 #include <elash/lexer/error.h>
 #include <elash/lexer/token.h>
+#include <elash/lexer/tokstream.h>
 
 /// @enum ElLexerFlags
 /// @brief Represents configuration flags controlling lexer behavior.
@@ -54,6 +55,8 @@ ElLexerContext el_lexer_get_current_context(const ElLexer* lexer);
 ElLexerContext el_lexer_get_previous_context(const ElLexer* lexer);
 bool el_lexer_entered_context(const ElLexer* lexer, ElLexerContext context);
 bool el_lexer_exited_context(const ElLexer* lexer, ElLexerContext context);
+
+ElTokenStream el_lexer_as_token_stream(ElLexer* lexer);
 
 ////// IMPLEMENTATION DETAILS //////////////////////
 // note: those functions are implementation
