@@ -1,5 +1,17 @@
 #include <elash/diag/engine.h>
 
+void el_diag_engine_init(ElDiagEngine* engine, ElDynArena* arena) {
+    engine->arena = arena;
+    engine->diag_count = 0;
+    engine->diag_head = NULL;
+    engine->diag_tail = NULL;
+}
+
+void el_diag_engine_free(ElDiagEngine* engine) {
+    // nothing for now
+    (void) engine;
+}
+
 static ElDiagMeta _el_diag_clone_meta(ElDynArena* arena, ElDiagMeta meta) {
     if (meta.count == 0) {
         return (ElDiagMeta) { .entries = NULL, .count = 0 };
