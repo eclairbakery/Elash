@@ -5,6 +5,7 @@
 #include <elash/srcdoc/span.h>
 
 #include <elash/diag/severity.h>
+#include <elash/diag/printer.h>
 #include <elash/diag/meta.h>
 
 typedef struct ElDiagnostic {
@@ -32,6 +33,8 @@ void el_diag_report_impl(
     ElDiagSeverity sev, ElSourceSpan span,
     ElStringView template, ElDiagMeta meta
 );
+
+void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, void* ctx);
 
 #define el_diag_report(engine, sev, span, template, ...) \
     el_diag_report_impl(engine, sev, span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
