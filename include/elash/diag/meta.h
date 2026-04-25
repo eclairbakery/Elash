@@ -5,6 +5,7 @@
 typedef enum ElDiagMetaType {
     EL_DIAG_META_STRING,
     EL_DIAG_META_INTEGER,
+    EL_DIAG_META_CHARACTER,
 } ElDiagMetaType;
 
 typedef struct ElDiagMetaEntry {
@@ -13,6 +14,7 @@ typedef struct ElDiagMetaEntry {
     union {
         ElStringView string;
         int integer;
+        char character;
     } as;
 } ElDiagMetaEntry;
 
@@ -21,6 +23,9 @@ typedef struct ElDiagMetaEntry {
 
 #define EL_DIAG_INT(KEY, INT) \
     ((ElDiagMetaEntry) { .key = KEY, .type = EL_DIAG_META_INTEGER, .as.integer = INT })
+
+#define EL_DIAG_CHAR(KEY, CHAR) \
+    ((ElDiagMetaEntry) { .key = KEY, .type = EL_DIAG_META_CHARACTER, .as.integer = CHAR })
 
 typedef struct ElDiagMeta {
     const ElDiagMetaEntry* entries;
