@@ -24,6 +24,9 @@ typedef struct ElDiagEngine {
     usize diag_count;
 } ElDiagEngine;
 
+void el_diag_engine_init(ElDiagEngine* engine, ElDynArena* arena);
+void el_diag_engine_free(ElDiagEngine* engine);
+
 void el_diag_report_impl(
     ElDiagEngine* engine,
     ElDiagSeverity sev, ElSourceSpan span,
@@ -32,3 +35,4 @@ void el_diag_report_impl(
 
 #define el_diag_report(engine, sev, span, template, ...) \
     el_diag_report_impl(engine, sev, span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
+
