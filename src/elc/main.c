@@ -6,6 +6,7 @@
 #include <elash/util/dynarena.h>
 
 #include <elash/diag/engine.h>
+#include <elash/diag/handle.h>
 #include <elash/diag/printer/console.h>
 
 #include <elash/defs/sv.h>
@@ -38,12 +39,20 @@ int main(int argc, const char* const* argv) {
     ElSourceDocument preprocessed;
     el_srcdoc_init_empty(&preprocessed, EL_SV("<preprocessed>"));
 
+    ElDynArena arena;
+    el_dynarena_init(&arena);
+
     ElToken t;
     do {
         if (el_pp_want_next_token(&pp)) {
             err = el_lexer_next_token(&lexer, &t);
             if (err != EL_LEXERR_SUCCESS) {
-                el_lexer_result_print(lexer.last_err_details, stderr);
+                ElDiagEngine engine;
+                el_diag_engine_init(&engine, &arena);
+                el_diag_handle_lexer_error(&engine, &lexer.last_err_details);
+                ElDiagPrinter printer = el_diag_make_console_printer();
+                el_diag_engine_print(&engine, &printer, stdout);
+
                 el_srcdoc_destroy(&input); 
                 el_pp_destroy(&pp);
                 el_lexer_destroy(&lexer);
@@ -71,9 +80,6 @@ int main(int argc, const char* const* argv) {
     el_lexer_set_document(&lexer, &input);
     el_pp_reset(&pp);
 
-    ElDynArena arena;
-    el_dynarena_init(&arena);
-
     ElParser parser;
     el_parser_init(&parser, &pp, &lexer, &arena);
 
@@ -85,26 +91,6 @@ int main(int argc, const char* const* argv) {
     } else {
         fprintf(stderr, "Parser error: %d\n", perr);
     }
-
-    // --- Diagnostics Demo ---
-    printf("\n--- Diagnostics Demo ---\n");
-    ElDiagEngine diag_engine;
-    el_diag_engine_init(&diag_engine, &arena);
-
-    ElSourceSpan span = el_source_span_make(&preprocessed, EL_SOURCE_LOC_ZERO, EL_SOURCE_LOC_ZERO);
-
-    el_diag_report(&diag_engine, EL_DIAG_TIP, "demo", span, "This is a tip", 
-        EL_DIAG_STRING("unused", EL_SV("")));
-    el_diag_report(&diag_engine, EL_DIAG_NOTE, "demo", span, "This is a note with ${key}", 
-        EL_DIAG_STRING("key", EL_SV("value")));
-    el_diag_report(&diag_engine, EL_DIAG_WARN, "demo", span, "This is a warning with ${count}", 
-        EL_DIAG_INT("count", 42));
-    el_diag_report(&diag_engine, EL_DIAG_ERROR, "demo", span, "This is an error", 
-        EL_DIAG_STRING("unused", EL_SV("")));
-
-    ElDiagPrinter diag_printer = el_diag_make_console_printer();
-    el_diag_engine_print(&diag_engine, &diag_printer, stdout);
-    // -------------------------
 
     el_dynarena_free(&arena);
     el_parser_destroy(&parser);
