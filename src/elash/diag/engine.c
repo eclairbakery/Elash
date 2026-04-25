@@ -64,12 +64,12 @@ ElDiagSummary el_diag_engine_summary(const ElDiagEngine* engine) {
     };
 }
 
-void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer) {
-    printer->begin(printer);
+void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, FILE* out) {
+    printer->begin(printer, out);
     for (ElDiagnostic* diag = engine->diag_head; diag != NULL; diag = diag->next) {
-        printer->print(printer, diag);
+        printer->print(printer, out, diag);
     }
     ElDiagSummary summary = el_diag_engine_summary(engine);
-    printer->summary(printer, &summary);
-    printer->finish(printer);
+    printer->summary(printer, out, &summary);
+    printer->finish(printer, out);
 }
