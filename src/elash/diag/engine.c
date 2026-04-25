@@ -48,6 +48,10 @@ void el_diag_report_impl(
     diag->template = el_dynarena_clone_sv(engine->arena, template);
     diag->meta = _el_diag_clone_meta(engine->arena, meta);
 
+    if (diag->sev == EL_DIAG_ERROR) engine->summary.total_errors++;
+    if (diag->sev == EL_DIAG_WARN)  engine->summary.total_warnings++;
+    engine->summary.total_diagnostics++;
+
     ElStringBuf formatted;
     el_strbuf_init(&formatted);
     if (el_diag_render_template(template, &diag->meta, &formatted)) {
@@ -71,9 +75,7 @@ void el_diag_report_impl(
 }
 
 ElDiagSummary el_diag_engine_summary(const ElDiagEngine* engine) {
-    return (ElDiagSummary) {
-        .total_diagnostics = engine->diag_count,
-    };
+    return engine->summary;
 }
 
 void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, FILE* out) {
@@ -81,7 +83,6 @@ void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, FI
     for (ElDiagnostic* diag = engine->diag_head; diag != NULL; diag = diag->next) {
         printer->print(printer, out, diag);
     }
-    ElDiagSummary summary = el_diag_engine_summary(engine);
-    printer->summary(printer, out, &summary);
+    printer->summary(printer, out, &engine->summary);
     printer->finish(printer, out);
 }

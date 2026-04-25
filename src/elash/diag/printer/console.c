@@ -114,10 +114,24 @@ void el_diag_console_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagn
     _el_diag_console_printer_print_snippet(&diag->span, diag->sev, out);
 }
 
+static void print_diag_count(FILE *out, unsigned int count, ElDiagSeverity sev, bool ansi) {
+    if (count == 0) return; 
+    ElAnsiStyle style = _el_diag_console_printer_get_style(sev);
+    if (ansi) el_ansi_apply_style(style, out);
+    fprintf(out, "%u %s%s", count, (sev == EL_DIAG_ERROR ? "error" : "warning"), (count == 1 ? "" : "s"));
+    if (ansi) el_ansi_reset_style(out);
+}
+
 void el_diag_console_printer_summary(ElDiagPrinter* self, FILE* out, const ElDiagSummary* sum) {
     (void) self;
     if (sum->total_diagnostics != 0) {
-        fprintf(out, "Finished with %d diagnostics\n", sum->total_diagnostics);
+        bool ansi = el_ansi_is_supported(out);
+        fputs("Finished with ", out);
+    
+        print_diag_count(out, sum->total_errors, EL_DIAG_ERROR, ansi);
+        if (sum->total_errors > 0 && sum->total_warnings > 0) fputs(" and ", out);
+        print_diag_count(out, sum->total_warnings, EL_DIAG_WARN, ansi);
+        fputs("\n", out);
     }
 }
 
