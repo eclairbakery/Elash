@@ -34,11 +34,13 @@ static ElDiagMeta _el_diag_clone_meta(ElDynArena* arena, ElDiagMeta meta) {
 
 void el_diag_report_impl(
     ElDiagEngine* engine,
-    ElDiagSeverity sev, ElSourceSpan span,
+    ElDiagSeverity sev, ElStringView category,
+    ElSourceSpan span,
     ElStringView template, ElDiagMeta meta
 ) {
     ElDiagnostic* diag = EL_DYNARENA_NEW(engine->arena, ElDiagnostic);
     diag->sev = sev;
+    diag->category = category;
     diag->span = span;
     diag->template = el_dynarena_clone_sv(engine->arena, template);
     diag->meta = _el_diag_clone_meta(engine->arena, meta);
