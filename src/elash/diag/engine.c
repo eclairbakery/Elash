@@ -55,3 +55,9 @@ void el_diag_report_impl(
     engine->diag_tail = diag;
     engine->diag_count++;
 }
+
+void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, void* ctx) {
+    for (ElDiagnostic* diag = engine->diag_head; diag != NULL; diag = diag->next) {
+        printer(ctx, diag);
+    }
+}
