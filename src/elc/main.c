@@ -36,7 +36,7 @@ int main(int argc, const char* const* argv) {
     el_pp_init(&pp);
 
     ElSourceDocument preprocessed;
-    el_srcdoc_init_empty(&preprocessed);
+    el_srcdoc_init_empty(&preprocessed, EL_SV("<preprocessed>"));
 
     ElToken t;
     do {
