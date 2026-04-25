@@ -22,6 +22,8 @@ typedef struct ElDiagnostic {
 
 typedef struct ElDiagSummary {
     uint total_diagnostics;
+    uint total_errors;
+    uint total_warnings;
 } ElDiagSummary;
 
 typedef struct ElDiagEngine {
@@ -29,6 +31,7 @@ typedef struct ElDiagEngine {
     ElDiagnostic* diag_head;
     ElDiagnostic* diag_tail;
     usize diag_count;
+    ElDiagSummary summary;
 } ElDiagEngine;
 
 void el_diag_engine_init(ElDiagEngine* engine, ElDynArena* arena);
