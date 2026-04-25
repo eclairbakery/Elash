@@ -451,35 +451,6 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
             return _el_lexer_ret_token_with_lexeme(lexer, EL_TT_CHAR_LITERAL, lex, out);
         }
 
-        if (c == '<' && lexer->ctx == EL_LEXER_CTX_PP) {
-            next(lexer);
-
-            usize start_header_offset = lexer->current_loc.offset;
-            ElSourceLocation header_start_loc = lexer->current_loc;
-            bool terminated = false;
-
-            // read until '>' or newline/semicolon/EOF
-            while (peek(lexer) != '\0' && peek(lexer) != '\n' && peek(lexer) != ';') {
-                if (peek(lexer) == '>') {
-                    next(lexer);
-                    terminated = true;
-                    break;
-                }
-                next(lexer);
-            }
-
-            if (!terminated) {
-                EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_ANGLE_HEADER, el_source_span_make(lexer->doc, header_start_loc, lexer->current_loc), {});
-            }
-
-            ElStringView lexeme = {
-                .data = content.data + start_header_offset,
-                .len = lexer->current_loc.offset - start_header_offset - 1
-            };
-
-            return _el_lexer_ret_token_with_lexeme(lexer, EL_TT_PP_ANGLE_HEADER, lexeme, out);
-        }
-
         ElLexerContext prev_ctx = lexer->ctx;
 
         if (isalpha(c) || c == '_') {
