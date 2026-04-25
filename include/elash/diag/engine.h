@@ -12,6 +12,7 @@ typedef struct ElDiagnostic {
     ElDiagSeverity sev;
     ElStringView category;
     ElSourceSpan span;
+    ElStringView formatted;
     ElStringView template;
     ElDiagMeta meta;
     
