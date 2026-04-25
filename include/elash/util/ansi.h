@@ -42,7 +42,7 @@ typedef struct ElAnsiStyle {
         .dec = EL_ANSI_DEC_NONE                \
     })
 
-bool el_ansi_is_supported();
+bool el_ansi_is_supported(FILE* out);
 
 void el_ansi_apply_style(ElAnsiStyle style, FILE* out);
 void el_ansi_reset_style(FILE* out);

@@ -11,12 +11,12 @@
     #define FILENO fileno
 #endif
 
-bool el_ansi_is_supported() {
-    return ISATTY(FILENO(stdout));
+bool el_ansi_is_supported(FILE* out) {
+    return ISATTY(FILENO(out));
 }
 
 void el_ansi_apply_style(ElAnsiStyle style, FILE* out) {
-    if (!el_ansi_is_supported()) return;
+    if (!el_ansi_is_supported(out)) return;
 
     // start with reset to ensure a clean state.
     fprintf(out, "\033[0");
@@ -42,5 +42,7 @@ void el_ansi_apply_style(ElAnsiStyle style, FILE* out) {
 }
 
 void el_ansi_reset_style(FILE* out) {
-    fputs("\033[0", out);
+    if (el_ansi_is_supported(out)) {
+        fputs("\033[0m", out);
+    }
 }
