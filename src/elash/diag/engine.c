@@ -58,8 +58,18 @@ void el_diag_report_impl(
     engine->diag_count++;
 }
 
-void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, void* ctx) {
+ElDiagSummary el_diag_engine_summary(const ElDiagEngine* engine) {
+    return (ElDiagSummary) {
+        .total_diagnostics = engine->diag_count,
+    };
+}
+
+void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer) {
+    printer->begin(printer);
     for (ElDiagnostic* diag = engine->diag_head; diag != NULL; diag = diag->next) {
-        printer(ctx, diag);
+        printer->print(printer, diag);
     }
+    ElDiagSummary summary = el_diag_engine_summary(engine);
+    printer->summary(printer, &summary);
+    printer->finish(printer);
 }

@@ -19,6 +19,10 @@ typedef struct ElDiagnostic {
     struct ElDiagnostic* next;
 } ElDiagnostic;
 
+typedef struct ElDiagSummary {
+    uint total_diagnostics;
+} ElDiagSummary;
+
 typedef struct ElDiagEngine {
     ElDynArena* arena;
     ElDiagnostic* diag_head;
@@ -36,7 +40,8 @@ void el_diag_report_impl(
     ElStringView template, ElDiagMeta meta
 );
 
-void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, void* ctx);
+ElDiagSummary el_diag_engine_summary(const ElDiagEngine* engine);
+void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer);
 
 #define el_diag_report(engine, sev, cat, span, template, ...) \
     el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
