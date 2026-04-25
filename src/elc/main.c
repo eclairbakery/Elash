@@ -91,13 +91,15 @@ int main(int argc, const char* const* argv) {
     ElDiagEngine diag_engine;
     el_diag_engine_init(&diag_engine, &arena);
 
-    el_diag_report(&diag_engine, EL_DIAG_TIP, "demo", EL_SOURCE_SPAN_NULL, "This is a tip", 
+    ElSourceSpan span = el_source_span_make(&preprocessed, EL_SOURCE_LOC_ZERO, EL_SOURCE_LOC_ZERO);
+
+    el_diag_report(&diag_engine, EL_DIAG_TIP, "demo", span, "This is a tip", 
         EL_DIAG_STRING("unused", EL_SV("")));
-    el_diag_report(&diag_engine, EL_DIAG_NOTE, "demo", EL_SOURCE_SPAN_NULL, "This is a note with ${key}", 
+    el_diag_report(&diag_engine, EL_DIAG_NOTE, "demo", span, "This is a note with ${key}", 
         EL_DIAG_STRING("key", EL_SV("value")));
-    el_diag_report(&diag_engine, EL_DIAG_WARN, "demo", EL_SOURCE_SPAN_NULL, "This is a warning with ${count}", 
+    el_diag_report(&diag_engine, EL_DIAG_WARN, "demo", span, "This is a warning with ${count}", 
         EL_DIAG_INT("count", 42));
-    el_diag_report(&diag_engine, EL_DIAG_ERROR, "demo", EL_SOURCE_SPAN_NULL, "This is an error", 
+    el_diag_report(&diag_engine, EL_DIAG_ERROR, "demo", span, "This is an error", 
         EL_DIAG_STRING("unused", EL_SV("")));
 
     ElDiagPrinter diag_printer = el_diag_make_console_printer();

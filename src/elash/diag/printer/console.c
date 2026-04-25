@@ -1,6 +1,7 @@
 #include <elash/diag/printer/console.h>
 #include <elash/diag/engine.h>
 
+#include <elash/srcdoc/srcdoc.h>
 #include <elash/util/ansi.h>
 
 void el_diag_console_printer_begin(ElDiagPrinter* self, FILE* out) {
@@ -34,8 +35,14 @@ void _el_diag_console_printer_print_sev(ElDiagSeverity sev, ElStringView cat, FI
     if (ansi) el_ansi_reset_style(out);
 }
 
+void _el_diag_console_printer_print_loc(const ElSourceSpan* span, FILE* out) {
+    fprintf(out, EL_SV_FMT": %u:%u: ",
+            EL_SV_FARG(span->doc->filename), span->start.line, span->start.column);
+}
+
 void el_diag_console_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnostic* diag) {
     (void) self;
+    _el_diag_console_printer_print_loc(&diag->span, out);
     _el_diag_console_printer_print_sev(diag->sev, diag->category, out);
     el_sv_print(diag->formatted, out);
     fputc('\n', out);
