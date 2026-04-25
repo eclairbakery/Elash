@@ -36,16 +36,82 @@ void _el_diag_console_printer_print_sev(ElDiagSeverity sev, ElStringView cat, FI
 }
 
 void _el_diag_console_printer_print_loc(const ElSourceSpan* span, FILE* out) {
-    fprintf(out, EL_SV_FMT": %u:%u: ",
-            EL_SV_FARG(span->doc->filename), span->start.line, span->start.column);
+    if (span->doc) {
+        fprintf(out, "at "EL_SV_FMT":%u:%u\n",
+                EL_SV_FARG(span->doc->filename), span->start.line, span->start.column);
+    }
+}
+
+static ElStringView _el_diag_console_printer_get_line_content(ElStringView content, uint offset) {
+    uint start = offset;
+    while (start > 0 && content.data[start - 1] != '\n' && content.data[start - 1] != '\r') {
+        start--;
+    }
+
+    uint end = offset;
+    while (end < content.len && content.data[end] != '\n' && content.data[end] != '\r') {
+        end++;
+    }
+
+    return el_sv_slice(content, start, end);
+}
+
+static void _el_diag_console_printer_print_carets(FILE* out, ElStringView line, const ElSourceSpan* span, ElDiagSeverity sev) {
+    fprintf(out, "   | ");
+
+    uint start_col = span->start.column > 0 ? span->start.column : 1;
+    uint end_col = span->end.column > 0 ? span->end.column : start_col;
+
+    for (uint i = 0; i < start_col - 1; i++) {
+        if (i < line.len && line.data[i] == '\t') {
+            fputc('\t', out);
+        } else {
+            fputc(' ', out);
+        }
+    }
+
+    ElAnsiStyle style = _el_diag_console_printer_get_style(sev);
+    bool ansi = el_ansi_is_supported(out);
+    if (ansi) el_ansi_apply_style(style, out);
+
+    uint caret_len = 1;
+    if (span->end.line == span->start.line) {
+        if (end_col > start_col) {
+            caret_len = end_col - start_col;
+        }
+    } else {
+        if (line.len >= (start_col - 1)) {
+            caret_len = line.len - (start_col - 1);
+        }
+    }
+    if (caret_len == 0) caret_len = 1;
+
+    for (uint i = 0; i < caret_len; i++)
+        fputc('^', out);
+
+    if (ansi) el_ansi_reset_style(out);
+    fputc('\n', out);
+}
+
+void _el_diag_console_printer_print_snippet(const ElSourceSpan* span, ElDiagSeverity sev, FILE* out) {
+    if (span->doc == NULL) return;
+
+    ElStringView content = el_srcdoc_content(span->doc);
+    if (content.data == NULL || content.len == 0) return;
+
+    ElStringView line = _el_diag_console_printer_get_line_content(content, span->start.offset);
+
+    fprintf(out, "%2u | "EL_SV_FMT"\n", span->start.line, EL_SV_FARG(line));
+    _el_diag_console_printer_print_carets(out, line, span, sev);
 }
 
 void el_diag_console_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnostic* diag) {
     (void) self;
-    _el_diag_console_printer_print_loc(&diag->span, out);
     _el_diag_console_printer_print_sev(diag->sev, diag->category, out);
     el_sv_print(diag->formatted, out);
     fputc('\n', out);
+    _el_diag_console_printer_print_loc(&diag->span, out);
+    _el_diag_console_printer_print_snippet(&diag->span, diag->sev, out);
 }
 
 void el_diag_console_printer_summary(ElDiagPrinter* self, FILE* out, const ElDiagSummary* sum) {
