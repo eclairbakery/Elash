@@ -1,5 +1,8 @@
 #include <elash/diag/engine.h>
 
+#include <elash/diag/template.h>
+#include <elash/util/strbuf.h>
+
 void el_diag_engine_init(ElDiagEngine* engine, ElDynArena* arena) {
     engine->arena = arena;
     engine->diag_count = 0;
@@ -44,6 +47,15 @@ void el_diag_report_impl(
     diag->span = span;
     diag->template = el_dynarena_clone_sv(engine->arena, template);
     diag->meta = _el_diag_clone_meta(engine->arena, meta);
+
+    ElStringBuf formatted;
+    el_strbuf_init(&formatted);
+    if (el_diag_render_template(template, &diag->meta, &formatted)) {
+        diag->formatted = el_dynarena_clone_sv(engine->arena, el_strbuf_view(&formatted));
+    } else {
+        diag->formatted = diag->template;
+    }
+    el_strbuf_destroy(&formatted);
 
     diag->next = NULL;
     diag->prev = engine->diag_tail;
