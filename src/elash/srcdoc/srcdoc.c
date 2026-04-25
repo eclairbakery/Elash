@@ -32,15 +32,18 @@ bool _el_strdoc_get_file_size(FILE* f, usize* out_size) {
     return true;
 }
 
-ElSrcDocErrorCode el_srcdoc_init_empty(ElSourceDocument* srcdoc) {
+ElSrcDocErrorCode el_srcdoc_init_empty(ElSourceDocument* srcdoc, ElStringView filename) {
+    srcdoc->filename = filename;
     return _el_strdoc_ret_err(el_strbuf_init(&srcdoc->content));
 }
-ElSrcDocErrorCode el_srcdoc_init_from_str(ElSourceDocument* srcdoc, ElStringView sv) {
+ElSrcDocErrorCode el_srcdoc_init_from_str(ElSourceDocument* srcdoc, ElStringView sv, ElStringView filename) {
+    srcdoc->filename = filename;
     return _el_strdoc_ret_err(el_strbuf_init_from(&srcdoc->content, sv));
 }
 
 ElSrcDocErrorCode el_srcdoc_init_from_file(ElSourceDocument* srcdoc, const char* path) {
     ElSrcDocErrorCode err = EL_SRCDOC_ERR_SUCCESS;
+    srcdoc->filename = el_sv_from_cstr(path);
 
     FILE* f = fopen(path, "rb");
     if (f == NULL) {
@@ -84,16 +87,18 @@ end:
 }
 
 ElSrcDocErrorCode el_srcdoc_copy(const ElSourceDocument* src, ElSourceDocument* dst) {
-    return _el_strdoc_ret_err(el_srcdoc_init_from_strbuf(dst, &src->content));
+    return _el_strdoc_ret_err(el_srcdoc_init_from_strbuf(dst, &src->content, src->filename));
 }
 void el_srcdoc_move(ElSourceDocument* src, ElSourceDocument* dst) {
-    return el_srcdoc_init_from_strbuf_move(dst, &src->content);
+    return el_srcdoc_init_from_strbuf_move(dst, &src->content, src->filename);
 }
 
-ElSrcDocErrorCode el_srcdoc_init_from_strbuf(ElSourceDocument* srcdoc, const ElStringBuf* buf) {
+ElSrcDocErrorCode el_srcdoc_init_from_strbuf(ElSourceDocument* srcdoc, const ElStringBuf* buf, ElStringView filename) {
+    srcdoc->filename = filename;
     return _el_strdoc_ret_err(el_strbuf_copy(buf, &srcdoc->content));
 }
-void el_srcdoc_init_from_strbuf_move(ElSourceDocument* srcdoc, ElStringBuf* buf) {
+void el_srcdoc_init_from_strbuf_move(ElSourceDocument* srcdoc, ElStringBuf* buf, ElStringView filename) {
+    srcdoc->filename = filename;
     return el_strbuf_move(buf, &srcdoc->content);
 }
 
@@ -117,9 +122,10 @@ ElSrcDocErrorCode el_srcdoc_append_str(ElSourceDocument* srcdoc, ElStringView sv
 
 ElSrcDocErrorCode el_srcdoc_concat(const ElSourceDocument* src1,
                                    const ElSourceDocument* src2,
-                                   ElSourceDocument* dst)
+                                   ElSourceDocument* dst,
+                                   ElStringView filename)
 {
-    ElSrcDocErrorCode err = el_srcdoc_init_empty(dst);
+    ElSrcDocErrorCode err = el_srcdoc_init_empty(dst, filename);
     if (err != EL_SRCDOC_ERR_SUCCESS) { return err; }
 
     if (!el_strbuf_append_buf(&dst->content, &src1->content)) {
