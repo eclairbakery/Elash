@@ -11,6 +11,8 @@ static bool _el_diag_render_meta_value(const ElDiagMetaEntry* entry, ElStringBuf
     
         return el_strbuf_append(out, el_sv_from_data_and_len(buf, (usize)n));
     }
+    case EL_DIAG_META_CHARACTER:
+        return el_strbuf_append_char(out, entry->as.character);
     case EL_DIAG_META_STRING:
         return el_strbuf_append(out, entry->as.string);
     }
