@@ -5,6 +5,9 @@
 #include <elash/hir/dump/toplevel.h>
 #include <elash/util/dynarena.h>
 
+#include <elash/diag/engine.h>
+#include <elash/diag/printer/console.h>
+
 #include <elash/defs/sv.h>
 
 #include <stdio.h>
@@ -82,6 +85,24 @@ int main(int argc, const char* const* argv) {
     } else {
         fprintf(stderr, "Parser error: %d\n", perr);
     }
+
+    // --- Diagnostics Demo ---
+    printf("\n--- Diagnostics Demo ---\n");
+    ElDiagEngine diag_engine;
+    el_diag_engine_init(&diag_engine, &arena);
+
+    el_diag_report(&diag_engine, EL_DIAG_TIP, "demo", EL_SOURCE_SPAN_NULL, "This is a tip", 
+        EL_DIAG_STRING("unused", EL_SV("")));
+    el_diag_report(&diag_engine, EL_DIAG_NOTE, "demo", EL_SOURCE_SPAN_NULL, "This is a note with ${key}", 
+        EL_DIAG_STRING("key", EL_SV("value")));
+    el_diag_report(&diag_engine, EL_DIAG_WARN, "demo", EL_SOURCE_SPAN_NULL, "This is a warning with ${count}", 
+        EL_DIAG_INT("count", 42));
+    el_diag_report(&diag_engine, EL_DIAG_ERROR, "demo", EL_SOURCE_SPAN_NULL, "This is an error", 
+        EL_DIAG_STRING("unused", EL_SV("")));
+
+    ElDiagPrinter diag_printer = el_diag_make_console_printer();
+    el_diag_engine_print(&diag_engine, &diag_printer, stdout);
+    // -------------------------
 
     el_dynarena_free(&arena);
     el_parser_destroy(&parser);
