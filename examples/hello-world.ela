@@ -1,4 +1,4 @@
-#include <std/io.elh>
+#include std "io.elh"
 
 int main() {
     // this line prints hello world
