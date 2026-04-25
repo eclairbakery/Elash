@@ -8,6 +8,7 @@ void el_diag_engine_init(ElDiagEngine* engine, ElDynArena* arena) {
     engine->diag_count = 0;
     engine->diag_head = NULL;
     engine->diag_tail = NULL;
+    engine->summary = (ElDiagSummary) { 0 };
 }
 
 void el_diag_engine_free(ElDiagEngine* engine) {
