@@ -1,7 +1,6 @@
 #pragma once
 
-#include <elash/lexer/lexer.h>
-#include <elash/pp/preproc.h>
+#include <elash/lexer/tokstream.h>
 
 #include <elash/ast/expr.h>
 #include <elash/ast/stmt.h>
@@ -12,16 +11,15 @@
 #include <elash/parser/error.h>
 
 typedef struct ElParser {
-    ElPreprocessor* pp;
-    ElLexer* lexer;
-
+    ElTokenStream tokens;
+    ElDiagEngine* engine;
     ElDynArena* arena;
 
     ElToken current;
     ElParserErrorDetails last_err_details;
 } ElParser;
 
-void el_parser_init(ElParser* parser, ElPreprocessor* pp, ElLexer* lexer, ElDynArena* arena);
+void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine, ElDynArena* arena);
 void el_parser_destroy(ElParser* parser);
 
 ElParserErrorCode el_parser_advance(ElParser* parser);
