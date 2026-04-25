@@ -10,6 +10,7 @@
 
 typedef struct ElDiagnostic {
     ElDiagSeverity sev;
+    ElStringView category;
     ElSourceSpan span;
     ElStringView template;
     ElDiagMeta meta;
@@ -30,12 +31,13 @@ void el_diag_engine_free(ElDiagEngine* engine);
 
 void el_diag_report_impl(
     ElDiagEngine* engine,
-    ElDiagSeverity sev, ElSourceSpan span,
+    ElDiagSeverity sev, ElStringView category,
+    ElSourceSpan span,
     ElStringView template, ElDiagMeta meta
 );
 
 void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, void* ctx);
 
-#define el_diag_report(engine, sev, span, template, ...) \
-    el_diag_report_impl(engine, sev, span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
+#define el_diag_report(engine, sev, cat, span, template, ...) \
+    el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
 
