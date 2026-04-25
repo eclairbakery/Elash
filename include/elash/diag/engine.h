@@ -41,7 +41,7 @@ void el_diag_report_impl(
 );
 
 ElDiagSummary el_diag_engine_summary(const ElDiagEngine* engine);
-void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer);
+void el_diag_engine_print(const ElDiagEngine* engine, ElDiagPrinter* printer, FILE* out);
 
 #define el_diag_report(engine, sev, cat, span, template, ...) \
     el_diag_report_impl(engine, sev, EL_SV(cat), span, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
