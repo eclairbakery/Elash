@@ -22,8 +22,7 @@ int main(int argc, const char* const* argv) {
     const char* input_file = argv[1];
 
     ElSourceDocument input;
-    ElSrcDocErrorCode derr = el_srcdoc_init_from_file(&input, input_file);
-    printf("%d", derr);
+    el_srcdoc_init_from_file(&input, input_file);
 
     ElLexer lexer;
     ElLexerErrorCode err = el_lexer_init(&lexer, &input, EL_LF_ALLOW_UTF8_IDENTS);
