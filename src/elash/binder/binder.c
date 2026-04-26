@@ -11,6 +11,18 @@ void el_binder_free(ElBinder* binder) {
     (void) binder;
 }
 
+ElHirScope* _el_binder_push_scope(ElBinder* binder) {
+    ElHirScope* scope = el_hir_scope_new(binder->current_scope);
+    binder->current_scope = scope;
+    return scope;
+}
+
+ElHirScope* _el_binder_pop_scope(ElBinder* binder) {
+    ElHirScope* parent = binder->current_scope->parent;
+    el_hir_scope_free(binder->current_scope);
+    return binder->current_scope = parent;
+}
+
 ElHirExprNode* el_binder_bind_expr(ElBinder* binder,   ElAstExprNode* in) {
     (void) binder, (void) in;
     return NULL; // TODO: stub
