@@ -46,11 +46,20 @@ PIC_CFLAGS := -fPIC
 COMMON_CFLAGS := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
 
 ifeq ($(BUILD),debug)
+	CFLAGS := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG
+	LDFLAGS :=
+else ifeq ($(BUILD),debug-san)
 	CFLAGS := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG -fsanitize=address,undefined
 	LDFLAGS := -fsanitize=address,undefined
 else ifeq ($(BUILD),release)
 	CFLAGS := $(COMMON_CFLAGS) -O3 -DNDEBUG
 	LDFLAGS :=
+else ifeq ($(BUILD),rel-debug)
+	CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG
+	LDFLAGS :=
+else ifeq ($(BUILD),rel-debug-san)
+	CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG -fsanitize=address,undefined
+	LDFLAGS := -fsanitize=address,undefined
 else
 	$(error Unknown BUILD=$(BUILD))
 endif
