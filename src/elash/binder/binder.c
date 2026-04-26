@@ -3,12 +3,15 @@
 void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag) {
     binder->arena = arena;
     binder->diag = diag;
-    // TODO: initialize current scope and global scope
+
+    binder->builtin_scope = el_hir_scope_new(NULL);
+    binder->global_scope = el_hir_scope_new(binder->builtin_scope);
+    binder->current_scope = binder->global_scope;
 }
 
 void el_binder_free(ElBinder* binder) {
-    // no-op for now
-    (void) binder;
+    el_hir_scope_free(binder->global_scope);
+    el_hir_scope_free(binder->builtin_scope);
 }
 
 ElHirScope* _el_binder_push_scope(ElBinder* binder) {
