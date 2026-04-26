@@ -1,6 +1,7 @@
 #include <elc/driver/driver.h>
 
 #include <elc/driver/stages/lexer-stage.h>
+#include <elc/driver/stages/pp-stage.h>
 
 bool elc_driver_init(ElcDriver* driver) {
     if (!el_dynarena_init(&driver->arena)) return false;
@@ -16,6 +17,7 @@ void elc_driver_free(ElcDriver* driver) {
 
 bool elc_driver_register_stages(ElcDriver* driver) {
     elc_pipeline_add_stage(&driver->pipeline, elc_make_lexer_stage());
+    elc_pipeline_add_stage(&driver->pipeline, elc_make_pp_stage());
     return true;
 }
 
@@ -33,7 +35,7 @@ void elc_driver_provide_source(ElcDriver* driver, ElSourceDocument* source) {
 
 bool elc_driver_run(ElcDriver* driver) {
     ElcArtifact out;
-    if (!elc_pipeline_request(&driver->pipeline, ELC_ART_TOKENS, &out)) {
+    if (!elc_pipeline_request(&driver->pipeline, ELC_ART_PP_TOKENS, &out)) {
         return false;
     }
 
