@@ -1,0 +1,26 @@
+#include <elc/driver/stages/binder-stage.h>
+
+#include <elash/binder/binder.h>
+
+bool elc_binder_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const ElcArtifact* input, ElcArtifact* output) {
+    (void) stage;
+
+    ElBinder* binder = EL_DYNARENA_NEW(ctx->arena, ElBinder);
+    el_binder_init(binder, ctx->arena, ctx->diag);
+
+    ElHirModule* mod = el_binder_bind_module(binder, input->as.ast);
+
+    output->as.hir = mod;
+    return true;
+}
+
+ElcStage elc_make_binder_stage() {
+    return (ElcStage) {
+        .name = EL_SV("Binder"),
+        .execute = elc_binder_stage_exec,
+
+        .input_kind = ELC_ART_AST,
+        .output_kind = ELC_ART_HIR,
+    };
+}
+
