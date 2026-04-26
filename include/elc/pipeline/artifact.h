@@ -18,10 +18,9 @@ typedef enum ElcArtifactKind {
 typedef struct ElcArtifact {
     ElcArtifactKind kind;
     union {
-        void*               ptr;
-        ElSourceDocument*   src;
+        ElSourceDocument*   source;
         ElTokenStream*      tokens;
         ElAstModuleNode*    ast;
         ElHirModule*        hir;
-    } data;
+    } as;
 } ElcArtifact;
