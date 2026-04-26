@@ -13,7 +13,7 @@ typedef void ElcObserverFn(
     void* user_data,
     const ElcPipelineContext* ctx,
     ElcObserverEvent event,
-    const char* stage_name,
+    ElStringView stage_name,
     const ElcArtifact* artifact
 );
 
