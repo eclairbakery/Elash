@@ -10,10 +10,10 @@ typedef struct ElcPipeline {
     ElcPipelineContext context;
     
     ElcStage stages[ELC_MAX_STAGES];
-    size_t   stage_count;
+    usize    stage_count;
     
     ElcObserver observers[ELC_MAX_OBSERVERS];
-    size_t      observer_count;
+    usize       observer_count;
     
     ElcArtifact registry[ELC_ART_MAX];
 } ElcPipeline;
