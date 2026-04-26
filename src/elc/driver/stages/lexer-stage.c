@@ -1,5 +1,8 @@
 #include <elc/driver/stages/lexer-stage.h>
 
+#include <elash/lexer/lexer.h>
+#include <elash/diag/handle.h>
+
 bool elc_lexer_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const ElcArtifact* input, ElcArtifact* output) {
     (void) stage;
 
