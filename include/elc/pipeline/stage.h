@@ -11,7 +11,7 @@ typedef struct ElcStage ElcStage;
 
 typedef bool (*ElcStageExecuteFn)(
     const ElcStage* stage,
-    ElcDriverContext* ctx,
+    ElcPipelineContext* ctx,
     const ElcArtifact* input,
     ElcArtifact* output
 );
