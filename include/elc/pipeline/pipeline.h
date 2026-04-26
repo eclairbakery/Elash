@@ -22,4 +22,5 @@ void elc_pipeline_init(ElcPipeline* pipeline, ElDynArena* arena, ElDiagEngine* d
 void elc_pipeline_add_stage(ElcPipeline* pipeline, ElcStage stage);
 void elc_pipeline_add_observer(ElcPipeline* pipeline, ElcObserver observer);
 
+void elc_pipeline_provide(ElcPipeline* pipeline, ElcArtifact artifact);
 bool elc_pipeline_request(ElcPipeline* pipeline, ElcArtifactKind kind, ElcArtifact* out);
