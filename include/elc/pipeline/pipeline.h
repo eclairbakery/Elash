@@ -7,7 +7,7 @@
 #define ELC_MAX_OBSERVERS 16
 
 typedef struct ElcPipeline {
-    ElcDriverContext context;
+    ElcPipelineContext context;
     
     ElcStage stages[ELC_MAX_STAGES];
     size_t   stage_count;

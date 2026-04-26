@@ -11,7 +11,7 @@ typedef enum ElcObserverEvent {
 
 typedef void ElcObserverFn(
     void* user_data,
-    const ElcDriverContext* ctx,
+    const ElcPipelineContext* ctx,
     ElcObserverEvent event,
     const char* stage_name,
     const ElcArtifact* artifact

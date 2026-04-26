@@ -3,7 +3,7 @@
 #include <elash/util/dynarena.h>
 #include <elash/diag/engine.h>
 
-typedef struct ElcDriverContext {
+typedef struct ElcPipelineContext {
     ElDynArena*   arena;
     ElDiagEngine* diag;
-} ElcDriverContext;
+} ElcPipelineContext;
