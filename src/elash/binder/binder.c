@@ -6,6 +6,9 @@
 
 #include <elash/sema/type/prim.h>
 
+#include <elash/hir/tree/stmt/block.h>
+#include <elash/hir/tree/stmt/return.h>
+
 static void _el_binder_register_builtin_type(ElBinder* binder, ElStringView name, ElPrimitiveTypeKind kind) {
     ElType* type = el_sema_new_prim_type(binder->arena, kind);
     ElHirSymbol* sym = el_hir_new_type_symbol(binder->arena, name, type);
@@ -76,21 +79,36 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder,   ElAstExprNode* in) {
     return NULL; // TODO: stub
 }
 
-ElHirBlockStmtNode* el_binder_bind_block(ElBinder* binder, ElAstBlockStmtNode* in) {
-    (void) in;
-    ElType* int_type = el_sema_new_prim_type(binder->arena, EL_PRIMTYPE_INT);
-    ElHirExprNode* literal = el_hir_new_int_literal(binder->arena, int_type, 123);
-    ElHirStmtNode* ret_stmt = el_hir_new_return_stmt(binder->arena, literal);
+ElHirBlockStmtNode _el_binder_bind_block(ElBinder* binder, ElAstBlockStmtNode* in) {
+    ElHirStmtNode* head = NULL;
+    ElHirStmtNode* tail = NULL;
 
-    ElHirBlockStmtNode* block = EL_DYNARENA_NEW(binder->arena, ElHirBlockStmtNode);
-    block->stmts = ret_stmt;
+    for (ElAstStmtNode* curr = in->stmts; curr != NULL; curr = curr->next) {
+        ElHirStmtNode* binded = el_binder_bind_stmt(binder, curr);
+        if (binded) {
+            el_hir_stmt_list_append(&head, &tail, binded);
+        }
+    }
 
-    return block;
+    return (ElHirBlockStmtNode) { .stmts = head };
 }
 
-ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder,   ElAstStmtNode* in) {
-    (void) binder, (void) in;
-    return NULL; // TODO: stub
+ElHirStmtNode* el_binder_bind_stmt(ElBinder* binder, ElAstStmtNode* in) {
+    switch (in->type) {
+    case EL_AST_STMT_BLOCK: {
+        ElHirBlockStmtNode block = _el_binder_bind_block(binder, &in->as.block);
+        return el_hir_new_block_stmt(binder->arena, block.stmts);
+    }
+    case EL_AST_STMT_RETURN: {
+        ElHirExprNode* val = el_binder_bind_expr(binder, in->as.return_.value);
+        return el_hir_new_return_stmt(binder->arena, val);
+    }
+    case EL_AST_STMT_EXPR: {
+        ElHirExprNode* expr = el_binder_bind_expr(binder, in->as.expr);
+        return el_hir_new_expr_stmt(binder->arena, expr);
+    }
+    }
+    return NULL;
 }
 
 
@@ -117,7 +135,7 @@ ElHirTopLevelNode* el_binder_bind_toplvl(ElBinder* binder, ElAstTopLevelNode* in
         ElHirSymbol* sym = el_hir_new_func_symbol(binder->arena, def->name->name, ret_type, params, def->params.count);
         el_hir_scope_insert(binder->current_scope->parent, sym);
 
-        ElHirBlockStmtNode* block = el_binder_bind_block(binder, def->block);
+        ElHirBlockStmtNode block = _el_binder_bind_block(binder, def->block);
         ElHirTopLevelNode* func = el_hir_new_func_definition(binder->arena, sym, block);
         _el_binder_pop_scope(binder);
         return func;

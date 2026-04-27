@@ -12,7 +12,7 @@ typedef enum ElHirTopLevelKind {
 
 typedef struct ElHirFuncDefinition {
     ElHirSymbol* symbol;
-    ElHirBlockStmtNode* block;
+    ElHirBlockStmtNode block;
 } ElHirFuncDefinition;
 
 typedef struct ElHirTopLevelNode ElHirTopLevelNode;
@@ -24,4 +24,4 @@ struct ElHirTopLevelNode {
     ElHirTopLevelNode* next;
 };
 
-ElHirTopLevelNode* el_hir_new_func_definition(ElDynArena* arena, ElHirSymbol* symbol, ElHirBlockStmtNode* block);
+ElHirTopLevelNode* el_hir_new_func_definition(ElDynArena* arena, ElHirSymbol* symbol, ElHirBlockStmtNode block);
