@@ -30,14 +30,10 @@ void el_hir_dump_toplevel(ElHirTopLevelNode* node, usize indent, FILE* out) {
        }
        fputs(")", out);
        
-       if (func->block) {
-           fputs(" {\n", out);
-           el_hir_dump_stmt(func->block->stmts, indent + 1, out);
-           el_hir_dump_print_indent(indent, out);
-           fputs("}\n", out);
-       } else {
-           fputs(";\n", out);
-       }
+       fputs(" {\n", out);
+       el_hir_dump_stmt(func->block.stmts, indent + 1, out);
+       el_hir_dump_print_indent(indent, out);
+       fputs("}\n", out);
        break;
    }
    }

@@ -19,13 +19,20 @@
 typedef struct ElBinder {
     ElDynArena* arena;
     ElDiagEngine* diag;
+    ElHirScope* builtin_scope;
     ElHirScope* global_scope;
     ElHirScope* current_scope;
-    // TODO
+
+    ElType* type_int;
+    ElType* type_uint;
+    ElType* type_char;
 } ElBinder;
 
 void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag);
 void el_binder_free(ElBinder* binder);
+
+ElHirScope* _el_binder_push_scope(ElBinder* binder);
+ElHirScope* _el_binder_pop_scope(ElBinder* binder);
 
 ElHirExprNode*     el_binder_bind_expr(ElBinder* binder,   ElAstExprNode* in);
 ElHirStmtNode*     el_binder_bind_stmt(ElBinder* binder,   ElAstStmtNode* in);
