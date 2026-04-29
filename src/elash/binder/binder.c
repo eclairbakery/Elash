@@ -9,10 +9,11 @@
 #include <elash/hir/tree/stmt/block.h>
 #include <elash/hir/tree/stmt/return.h>
 
-static void _el_binder_register_builtin_type(ElBinder* binder, ElStringView name, ElPrimitiveTypeKind kind) {
+static ElType* _el_binder_register_builtin_type(ElBinder* binder, ElStringView name, ElPrimitiveTypeKind kind) {
     ElType* type = el_sema_new_prim_type(binder->arena, kind);
     ElHirSymbol* sym = el_hir_new_type_symbol(binder->arena, name, type);
     el_hir_scope_insert(binder->builtin_scope, sym);
+    return type;
 }
 
 void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag) {
@@ -21,9 +22,9 @@ void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag) {
 
     binder->builtin_scope = el_hir_scope_new(NULL);
 
-    _el_binder_register_builtin_type(binder, EL_SV("int"),  EL_PRIMTYPE_INT);
-    _el_binder_register_builtin_type(binder, EL_SV("uint"), EL_PRIMTYPE_UINT);
-    _el_binder_register_builtin_type(binder, EL_SV("char"), EL_PRIMTYPE_CHAR);
+    binder->type_int  = _el_binder_register_builtin_type(binder, EL_SV("int"),  EL_PRIMTYPE_INT);
+    binder->type_uint = _el_binder_register_builtin_type(binder, EL_SV("uint"), EL_PRIMTYPE_UINT);
+    binder->type_char = _el_binder_register_builtin_type(binder, EL_SV("char"), EL_PRIMTYPE_CHAR);
 
     binder->global_scope = el_hir_scope_new(binder->builtin_scope);
     binder->current_scope = binder->global_scope;
