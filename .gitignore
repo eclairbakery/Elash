@@ -2,6 +2,9 @@
 build
 out
 
+# Debugging
+vgcore.*
+
 # IDEs configuration
 compile_flags.txt
 .vscode/
