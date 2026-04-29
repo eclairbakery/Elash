@@ -22,7 +22,10 @@ typedef struct ElBinder {
     ElHirScope* builtin_scope;
     ElHirScope* global_scope;
     ElHirScope* current_scope;
-    // TODO
+
+    ElType* type_int;
+    ElType* type_uint;
+    ElType* type_char;
 } ElBinder;
 
 void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag);
