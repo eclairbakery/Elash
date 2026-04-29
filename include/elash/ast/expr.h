@@ -6,6 +6,7 @@
 #include "common/ident.h"
 
 #include <elash/defs/inttypes.h>
+#include <elash/srcdoc/span.h>
 
 typedef enum ElAstExprType {
     EL_AST_EXPR_BINARY,
@@ -16,6 +17,7 @@ typedef enum ElAstExprType {
 
 typedef struct ElAstExprNode {
     ElAstExprType type;
+    ElSourceSpan span;
     union {
         ElAstBinExprNode binary;
         ElAstUnaryExprNode unary;

@@ -10,9 +10,10 @@ ElAstUnaryExprNode el_ast_unary_expr(ElAstUnaryOp op, ElAstExprNode* operand) {
     };
 }
 
-ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElAstUnaryOp type, ElAstExprNode* operand) {
+ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElSourceSpan span, ElAstUnaryOp type, ElAstExprNode* operand) {
     ElAstExprNode* node = EL_DYNARENA_NEW(arena, ElAstExprNode);
     node->type = EL_AST_EXPR_UNARY;
+    node->span = span;
     node->as.unary = el_ast_unary_expr(type, operand);
     return node;
 }
