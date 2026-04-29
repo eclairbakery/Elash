@@ -62,7 +62,7 @@ static void _el_diag_console_printer_print_carets(FILE* out, ElStringView line, 
     uint start_col = span->start.column > 0 ? span->start.column : 1;
     uint end_col = span->end.column > 0 ? span->end.column : start_col;
 
-    for (uint i = 0; i < start_col - 1; i++) {
+    for (uint i = 0; i < start_col; i++) {
         if (i < line.len && line.data[i] == '\t') {
             fputc('\t', out);
         } else {

@@ -3,16 +3,19 @@
 
 #include <stdio.h>
 
-ElAstModuleNode el_ast_module() {
+ElAstModuleNode el_ast_module(ElSourceSpan span) {
     return (ElAstModuleNode) {
+        .span = span,
         .head = NULL,
         .tail = NULL,
         .count = 0,
     };
 }
 
-ElAstModuleNode* el_ast_new_module(ElDynArena* arena) {
-    return EL_DYNARENA_NEW_ZEROED(arena, ElAstModuleNode);
+ElAstModuleNode* el_ast_new_module(ElDynArena* arena, ElSourceSpan span) {
+    ElAstModuleNode* node = EL_DYNARENA_NEW_ZEROED(arena, ElAstModuleNode);
+    node->span = span;
+    return node;
 }
 
 void el_ast_module_append(ElAstModuleNode* module, ElAstTopLevelNode* node) {
