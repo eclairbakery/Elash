@@ -61,9 +61,9 @@ ElType* _el_binder_bind_type(ElBinder* binder, ElAstTypeNode* node) {
 
         if (sym->kind != EL_HIR_SYM_TYPE) {
             el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.",
+                binder->diag, EL_DIAG_ERROR, "sema.<TODO>", // TODO: idk how to name this
                 EL_SOURCE_SPAN_NULL, // TODO: source span should be attached to AST ig.
-                "${type} ${name} used as type",
+                "${type} ${name} used as a type",
                 EL_DIAG_STRING("type", sym->kind == EL_HIR_SYM_VAR ? EL_SV("Variable") : EL_SV("Function")),
                 EL_DIAG_STRING("name", sym->name),
             );
@@ -75,9 +75,71 @@ ElType* _el_binder_bind_type(ElBinder* binder, ElAstTypeNode* node) {
     }
 }
 
-ElHirExprNode* el_binder_bind_expr(ElBinder* binder,   ElAstExprNode* in) {
-    (void) binder, (void) in;
-    return NULL; // TODO: stub
+ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
+    if (in == NULL) return NULL;
+
+    switch (in->type) {
+    case EL_AST_EXPR_BINARY: {
+        ElHirExprNode* left = el_binder_bind_expr(binder, in->as.binary.left);
+        ElHirExprNode* right = el_binder_bind_expr(binder, in->as.binary.right);
+        if (!left || !right) return NULL;
+
+        // TODO: implement type checking 
+        return el_hir_new_bin_expr(binder->arena, left->type, in->as.binary.op, left, right);
+    }
+    case EL_AST_EXPR_UNARY: {
+        ElHirExprNode* operand = el_binder_bind_expr(binder, in->as.unary.operand);
+        if (!operand) return NULL;
+
+        // TODO: implement type checking 
+        return el_hir_new_unary_expr(binder->arena, operand->type, in->as.unary.op, operand);
+    }
+    case EL_AST_EXPR_LITERAL: {
+        switch (in->as.literal.type) {
+        case EL_AST_LIT_INT:
+            return el_hir_new_int_literal(binder->arena, binder->type_int, in->as.literal.of.int_.value);
+        case EL_AST_LIT_CHAR:
+            return el_hir_new_char_literal(binder->arena, binder->type_char, in->as.literal.of.char_.value);
+        default:
+            // TODO: handle other literal types
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.unsupported-literal",
+                EL_SOURCE_SPAN_NULL, // TODO: source span should be attached to the Abstract Syntax Tree
+                "unsupported literal type"
+            );
+            return NULL;
+        }
+    }
+    case EL_AST_EXPR_IDENT: {
+        ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, in->as.ident.name);
+        if (sym == NULL) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.undefined-symbol",
+                EL_SOURCE_SPAN_NULL, // TODO: source span should be attached to the Abstract Syntax Tree
+                "undefined symbol '${name}'",
+                EL_DIAG_STRING("name", in->as.ident.name)
+            );
+            return NULL;
+        }
+
+        switch (sym->kind) {
+        case EL_HIR_SYM_VAR:
+            return el_hir_new_symbol_expr(binder->arena, sym->as.var.type, sym);
+        case EL_HIR_SYM_FUNC:
+            EL_UNREACHABLE("Function types not implemented yet");
+        case EL_HIR_SYM_TYPE:
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.type-used-as-expr",
+                EL_SOURCE_SPAN_NULL, // TODO: source span should be attached to the Abstract Syntax Tree
+                "symbol '${name}' declared as type but used as an expression",
+                EL_DIAG_STRING("name", sym->name)
+            );
+            return NULL;
+        }
+    }
+    }
+
+    return NULL;
 }
 
 ElHirBlockStmtNode _el_binder_bind_block(ElBinder* binder, ElAstBlockStmtNode* in) {
