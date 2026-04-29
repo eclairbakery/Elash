@@ -11,9 +11,10 @@ ElAstBinExprNode el_ast_bin_expr(ElAstBinOp op, ElAstExprNode* left, ElAstExprNo
     };
 }
 
-ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElAstBinOp type, ElAstExprNode* left, ElAstExprNode* right) {
+ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElSourceSpan span, ElAstBinOp type, ElAstExprNode* left, ElAstExprNode* right) {
     ElAstExprNode* node = EL_DYNARENA_NEW(arena, ElAstExprNode);
     node->type = EL_AST_EXPR_BINARY;
+    node->span = span;
     node->as.binary = el_ast_bin_expr(type, left, right);
     return node;
 }

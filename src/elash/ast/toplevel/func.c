@@ -3,8 +3,9 @@
 
 #include <stddef.h>
 
-ElAstFuncParam el_ast_func_param(ElAstTypeNode* type, ElAstIdentNode* name) {
+ElAstFuncParam el_ast_func_param(ElSourceSpan span, ElAstTypeNode* type, ElAstIdentNode* name) {
     return (ElAstFuncParam) {
+        .span = span,
         .type = type,
         .name = name,
         .next = NULL,
@@ -12,9 +13,9 @@ ElAstFuncParam el_ast_func_param(ElAstTypeNode* type, ElAstIdentNode* name) {
     };
 }
 
-ElAstFuncParam* el_ast_new_func_param(ElDynArena* arena, ElAstTypeNode* type, ElAstIdentNode* name) {
+ElAstFuncParam* el_ast_new_func_param(ElDynArena* arena, ElSourceSpan span, ElAstTypeNode* type, ElAstIdentNode* name) {
     ElAstFuncParam* param = EL_DYNARENA_NEW(arena, ElAstFuncParam);
-    *param = el_ast_func_param(type, name);
+    *param = el_ast_func_param(span, type, name);
     return param;
 }
 
@@ -55,6 +56,7 @@ ElAstFuncDefinition el_ast_func_definition(
 
 ElAstTopLevelNode* el_ast_new_func_definition(
     ElDynArena* arena,
+    ElSourceSpan span,
     ElAstTypeNode* ret_type,
     ElAstIdentNode* name,
     ElAstFuncParamList params,
@@ -62,6 +64,7 @@ ElAstTopLevelNode* el_ast_new_func_definition(
 ) {
     ElAstTopLevelNode* node = EL_DYNARENA_NEW(arena, ElAstTopLevelNode);
     node->type = EL_AST_TOPLVL_FUNC_DEF;
+    node->span = span;
     node->as.func_def = el_ast_func_definition(ret_type, name, params, block);
     node->next = NULL;
     return node;

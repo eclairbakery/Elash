@@ -1,6 +1,7 @@
 #pragma once
 
 #include <elash/util/dynarena.h>
+#include <elash/srcdoc/span.h>
 
 #include "expr.h"
 
@@ -15,6 +16,7 @@ typedef enum ElAstStmtType {
 
 typedef struct ElAstStmtNode {
     ElAstStmtType type;
+    ElSourceSpan span;
     union {
         ElAstExprNode* expr;
 
@@ -24,8 +26,8 @@ typedef struct ElAstStmtNode {
     ElAstStmtNode* next; // linked list; used in block stmt
 } ElAstStmtNode;
 
-ElAstStmtNode el_ast_expr_stmt(ElAstExprNode* expr);
-ElAstStmtNode* el_ast_new_expr_stmt(ElDynArena* arena, ElAstExprNode* expr);
+ElAstStmtNode el_ast_expr_stmt(ElSourceSpan span, ElAstExprNode* expr);
+ElAstStmtNode* el_ast_new_expr_stmt(ElDynArena* arena, ElSourceSpan span, ElAstExprNode* expr);
 
 void el_ast_stmt_list_append(ElAstStmtNode** head, ElAstStmtNode** tail, ElAstStmtNode* stmt);
 

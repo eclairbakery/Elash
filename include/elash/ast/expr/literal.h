@@ -2,6 +2,7 @@
 
 #include <elash/util/dynarena.h>
 #include <elash/defs/sv.h>
+#include <elash/srcdoc/span.h>
 
 typedef struct ElAstExprNode ElAstExprNode;
 
@@ -52,9 +53,9 @@ ElAstLiteralNode el_ast_string_literal(ElStringView value);
 ElAstLiteralNode el_ast_bool_literal(bool value);
 ElAstLiteralNode el_ast_null_literal();
 
-ElAstExprNode* el_ast_new_int_literal(ElDynArena* arena, int64_t value);
-ElAstExprNode* el_ast_new_float_literal(ElDynArena* arena, long double value);
-ElAstExprNode* el_ast_new_char_literal(ElDynArena* arena, char value);
-ElAstExprNode* el_ast_new_string_literal(ElDynArena* arena, ElStringView value);
-ElAstExprNode* el_ast_new_bool_literal(ElDynArena* arena, bool value);
-ElAstExprNode* el_ast_new_null_literal(ElDynArena* arena);
+ElAstExprNode* el_ast_new_int_literal(ElDynArena* arena, ElSourceSpan span, int64_t value);
+ElAstExprNode* el_ast_new_float_literal(ElDynArena* arena, ElSourceSpan span, long double value);
+ElAstExprNode* el_ast_new_char_literal(ElDynArena* arena, ElSourceSpan span, char value);
+ElAstExprNode* el_ast_new_string_literal(ElDynArena* arena, ElSourceSpan span, ElStringView value);
+ElAstExprNode* el_ast_new_bool_literal(ElDynArena* arena, ElSourceSpan span, bool value);
+ElAstExprNode* el_ast_new_null_literal(ElDynArena* arena, ElSourceSpan span);
