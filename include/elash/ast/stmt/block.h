@@ -1,3 +1,5 @@
+#pragma once
+
 #include <elash/util/dynarena.h>
 #include <elash/srcdoc/span.h>
 
