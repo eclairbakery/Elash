@@ -21,6 +21,7 @@ static ElParserErrorCode _el_parser_parse_func_params(ElParser* parser, ElAstFun
 
         el_ast_func_param_list_append(out, el_ast_new_func_param(
             parser->arena,
+            el_source_span_merge(p_type->span, p_name->span),
             p_type,
             p_name
         ));
@@ -56,15 +57,17 @@ ElParserErrorCode _el_parser_parse_func_def(ElParser* parser, ElAstTopLevelNode*
     result = el_parser_expect(parser, EL_TT_RPAREN);
     if (result != EL_PARSER_ERR_OK) return result;
 
+    ElToken lbrace_tok = parser->current;
     result = el_parser_expect(parser, EL_TT_LBRACE);
     if (result != EL_PARSER_ERR_OK) return result;
 
     ElAstStmtNode* body_stmt;
-    result = _el_parser_parse_block(parser, &body_stmt);
+    result = _el_parser_parse_block(parser, lbrace_tok, &body_stmt);
     if (result != EL_PARSER_ERR_OK) return result;
 
     *out = el_ast_new_func_definition(
         parser->arena,
+        el_source_span_merge(ret_type->span, body_stmt->span),
         ret_type,
         name,
         params,
