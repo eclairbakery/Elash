@@ -10,7 +10,7 @@ ElParserErrorCode _el_parser_parse_ident(ElParser* parser, ElAstIdentNode** out)
     if (result != EL_PARSER_ERR_OK) return result;
 
     if (out) {
-        *out = el_ast_new_ident_node_raw(parser->arena, tok.lexeme);
+        *out = el_ast_new_ident_node_raw(parser->arena, tok.span, tok.lexeme);
     }
 
     return _el_parser_ret_ok(parser);
@@ -23,10 +23,12 @@ ElParserErrorCode _el_parser_parse_type(ElParser* parser, ElAstTypeNode** out) {
     result = _el_parser_parse_ident(parser, &name);
     if (result != EL_PARSER_ERR_OK) return result;
 
-    ElAstTypeNode* type = el_ast_new_type_name(parser->arena, name);
+    ElAstTypeNode* type = el_ast_new_type_name(parser->arena, name->span, name);
 
-    while (el_parser_match(parser, EL_TT_STAR)) {
-        type = el_ast_new_type_ptr(parser->arena, type);
+    while (el_parser_check(parser, EL_TT_STAR)) {
+        ElToken star_tok = parser->current;
+        el_parser_advance(parser);
+        type = el_ast_new_type_ptr(parser->arena, el_source_span_merge(type->span, star_tok.span), type);
     }
 
     if (out) {
