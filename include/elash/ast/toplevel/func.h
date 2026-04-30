@@ -7,7 +7,7 @@
 #include <elash/util/dynarena.h>
 #include <elash/srcdoc/span.h>
 
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 
 typedef struct ElAstTopLevelNode ElAstTopLevelNode;
 

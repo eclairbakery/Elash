@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 #include <elash/defs/sv.h>
 
 #include <elash/hir/symbol.h>
@@ -8,7 +8,7 @@
 typedef struct ElHirScope ElHirScope;
 struct ElHirScope {
     ElHirScope* parent;
-    
+
     ElHirSymbol** entries;
     usize capacity;
     usize count;

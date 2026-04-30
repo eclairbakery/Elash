@@ -2,7 +2,7 @@
 
 #include "toplevel.h"
 #include <elash/util/dynarena.h>
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 
 typedef struct ElHirModule {
     ElHirTopLevelNode* head;

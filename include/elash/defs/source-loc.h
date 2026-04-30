@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 
 typedef struct ElSourceLocation {
     uint line, column;

@@ -68,7 +68,7 @@ ElSrcDocErrorCode el_srcdoc_init_from_file(ElSourceDocument* srcdoc, const char*
         goto fail;
     }
 
-    usize readed = fread(srcdoc->content.data, 1, size, f); 
+    usize readed = fread(srcdoc->content.data, 1, size, f);
 
     if (readed != size) {
         err = EL_SRCDOC_ERR_FREAD_FAILED;
@@ -117,7 +117,7 @@ ElSrcDocErrorCode el_srcdoc_append_token(ElSourceDocument* srcdoc, const ElToken
 }
 
 ElSrcDocErrorCode el_srcdoc_append_str(ElSourceDocument* srcdoc, ElStringView sv) {
-    return _el_strdoc_ret_err(el_strbuf_append(&srcdoc->content, sv)); 
+    return _el_strdoc_ret_err(el_strbuf_append(&srcdoc->content, sv));
 }
 
 ElSrcDocErrorCode el_srcdoc_concat(const ElSourceDocument* src1,
@@ -151,4 +151,3 @@ ElSrcDocErrorCode el_srcdoc_print(const ElSourceDocument* srcdoc, FILE* out) {
     }
     return EL_SRCDOC_ERR_SUCCESS;
 }
-

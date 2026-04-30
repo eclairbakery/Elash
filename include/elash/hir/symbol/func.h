@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 #include <elash/sema/type.h>
 #include <elash/util/dynarena.h>
 #include <elash/defs/sv.h>

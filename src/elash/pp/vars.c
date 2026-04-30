@@ -1,7 +1,7 @@
 #include <elash/pp/valarr.h>
 #include <elash/pp/vars.h>
 
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 
 #include <stdlib.h>
 
@@ -207,4 +207,3 @@ bool el_pp_vars_has(ElPpVars* vars, ElStringView key) {
     _el_pp_vars_find_slot(vars, key, &found);
     return found;
 }
-
