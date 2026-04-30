@@ -1,5 +1,5 @@
 #include <elash/lexer/tokque.h>
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +25,7 @@ static bool el_tkque_grow(ElTokenQueue* tkque) {
     if (new_data == NULL) return false;
 
     el_tkque_repack(tkque->data, tkque->cap, tkque->head, tkque->tail, tkque->len, new_data);
-    
+
     free(tkque->data);
     tkque->data = new_data;
     tkque->cap = new_cap;

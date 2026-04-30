@@ -1,6 +1,6 @@
 #include <elc/pipeline/pipeline.h>
 
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 #include <elash/util/assert.h>
 
 void elc_pipeline_init(ElcPipeline* pipeline, ElDynArena* arena, ElDiagEngine* diag) {

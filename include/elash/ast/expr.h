@@ -5,7 +5,7 @@
 #include "expr/literal.h"
 #include "common/ident.h"
 
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 #include <elash/srcdoc/span.h>
 
 typedef enum ElAstExprType {
@@ -29,4 +29,3 @@ typedef struct ElAstExprNode {
 // TODO: this sucks
 void el_ast_dump_expr(ElAstExprNode* node, usize indent, FILE* out);
 void el_ast_dump_print_indent(usize ident, FILE* out);
-

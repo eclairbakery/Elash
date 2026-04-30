@@ -62,4 +62,3 @@ void el_ast_dump_expr(ElAstExprNode* node, usize indent, FILE* out) {
         return el_ast_dump_expr_ident(&node->as.ident, indent, out);
     }
 }
-

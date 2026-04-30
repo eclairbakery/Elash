@@ -1,7 +1,7 @@
 #pragma once
 
 #include <elash/lexer/token.h>
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 
 #include <stdbool.h>
 

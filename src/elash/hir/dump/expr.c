@@ -47,7 +47,7 @@ void el_hir_dump_expr(ElHirExprNode* node, usize indent, FILE* out) {
         break;
 
     case EL_HIR_EXPR_SYMBOL:
-        el_hir_dump_symbol(node->as.symbol, out); 
+        el_hir_dump_symbol(node->as.symbol, out);
         break;
     }
 

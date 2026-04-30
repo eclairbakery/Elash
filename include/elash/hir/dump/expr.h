@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/defs/inttypes.h>
+#include <elash/defs/int-types.h>
 #include <stdio.h>
 
 typedef struct ElHirExprNode ElHirExprNode;
