@@ -1,10 +1,12 @@
 #pragma once
 
-#include <elash/sema/type.h>
-#include <elash/hir/tree/expr/literal.h>
-#include <elash/hir/symbol.h>
 #include <elash/util/dynarena.h>
-#include <elash/defs/int-types.h>
+#include <elash/sema/type.h>
+
+#include "value/global.h"
+#include "value/const.h"
+#include "value/reg.h"
+#include "value/arg.h"
 
 typedef enum ElMirValueKind {
     EL_MIR_VAL_REG,
@@ -17,10 +19,10 @@ typedef struct ElMirValue {
     ElMirValueKind kind;
     ElType* type;
     union {
-        struct { uint32_t id; } reg;
-        ElHirLiteral constant;
-        struct { uint32_t idx; } arg;
-        ElHirSymbol* global;
+        ElMirRegValue    reg;
+        ElMirArgValue    arg;
+        ElMirConstValue  constant;
+        ElMirGlobalValue global;
     } as;
 } ElMirValue;
 
