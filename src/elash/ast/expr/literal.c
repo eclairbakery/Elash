@@ -6,6 +6,7 @@ static ElAstExprNode* el_ast_new_literal_wrapper(ElDynArena* arena, ElSourceSpan
     node->type = EL_AST_EXPR_LITERAL;
     node->span = span;
     node->as.literal = lit;
+    node->next = NULL;
     return node;
 }
 

@@ -19,5 +19,6 @@ ElAstExprNode* el_ast_new_ident_node(ElDynArena* arena, ElSourceSpan span, ElStr
     node->type = EL_AST_EXPR_IDENT;
     node->span = span;
     node->as.ident = el_ast_ident_node(span, name);
+    node->next = NULL;
     return node;
 }

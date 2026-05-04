@@ -3,6 +3,7 @@
 #include "expr/bin.h"
 #include "expr/unary.h"
 #include "expr/literal.h"
+#include "expr/call.h"
 #include "common/ident.h"
 
 #include <elash/defs/int-types.h>
@@ -13,6 +14,7 @@ typedef enum ElAstExprType {
     EL_AST_EXPR_UNARY,
     EL_AST_EXPR_LITERAL,
     EL_AST_EXPR_IDENT,
+    EL_AST_EXPR_CALL,
 } ElAstExprType;
 
 typedef struct ElAstExprNode {
@@ -23,7 +25,9 @@ typedef struct ElAstExprNode {
         ElAstUnaryExprNode unary;
         ElAstLiteralNode literal;
         ElAstIdentNode ident;
+        ElAstCallExprNode call;
     } as;
+    ElAstExprNode* next;
 } ElAstExprNode;
 
 // TODO: this sucks
