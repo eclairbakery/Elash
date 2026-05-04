@@ -60,5 +60,20 @@ void el_ast_dump_expr(ElAstExprNode* node, usize indent, FILE* out) {
         return el_ast_dump_expr_literal(&node->as.literal, indent, out);
     case EL_AST_EXPR_IDENT:
         return el_ast_dump_expr_ident(&node->as.ident, indent, out);
+    case EL_AST_EXPR_CALL: {
+        el_ast_dump_print_indent(indent, out);
+        fprintf(out, "CallExpr(args=%zu):\n", node->as.call.arg_count);
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "callee:\n");
+        el_ast_dump_expr(node->as.call.callee, indent + 2, out);
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "args:\n");
+        ElAstExprNode* arg = node->as.call.args;
+        while (arg) {
+            el_ast_dump_expr(arg, indent + 2, out);
+            arg = arg->next;
+        }
+        break;
+    }
     }
 }
