@@ -6,6 +6,8 @@
 #include <elc/driver/stages/parser-stage.h>
 #include <elc/driver/stages/binder-stage.h>
 
+#include <elc/driver/observers/dump-ast.h>
+
 bool elc_driver_init(ElcDriver* driver) {
     if (!el_dynarena_init(&driver->arena)) return false;
     el_diag_engine_init(&driver->diag, &driver->arena);
@@ -27,7 +29,7 @@ bool elc_driver_register_stages(ElcDriver* driver) {
 }
 
 bool elc_driver_register_observers(ElcDriver* driver) {
-    (void) driver;
+    elc_pipeline_add_observer(&driver->pipeline, elc_make_dump_ast_observer());
     return true;
 }
 
