@@ -3,5 +3,5 @@ int add(int a, int b) {
 }
 
 int main() {
-    return 0;
+    return add(10, 20);
 }
