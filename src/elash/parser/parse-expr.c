@@ -93,6 +93,36 @@ ElParserErrorCode _el_parser_parse_primary(ElParser* parser, ElAstExprNode** out
     return _el_parser_ret_err(parser, .code = EL_PARSER_ERR_UNEXPECTED_TOKEN, .token = parser->current);
 }
 
+ElParserErrorCode _el_parser_parse_call(ElParser* parser, ElAstExprNode** out) {
+    ElAstExprNode* args_head = NULL;
+    ElAstExprNode* args_tail = NULL;
+    usize arg_count = 0;
+
+    if (!el_parser_check(parser, EL_TT_RPAREN)) {
+        while (true) {
+            ElAstExprNode* arg = NULL;
+            ElParserErrorCode err = _el_parser_parse_expression(parser, &arg);
+            if (err != EL_PARSER_ERR_OK) return err;
+
+            el_ast_expr_list_append(&args_head, &args_tail, arg);
+            arg_count++;
+
+            if (!el_parser_match(parser, EL_TT_COMMA)) break;
+        };
+    }
+
+    ElToken rparen = parser->current;
+    ElParserErrorCode err = el_parser_expect(parser, EL_TT_RPAREN);
+    if (err != EL_PARSER_ERR_OK) return err;
+
+    *out = el_ast_new_call_expr(
+        parser->arena,
+        el_source_span_merge((*out)->span, rparen.span),
+        *out, args_head, arg_count
+    );
+    return _el_parser_ret_ok(parser);
+}
+
 ElParserErrorCode _el_parser_parse_postfix(ElParser* parser, ElAstExprNode** out) {
     ElParserErrorCode err = _el_parser_parse_primary(parser, out);
     if (err != EL_PARSER_ERR_OK) return err;
@@ -106,6 +136,8 @@ ElParserErrorCode _el_parser_parse_postfix(ElParser* parser, ElAstExprNode** out
             ElToken tok = parser->current;
             el_parser_advance(parser);
             *out = el_ast_new_unary_expr(parser->arena, el_source_span_merge((*out)->span, tok.span), EL_SEMA_UNARY_OP_POST_DEC, *out);
+        } else if (el_parser_match(parser, EL_TT_LPAREN)) {
+            return _el_parser_parse_call(parser, out);
         } else {
             break;
         }
