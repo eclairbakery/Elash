@@ -15,5 +15,6 @@ ElAstExprNode* el_ast_new_unary_expr(ElDynArena* arena, ElSourceSpan span, ElAst
     node->type = EL_AST_EXPR_UNARY;
     node->span = span;
     node->as.unary = el_ast_unary_expr(type, operand);
+    node->next = NULL;
     return node;
 }

@@ -16,5 +16,6 @@ ElAstExprNode* el_ast_new_bin_expr(ElDynArena* arena, ElSourceSpan span, ElAstBi
     node->type = EL_AST_EXPR_BINARY;
     node->span = span;
     node->as.binary = el_ast_bin_expr(type, left, right);
+    node->next = NULL;
     return node;
 }
