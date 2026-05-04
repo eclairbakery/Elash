@@ -49,6 +49,17 @@ void el_hir_dump_expr(ElHirExprNode* node, usize indent, FILE* out) {
     case EL_HIR_EXPR_SYMBOL:
         el_hir_dump_symbol(node->as.symbol, out);
         break;
+
+    case EL_HIR_EXPR_CALL: {
+        el_hir_dump_expr(node->as.call.callee, 0, out);
+        fputs("(", out);
+        for (usize i = 0; i < node->as.call.arg_count; ++i) {
+            if (i > 0) fputs(", ", out);
+            el_hir_dump_expr(node->as.call.args[i], 0, out);
+        }
+        fputs(")", out);
+        break;
+    }
     }
 
     fputs(" : ", out);
