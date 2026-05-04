@@ -8,6 +8,16 @@ void el_ast_dump_print_indent(usize indent, FILE* out) {
     }
 }
 
+void el_ast_expr_list_append(ElAstExprNode** head, ElAstExprNode** tail, ElAstExprNode* expr) {
+    if (*head == NULL) {
+        *head = expr;
+        *tail = expr;
+    } else {
+        (*tail)->next = expr;
+        *tail = expr;
+    }
+}
+
 void el_ast_dump_expr_literal(ElAstLiteralNode* lit, usize indent, FILE* out) {
     el_ast_dump_print_indent(indent, out);
     switch (lit->type) {
