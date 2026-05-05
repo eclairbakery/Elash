@@ -126,8 +126,7 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
         case EL_HIR_SYM_VAR:
             return el_hir_new_symbol_expr(binder->arena, sym->as.var.type, sym);
         case EL_HIR_SYM_FUNC:
-            // TODO: stub: implement function types
-            return el_hir_new_symbol_expr(binder->arena, sym->as.func.ret_type, sym);
+            return el_hir_new_symbol_expr(binder->arena, sym->as.func.type, sym);
         case EL_HIR_SYM_TYPE:
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.type-used-as-expr",
@@ -143,8 +142,7 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
         ElHirExprNode* callee = el_binder_bind_expr(binder, in->as.call.callee);
         if (!callee) return NULL;
 
-        // TODO: function pointers not implemented yet
-        if (callee->kind != EL_HIR_EXPR_SYMBOL || callee->as.symbol->kind != EL_HIR_SYM_FUNC) {
+        if (callee->type->kind != EL_TYPE_FUNC) {
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.not-callable",
                 in->as.call.callee->span,
@@ -153,8 +151,7 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
             return NULL;
         }
 
-        ElHirSymbol* func_sym = callee->as.symbol;
-        ElHirFuncSymbol* func = &func_sym->as.func;
+        ElFunctionType* func = &callee->type->as.func;
 
         if (in->as.call.arg_count != func->param_count) {
             el_diag_report(
