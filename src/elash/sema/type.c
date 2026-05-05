@@ -13,6 +13,15 @@ void el_sema_dump_type(const ElType* type, FILE* out) {
         el_sema_dump_type(type->as.ptr.base, out);
         fputs("*", out);
         break;
+    case EL_TYPE_FUNC:
+        el_sema_dump_type(type->as.func.ret_type, out);
+        fputs("(", out);
+        for (usize i = 0; i < type->as.func.param_count; i++) {
+            el_sema_dump_type(type->as.func.params[i], out);
+            if (i + 1 < type->as.func.param_count) fputs(", ", out);
+        }
+        fputs(")", out);
+        break;
     }
 }
 
