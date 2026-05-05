@@ -126,7 +126,8 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
         case EL_HIR_SYM_VAR:
             return el_hir_new_symbol_expr(binder->arena, sym->as.var.type, sym);
         case EL_HIR_SYM_FUNC:
-            EL_UNREACHABLE("Function types not implemented yet");
+            // TODO: stub: implement function types
+            return el_hir_new_symbol_expr(binder->arena, sym->as.func.ret_type, sym);
         case EL_HIR_SYM_TYPE:
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.type-used-as-expr",
@@ -136,6 +137,46 @@ ElHirExprNode* el_binder_bind_expr(ElBinder* binder, ElAstExprNode* in) {
             );
             return NULL;
         }
+        return NULL;
+    }
+    case EL_AST_EXPR_CALL: {
+        ElHirExprNode* callee = el_binder_bind_expr(binder, in->as.call.callee);
+        if (!callee) return NULL;
+
+        // TODO: function pointers not implemented yet
+        if (callee->kind != EL_HIR_EXPR_SYMBOL || callee->as.symbol->kind != EL_HIR_SYM_FUNC) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.not-callable",
+                in->as.call.callee->span,
+                "expression is not callable"
+            );
+            return NULL;
+        }
+
+        ElHirSymbol* func_sym = callee->as.symbol;
+        ElHirFuncSymbol* func = &func_sym->as.func;
+
+        if (in->as.call.arg_count != func->param_count) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.arg-count-mismatch",
+                in->span,
+                "expected ${expected} arguments, but got ${got}",
+                EL_DIAG_INT("expected", func->param_count),
+                EL_DIAG_INT("got", in->as.call.arg_count)
+            );
+            return NULL;
+        }
+
+        ElHirExprNode** args = EL_DYNARENA_NEW_ARR(binder->arena, ElHirExprNode*, in->as.call.arg_count);
+        usize i = 0;
+        for (ElAstExprNode* curr = in->as.call.args; curr != NULL; curr = curr->next) {
+            args[i] = el_binder_bind_expr(binder, curr);
+            if (!args[i]) return NULL;
+            // TODO: implement argument type checking
+            i++;
+        }
+
+        return el_hir_new_call_expr(binder->arena, func->ret_type, callee, args, in->as.call.arg_count);
     }
     }
 
