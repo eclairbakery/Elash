@@ -25,8 +25,3 @@ typedef struct ElMirValue {
         ElMirGlobalValue global;
     } as;
 } ElMirValue;
-
-ElMirValue* el_mir_new_reg(ElDynArena* arena, ElType* type, uint32_t reg_id);
-ElMirValue* el_mir_new_const(ElDynArena* arena, ElType* type, ElHirLiteral constant);
-ElMirValue* el_mir_new_arg(ElDynArena* arena, ElType* type, uint32_t arg_idx);
-ElMirValue* el_mir_new_global(ElDynArena* arena, ElType* type, ElHirSymbol* global);
