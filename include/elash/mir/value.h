@@ -1,6 +1,5 @@
 #pragma once
 
-#include <elash/util/dynarena.h>
 #include <elash/sema/type.h>
 
 #include "value/global.h"
