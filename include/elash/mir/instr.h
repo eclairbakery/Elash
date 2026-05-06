@@ -27,7 +27,4 @@ struct ElMirInstr {
         ElMirRetInstr   return_;
         ElMirCallInstr  call;
     } as;
-
-    ElMirInstr* next;
-    ElMirInstr* prev;
 };

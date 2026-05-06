@@ -10,8 +10,6 @@ ElMirInstr* el_mir_new_call_instr(ElDynArena* arena, ElMirValue* result, ElMirVa
             .args = args,
             .arg_count = arg_count,
         },
-        .next = NULL,
-        .prev = NULL,
     };
     return instr;
 }

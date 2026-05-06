@@ -10,8 +10,6 @@ ElMirInstr* el_mir_new_bin_instr(ElDynArena* arena, ElMirValue* result, ElSemaBi
             .lhs = lhs,
             .rhs = rhs,
         },
-        .next = NULL,
-        .prev = NULL,
     };
     return instr;
 }
