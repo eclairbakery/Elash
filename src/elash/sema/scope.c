@@ -1,4 +1,4 @@
-#include <elash/hir/scope.h>
+#include <elash/sema/scope.h>
 
 #include <stdlib.h>
 
@@ -13,14 +13,14 @@ static ulong hash_name(ElStringView name) {
     return hash;
 }
 
-ElHirScope* el_hir_scope_new(ElHirScope* parent) {
-    ElHirScope* scope = malloc(sizeof(ElHirScope));
+ElScope* el_sema_scope_new(ElScope* parent) {
+    ElScope* scope = malloc(sizeof(ElScope));
     if (!scope) return NULL;
 
     scope->parent = parent;
     scope->capacity = INITIAL_CAPACITY;
     scope->count = 0;
-    scope->entries = calloc(scope->capacity, sizeof(ElHirSymbol*));
+    scope->entries = calloc(scope->capacity, sizeof(ElSymbol*));
     
     if (!scope->entries) {
         free(scope);
@@ -30,18 +30,18 @@ ElHirScope* el_hir_scope_new(ElHirScope* parent) {
     return scope;
 }
 
-void el_hir_scope_free(ElHirScope* scope) {
+void el_sema_scope_free(ElScope* scope) {
     if (!scope) return;
     free(scope->entries);
     free(scope);
 }
 
-static bool resize(ElHirScope* scope) {
+static bool resize(ElScope* scope) {
     usize old_capacity = scope->capacity;
-    ElHirSymbol** old_entries = scope->entries;
+    ElSymbol** old_entries = scope->entries;
 
     scope->capacity *= 2;
-    scope->entries = calloc(scope->capacity, sizeof(ElHirSymbol*));
+    scope->entries = calloc(scope->capacity, sizeof(ElSymbol*));
     if (!scope->entries) {
         scope->entries = old_entries;
         scope->capacity = old_capacity;
@@ -51,7 +51,7 @@ static bool resize(ElHirScope* scope) {
     scope->count = 0;
     for (usize i = 0; i < old_capacity; i++) {
         if (old_entries[i]) {
-            el_hir_scope_insert(scope, old_entries[i]);
+            el_sema_scope_insert(scope, old_entries[i]);
         }
     }
 
@@ -59,7 +59,7 @@ static bool resize(ElHirScope* scope) {
     return true;
 }
 
-bool el_hir_scope_insert(ElHirScope* scope, ElHirSymbol* symbol) {
+bool el_sema_scope_insert(ElScope* scope, ElSymbol* symbol) {
     if ((double)scope->count / scope->capacity >= LOAD_FACTOR) {
         if (!resize(scope)) return false;
     }
@@ -79,7 +79,7 @@ bool el_hir_scope_insert(ElHirScope* scope, ElHirSymbol* symbol) {
     return true;
 }
 
-ElHirSymbol* el_hir_scope_lookup_local(ElHirScope* scope, ElStringView name) {
+ElSymbol* el_sema_scope_lookup_local(ElScope* scope, ElStringView name) {
     if (scope->count == 0) return NULL;
 
     ulong hash = hash_name(name);
@@ -95,9 +95,9 @@ ElHirSymbol* el_hir_scope_lookup_local(ElHirScope* scope, ElStringView name) {
     return NULL;
 }
 
-ElHirSymbol* el_hir_scope_lookup(ElHirScope* scope, ElStringView name) {
+ElSymbol* el_sema_scope_lookup(ElScope* scope, ElStringView name) {
     while (scope) {
-        ElHirSymbol* symbol = el_hir_scope_lookup_local(scope, name);
+        ElSymbol* symbol = el_sema_scope_lookup_local(scope, name);
         if (symbol) return symbol;
         scope = scope->parent;
     }
