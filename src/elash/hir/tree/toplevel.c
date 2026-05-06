@@ -2,7 +2,7 @@
 
 #include <stddef.h>
 
-ElHirTopLevelNode* el_hir_new_func_definition(ElDynArena* arena, ElHirSymbol* symbol, ElHirBlockStmtNode block) {
+ElHirTopLevelNode* el_hir_new_func_definition(ElDynArena* arena, ElSymbol* symbol, ElHirBlockStmtNode block) {
     ElHirTopLevelNode* node = EL_DYNARENA_NEW(arena, ElHirTopLevelNode);
     node->kind = EL_HIR_TOPLVL_FUNC_DEF;
     node->next = NULL;

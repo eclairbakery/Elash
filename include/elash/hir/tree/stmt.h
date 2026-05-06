@@ -1,7 +1,7 @@
 #pragma once
 
 #include <elash/sema/type.h>
-#include <elash/hir/symbol.h>
+#include <elash/sema/symbol.h>
 #include <elash/util/dynarena.h>
 
 #include "stmt/block.h"

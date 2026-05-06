@@ -1,7 +1,7 @@
 #pragma once
 
-#include <elash/hir/symbol.h>
-#include <elash/hir/scope.h>
+#include <elash/sema/symbol.h>
+#include <elash/sema/scope.h>
 
 #include <elash/hir/tree/module.h>
 #include <elash/hir/tree/toplevel.h>
@@ -19,9 +19,9 @@
 typedef struct ElBinder {
     ElDynArena* arena;
     ElDiagEngine* diag;
-    ElHirScope* builtin_scope;
-    ElHirScope* global_scope;
-    ElHirScope* current_scope;
+    ElScope* builtin_scope;
+    ElScope* global_scope;
+    ElScope* current_scope;
 
     ElType* type_int;
     ElType* type_uint;
@@ -31,8 +31,8 @@ typedef struct ElBinder {
 void el_binder_init(ElBinder* binder, ElDynArena* arena, ElDiagEngine* diag);
 void el_binder_free(ElBinder* binder);
 
-ElHirScope* _el_binder_push_scope(ElBinder* binder);
-ElHirScope* _el_binder_pop_scope(ElBinder* binder);
+ElScope* _el_binder_push_scope(ElBinder* binder);
+ElScope* _el_binder_pop_scope(ElBinder* binder);
 
 ElHirExprNode*     el_binder_bind_expr(ElBinder* binder,   ElAstExprNode* in);
 ElHirStmtNode*     el_binder_bind_stmt(ElBinder* binder,   ElAstStmtNode* in);

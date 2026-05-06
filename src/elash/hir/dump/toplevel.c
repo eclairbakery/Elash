@@ -1,7 +1,7 @@
 #include <elash/hir/dump/toplevel.h>
 #include <elash/hir/dump/stmt.h>
 #include <elash/hir/dump/indent.h>
-#include <elash/hir/dump/symbol.h>
+#include <elash/sema/symbol/dump.h>
 
 #include <elash/hir/tree/toplevel.h>
 
@@ -12,7 +12,7 @@ void el_hir_dump_toplevel(ElHirTopLevelNode* node, usize indent, FILE* out) {
    switch (node->kind) {
    case EL_HIR_TOPLVL_FUNC_DEF: {
        ElHirFuncDefinition* func = &node->as.func_def; 
-       ElHirFuncSymbol* sym = &func->symbol->as.func;
+       ElFuncSymbol* sym = &func->symbol->as.func;
 
        el_hir_dump_print_indent(indent, out);
        fputs("define ", out);
@@ -21,12 +21,12 @@ void el_hir_dump_toplevel(ElHirTopLevelNode* node, usize indent, FILE* out) {
        fprintf(out, EL_SV_FMT "(", EL_SV_FARG(func->symbol->name));
        
        for (usize i = 0; i < sym->param_count; ++i) {
-           ElHirSymbol* param = sym->params[i];
+           ElSymbol* param = sym->params[i];
            if (i > 0) fputs(", ", out);
 
            el_sema_dump_type(param->as.var.type, out);
            fputc(' ', out);
-           el_hir_dump_symbol(param, out);
+           el_sema_dump_symbol(param, out);
        }
        fputs(")", out);
        

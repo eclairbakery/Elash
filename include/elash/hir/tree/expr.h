@@ -1,7 +1,7 @@
 #pragma once
 
 #include <elash/sema/type.h>
-#include <elash/hir/symbol.h>
+#include <elash/sema/symbol.h>
 #include <elash/util/dynarena.h>
 
 #include "expr/bin.h"
@@ -24,10 +24,10 @@ typedef struct ElHirExprNode {
         ElHirBinExprNode binary;
         ElHirUnaryExprNode unary;
         ElHirLiteral literal;
-        ElHirSymbol* symbol;
+        ElSymbol* symbol;
         ElHirCallExprNode call;
     } as;
 } ElHirExprNode;
 
-ElHirExprNode* el_hir_new_symbol_expr(ElDynArena* arena, ElType* type, ElHirSymbol* symbol);
+ElHirExprNode* el_hir_new_symbol_expr(ElDynArena* arena, ElType* type, ElSymbol* symbol);
 

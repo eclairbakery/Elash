@@ -1,5 +1,5 @@
 #include <elash/hir/dump/expr.h>
-#include <elash/hir/dump/symbol.h>
+#include <elash/sema/symbol/dump.h>
 #include <elash/hir/dump/indent.h>
 
 #include <elash/hir/tree/expr.h>
@@ -47,7 +47,7 @@ void el_hir_dump_expr(ElHirExprNode* node, usize indent, FILE* out) {
         break;
 
     case EL_HIR_EXPR_SYMBOL:
-        el_hir_dump_symbol(node->as.symbol, out);
+        el_sema_dump_symbol(node->as.symbol, out);
         break;
 
     case EL_HIR_EXPR_CALL: {

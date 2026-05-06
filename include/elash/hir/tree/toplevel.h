@@ -1,7 +1,7 @@
 #pragma once
 
 #include <elash/sema/type.h>
-#include <elash/hir/symbol.h>
+#include <elash/sema/symbol.h>
 #include <elash/util/dynarena.h>
 
 #include "stmt.h"
@@ -11,7 +11,7 @@ typedef enum ElHirTopLevelKind {
 } ElHirTopLevelKind;
 
 typedef struct ElHirFuncDefinition {
-    ElHirSymbol* symbol;
+    ElSymbol* symbol;
     ElHirBlockStmtNode block;
 } ElHirFuncDefinition;
 
@@ -24,4 +24,4 @@ struct ElHirTopLevelNode {
     ElHirTopLevelNode* next;
 };
 
-ElHirTopLevelNode* el_hir_new_func_definition(ElDynArena* arena, ElHirSymbol* symbol, ElHirBlockStmtNode block);
+ElHirTopLevelNode* el_hir_new_func_definition(ElDynArena* arena, ElSymbol* symbol, ElHirBlockStmtNode block);
