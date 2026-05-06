@@ -1,0 +1,20 @@
+#pragma once
+
+#include <elash/sema/symbol.h>
+#include "block.h"
+#include <elash/util/dynarena.h>
+#include <elash/defs/int-types.h>
+
+typedef struct ElMirFunc {
+    ElSymbol* symbol;
+    ElMirBlock* first_block;
+    ElMirBlock* last_block;
+    
+    ElMirValue** args;
+    uint32_t arg_count;
+    
+    uint32_t next_reg_id;
+} ElMirFunc;
+
+ElMirFunc* el_mir_new_func(ElDynArena* arena, ElSymbol* symbol);
+void el_mir_func_append_block(ElMirFunc* func, ElMirBlock* block);
