@@ -9,8 +9,6 @@ ElMirInstr* el_mir_new_unary_instr(ElDynArena* arena, ElMirValue* result, ElSema
             .op = op,
             .operand = operand,
         },
-        .next = NULL,
-        .prev = NULL,
     };
     return instr;
 }
