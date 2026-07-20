@@ -1,0 +1,44 @@
+name: Dev CI
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches-ignore:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CC: ccache gcc
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Update repos
+        run: sudo apt update
+
+      - name: Install LLVM
+        run: sudo apt install -y llvm
+      - name: Install Criterion
+        run: sudo apt install -y libcriterion-dev
+      - name: Install ccache
+        run: sudo apt install -y ccache
+
+      - name: Cache ccache
+        uses: actions/cache@v6
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-${{ hashFiles('**/*.c', '**/*.h') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      - name: Build
+        run: make
+
+      - name: Unit tests
+        run: make unit-test
+
+      - name: End-to-End tests
+        run: make test-e2e
