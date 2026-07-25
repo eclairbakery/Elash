@@ -39,9 +39,9 @@ static struct {
     [EL_TT_KW_CASE]     = F("KW_CASE", "case"),
     [EL_TT_KW_GOTO]     = F("KW_GOTO", "goto"),
 
-    [EL_TT_KW_EXTERN] = F("KW_EXTERN", "extern"),
-    [EL_TT_KW_STATIC] = F("KW_STATIC", "static"),
-    [EL_TT_KW_INLINE] = F("KW_INLINE", "inline"),
+    [EL_TT_KW_EXTERN]   = F("KW_EXTERN", "extern"),
+    [EL_TT_KW_INTERNAL] = F("KW_INTERNAL", "internal"),
+    [EL_TT_KW_GLOBAL]   = F("KW_GLOBAL", "global"),
 
     [EL_TT_KW_AS] = F("KW_AS", "as"),
 
@@ -53,9 +53,8 @@ static struct {
     [EL_TT_KW_UNION]   = F("KW_UNION", "union"),
     [EL_TT_KW_STRUCT]  = F("KW_STRUCT", "struct"),
     [EL_TT_KW_TYPEDEF] = F("KW_TYPEDEF", "typedef"),
+    [EL_TT_KW_SIZEOF]  = F("KW_SIZEOF", "sizeof"),
     [EL_TT_KW_ALIAS]   = F("KW_ALIAS", "alias"),
-
-    [EL_TT_SIZEOF] = F("SIZEOF", "sizeof"),
 
     [EL_TT_PLUS]    = F("PLUS", "'+'"),
     [EL_TT_MINUS]   = F("MINUS", "'-'"),
