@@ -17,9 +17,9 @@
 #include <elash/ast/tree/common/ident.h>
 #include <elash/ast/tree/init.h>
 
-
-static bool _el_parser_is_type_literal(ElParser* parser) {
+bool _el_parser_is_type_literal(ElParser* parser) {
     usize idx = 0;
+    if (el_parser_peek_at(parser, idx).type == EL_TT_KW_GLOBAL) idx++;
     if (!_el_parser_lookahead_skip_type(parser, &idx)) return false;
     return el_parser_peek_at(parser, idx).type == EL_TT_LBRACE;
 }
@@ -28,11 +28,16 @@ static bool _el_parser_is_type_literal(ElParser* parser) {
 //      "clang-tidy: Function '_el_parser_parse_primary' has cognitive complexity of 30 (threshold 25)" ~2026
 ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
     if (_el_parser_is_type_literal(parser)) {
+        ElStorageClass scls = EL_STORAGECLS_LOCAL;
+        if (el_parser_match(parser, EL_TT_KW_GLOBAL)) {
+            scls = EL_STORAGECLS_GLOBAL;
+        }
+
         ElAstType* type = _el_parser_parse_type(parser);
         ElAstInit* init = el_parser_parse_init(parser);
         if (!init) return NULL;
 
-        return el_ast_new_array_lit(parser->arena, el_source_span_merge(type->span, init->span), type, init);
+        return el_ast_new_array_lit(parser->arena, el_source_span_merge(type->span, init->span), scls, type, init);
     }
 
     if (el_parser_check(parser, EL_TT_IDENT)) {

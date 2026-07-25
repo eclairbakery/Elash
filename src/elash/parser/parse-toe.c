@@ -7,12 +7,6 @@
 #include <elash/sema/bin-op.h>
 #include <elash/sema/unary-op.h>
 
-static bool is_type_literal(ElParser* parser) {
-    usize idx = 0;
-    if (!_el_parser_lookahead_skip_type(parser, &idx)) return false;
-    return el_parser_peek_at(parser, idx).type == EL_TT_LBRACE;
-}
-
 static bool is_slice_brackets(ElParser* parser) {
     ElToken inner = el_parser_peek_at(parser, 1);
     if (inner.type == EL_TT_RBRACKET) return true;
@@ -210,7 +204,7 @@ ElAstToE* _el_parser_parse_type_or_expr(ElParser* parser) {
     // unambiguous cases
 
     // Type { ... }
-    if (is_type_literal(parser)) {
+    if (_el_parser_is_type_literal(parser)) {
         ElAstExpr* expr = _el_parser_parse_postfix(parser);
         if (expr == NULL) return NULL;
         return el_ast_new_toe_expr(parser->arena, expr);
