@@ -41,8 +41,8 @@ typedef enum ElTokenType {
     EL_TT_KW_GOTO,              // goto
 
     EL_TT_KW_EXTERN,            // extern
-    EL_TT_KW_STATIC,            // static
-    EL_TT_KW_INLINE,            // inline
+    EL_TT_KW_INTERNAL,          // internal
+    EL_TT_KW_GLOBAL,            // global
 
     EL_TT_KW_VOLATILE,          // volatile
     EL_TT_KW_CONST,             // const
@@ -54,13 +54,12 @@ typedef enum ElTokenType {
     EL_TT_KW_UNION,             // union
     EL_TT_KW_STRUCT,            // struct
     EL_TT_KW_TYPEDEF,           // typedef
+    EL_TT_KW_SIZEOF,            // sizeof
     EL_TT_KW_ALIAS,             // alias
 
     // Group enumerator - DO NOT USE as a token type. Marks the end of the keyword group.
     // Used internally for bounds checking or iteration over keyword tokens.
     _EL_TT_GROUP_END_KEYWORDS,
-
-    EL_TT_SIZEOF,               // sizeof
 
     EL_TT_PLUS,                 // +
     EL_TT_MINUS,                // -
