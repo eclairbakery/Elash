@@ -62,6 +62,7 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
 ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr);
 
+bool _el_binder_is_const(ElBinder* binder, ElHirExpr* expr);
 
 ElHirExpr* el_binder_bind_builtin_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElHirSymbol* builtin);
 ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type);

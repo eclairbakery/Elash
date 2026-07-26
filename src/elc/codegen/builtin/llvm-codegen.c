@@ -71,12 +71,32 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElMirType* type) {
     EL_UNREACHABLE_ENUM_VAL(ElMirTypeKind, type->kind);
 }
 
+LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant* constant) {
+    if (type->kind == EL_MIR_TYPE_INT) {
+        LLVMTypeRef llvm_type = elc_llvm_map_type(ctx, type);
+        return LLVMConstInt(llvm_type, (unsigned long long)constant->as.int_, true);
+    } else if (type->kind == EL_MIR_TYPE_FLOAT) {
+        LLVMTypeRef llvm_type = elc_llvm_map_type(ctx, type);
+        return LLVMConstReal(llvm_type, constant->as.float_);
+    } else if (type->kind == EL_MIR_TYPE_ARRAY) {
+        LLVMTypeRef element_llvm_type = elc_llvm_map_type(ctx, type->as.array.base);
+        LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.array.count);
+        for (usize i = 0; i < constant->as.array.count; ++i) {
+            elements[i] = elc_llvm_map_constant(ctx, type->as.array.base, constant->as.array.elements[i]);
+        }
+        LLVMValueRef res = LLVMConstArray(element_llvm_type, elements, (unsigned)constant->as.array.count);
+        free(elements);
+        return res;
+    }
+    EL_UNREACHABLE("unhandled constant type in codegen");
+}
+
 LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue* value) {
     switch (value->kind) {
     case EL_MIR_VAL_CONST: {
         LLVMTypeRef type = elc_llvm_map_type(ctx, value->type);
         if (value->type->kind == EL_MIR_TYPE_INT) {
-            return LLVMConstInt(type, value->as.constant.as.int_, true);
+            return LLVMConstInt(type, (unsigned long long)value->as.constant.as.int_, true);
         } else if (value->type->kind == EL_MIR_TYPE_FLOAT) {
             return LLVMConstReal(type, value->as.constant.as.float_);
         }
@@ -87,18 +107,43 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
     case EL_MIR_VAL_REG:
         return func->regs[value->as.reg.id];
     case EL_MIR_VAL_GLOBAL: {
-        char* name = el_dynarena_make_cstr(ctx->arena, value->as.global.sym->name);
+        ElMirSymbol* sym = value->as.global.sym;
+
+        if (el_sv_is_null(sym->name)) {
+            EL_ASSERT(sym->id < ctx->globals_count, "anonymous symbol id out of range");
+            if (ctx->globals[sym->id] != NULL) {
+                return ctx->globals[sym->id];
+            }
+
+            EL_ASSERT(sym->kind == EL_MIR_SYM_VAR, "anonymous symbols should be variables");
+            LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.var.type);
+            LLVMValueRef glob = LLVMAddGlobal(ctx->current_mod, type, "");
+            if (value->as.global.init != NULL) {
+                LLVMSetInitializer(glob, elc_llvm_map_constant(ctx, sym->as.var.type, value->as.global.init));
+            } else {
+                LLVMSetInitializer(glob, LLVMConstNull(type));
+            }
+            ctx->globals[sym->id] = glob;
+            return glob;
+        }
+
+        char* name = el_dynarena_make_cstr(ctx->arena, sym->name);
         LLVMValueRef glob = LLVMGetNamedFunction(ctx->current_mod, name);
         if (glob == NULL) {
-            if (value->as.global.sym->kind == EL_MIR_SYM_FUNC) {
-                LLVMTypeRef type = elc_llvm_map_type(ctx, value->as.global.sym->as.func.type);
+            if (sym->kind == EL_MIR_SYM_FUNC) {
+                LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.func.type);
                 glob = LLVMAddFunction(ctx->current_mod, name, type);
             } else {
                 glob = LLVMGetNamedGlobal(ctx->current_mod, name);
                 if (glob == NULL) {
-                    LLVMTypeRef type = elc_llvm_map_type(ctx, value->as.global.sym->as.var.type);
+                    LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.var.type);
                     glob = LLVMAddGlobal(ctx->current_mod, type, name);
-                    LLVMSetInitializer(glob, LLVMConstNull(type));
+
+                    if (value->as.global.init != NULL) {
+                        LLVMSetInitializer(glob, elc_llvm_map_constant(ctx, sym->as.var.type, value->as.global.init));
+                    } else {
+                        LLVMSetInitializer(glob, LLVMConstNull(type));
+                    }
                 }
             }
         }
@@ -449,6 +494,8 @@ ElcCodegenResult elc_llvm_compile(
 ) {
     Context* ctx = self->ctx;
     ctx->current_mod = LLVMModuleCreateWithNameInContext("elash-module", ctx->context);
+    ctx->globals_count = input->sym_count;
+    ctx->globals = EL_DYNARENA_NEW_ARR_ZEROED(ctx->arena, LLVMValueRef, input->sym_count);
 
     ElcLLVMLir* lir_data = EL_DYNARENA_NEW(ctx->arena, ElcLLVMLir);
     lir_data->module = ctx->current_mod;

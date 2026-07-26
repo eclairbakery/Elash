@@ -8,6 +8,7 @@ ElMirModule* el_mir_new_module(ElDynArena* arena) {
     mod->first_func = NULL;
     mod->last_func = NULL;
     mod->func_count = 0;
+    mod->sym_count = 0;
 
     return mod;
 }

@@ -240,8 +240,22 @@ ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr) {
         }
         return expr;
     }
+    case EL_HIR_EXPR_ARRAYLIT: {
+        ElHirArrayLit* arr = &expr->as.array_lit;
+        for (usize i = 0; i < arr->count; ++i) {
+            arr->values[i] = _el_binder_simplify_expr(binder, arr->values[i]);
+        }
+        return expr;
+    }
+    case EL_HIR_EXPR_CALL: {
+        ElHirCallExpr* call = &expr->as.call;
+        call->callee = _el_binder_simplify_expr(binder, call->callee);
+        for (usize i = 0; i < call->arg_count; ++i) {
+            call->args[i] = _el_binder_simplify_expr(binder, call->args[i]);
+        }
+        return expr;
+    }
     default:
-        // TODO: recursively call simplify on all array elements and function arguments
         return expr;
     }
 }

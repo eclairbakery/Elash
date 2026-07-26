@@ -125,6 +125,8 @@ ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
     ctx->context = LLVMContextCreate();
     ctx->builder = LLVMCreateBuilderInContext(ctx->context);
     ctx->arena = arena;
+    ctx->globals = NULL;
+    ctx->globals_count = 0;
     
     LLVMInitializeNativeTarget();
     LLVMInitializeNativeAsmPrinter();

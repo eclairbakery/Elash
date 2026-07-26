@@ -34,7 +34,7 @@ ElHirExpr* _el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType*
         if (values[i] == NULL) return NULL;
     }
 
-    return el_hir_new_array_lit(binder->hir_arena, in->span, expected_type, values, in->list.count);
+    return el_hir_new_array_lit(binder->hir_arena, in->span, expected_type, values, in->list.count, EL_STORAGECLS_LOCAL);
 }
 
 ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type) {
