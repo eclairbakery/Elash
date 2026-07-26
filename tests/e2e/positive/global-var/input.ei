@@ -1,4 +1,4 @@
-int globalVar;
+int globalVar = 47;
 
 int getGlobal() {
     return globalVar;
@@ -14,7 +14,6 @@ int shadow() {
 }
 
 int main() {
-    globalVar = 47;
     if (globalVar != 47) return 1;
     if (getGlobal() != 47) return 2;
     if (shadow() != 321) return 3;

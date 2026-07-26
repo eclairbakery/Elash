@@ -13,6 +13,7 @@ typedef struct ElAstVarDef {
     ElAstType*  type;
     ElAstIdent* name;
     ElAstInit*  init; // nullable
+    bool        is_global;
 } ElAstVarDef;
 
-ElAstDecl* el_ast_new_var_def(ElDynArena* arena, ElSourceSpan span, ElAstType* type, ElAstIdent* name, ElAstInit* init);
+ElAstDecl* el_ast_new_var_def(ElDynArena* arena, ElSourceSpan span, ElAstType* type, ElAstIdent* name, ElAstInit* init, bool is_global);
