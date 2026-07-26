@@ -4,8 +4,17 @@
 #include <elash/mir/type.h>
 
 typedef struct ElMirValue ElMirValue;
+typedef struct ElMirConstant ElMirConstant;
+
+typedef struct ElMirArrConst {
+    ElMirConstant** elements;
+    usize count;
+} ElMirArrConst;
+
 typedef struct ElMirConstant {
     union {
+        ElMirArrConst array;
+
         int64_t int_;
         double float_;
     } as;

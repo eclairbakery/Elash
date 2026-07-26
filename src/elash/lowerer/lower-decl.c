@@ -63,7 +63,7 @@ static void _el_lowerer_lower_func_decl(ElLowerer* lw, ElHirFuncDecl* hir_func) 
     ElMirType* mir_func_type = mir_func_sym->as.func.type;
 
     lw->symbol_map[hir_func->symbol->id] = el_mir_new_global(
-        lw->arena, mir_func_type, mir_func_sym
+        lw->arena, mir_func_type, mir_func_sym, NULL
     );
 
     ElMirFunc* func = el_mir_new_func(lw->arena, mir_func_sym);
@@ -77,11 +77,13 @@ void _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
         ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-        lw->symbol_map[sym->id] = el_mir_new_global(lw->arena, ptr_type, mir_sym);
 
+        ElMirConstant* init = NULL;
         if (decl->as.var_def.init != NULL) {
-            EL_TODO("global variable initializers not supported yet");
+            init = _el_lowerer_lower_const(lw, decl->as.var_def.init);
         }
+
+        lw->symbol_map[sym->id] = el_mir_new_global(lw->arena, ptr_type, mir_sym, init);
         break;
     }
     case EL_HIR_DECL_VAR_DECL: {
@@ -89,13 +91,13 @@ void _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
         ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-        lw->symbol_map[sym->id] = el_mir_new_global(lw->arena, ptr_type, mir_sym);
+        lw->symbol_map[sym->id] = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL);
         break;
     }
     case EL_HIR_DECL_FUNC_DEF: {
         ElMirSymbol* mir_func_sym = el_lowerer_map_symbol(lw, decl->as.func_def.symbol);
         lw->symbol_map[decl->as.func_def.symbol->id] = el_mir_new_global(
-            lw->arena, mir_func_sym->as.func.type, mir_func_sym
+            lw->arena, mir_func_sym->as.func.type, mir_func_sym, NULL
         );
         _el_lowerer_lower_func_def(lw, &decl->as.func_def);
         break;
@@ -134,7 +136,7 @@ void _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
         ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-        lw->symbol_map[sym->id] = el_mir_new_global(lw->arena, ptr_type, mir_sym);
+        lw->symbol_map[sym->id] = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL);
         break;
     }
     case EL_HIR_DECL_FUNC_DEF:

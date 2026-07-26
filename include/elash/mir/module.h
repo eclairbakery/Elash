@@ -8,6 +8,7 @@ typedef struct ElMirModule {
     ElMirFunc* first_func;
     ElMirFunc* last_func;
     usize func_count;
+    uint32_t sym_count;
 } ElMirModule;
 
 ElMirModule* el_mir_new_module(ElDynArena* arena);

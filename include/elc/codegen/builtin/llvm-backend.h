@@ -18,6 +18,8 @@ typedef struct ElcLLVMBackendCtx {
     ElDynArena* arena;
 
     LLVMModuleRef      current_mod;
+    LLVMValueRef*      globals;
+    uint32_t           globals_count;
 } ElcLLVMBackendCtx;
 
 typedef struct {

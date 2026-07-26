@@ -28,10 +28,17 @@ void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElLow
     lw->builtins = builtins;
     lw->symbol_map = NULL;
     lw->mir_symbol_map = NULL;
+    lw->next_sym_id = 0;
     lw->break_target_id = 0;
     lw->continue_target_id = 0;
 
     el_mir_ibuf_init(&lw->ibuf);
+}
+
+ElMirValue* _el_lowerer_new_anon_global(ElLowerer* lw, ElMirType* type, ElMirConstant* init) {
+    ElMirSymbol* sym = el_mir_new_var_symbol(lw->arena, lw->next_sym_id++, EL_SV_NULL, type);
+    ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, type);
+    return el_mir_new_global(lw->arena, ptr_type, sym, init);
 }
 
 void el_lowerer_free(ElLowerer* lw) {
@@ -62,7 +69,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
             ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
             ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
             ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-            ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym);
+            ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL);
             if (lw->symbol_map) {
                 lw->symbol_map[sym->id] = glob;
             }
@@ -71,7 +78,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
         if (sym->kind == EL_SYM_FUNC) {
             ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
             ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-            return el_mir_new_global(lw->arena, mir_type, mir_sym);
+            return el_mir_new_global(lw->arena, mir_type, mir_sym, NULL);
         }
         EL_UNREACHABLE("symbol is not an lvalue (this should be caught during semantic analysis)");
     }
@@ -106,6 +113,10 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
 
     case EL_HIR_EXPR_ARRAYLIT: {
         ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+        if (hir->as.array_lit.scls == EL_STORAGECLS_GLOBAL) {
+            return _el_lowerer_new_anon_global(lw, mir_type, _el_lowerer_lower_const(lw, hir));
+        }
+
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirValue* ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, ptr, mir_type));

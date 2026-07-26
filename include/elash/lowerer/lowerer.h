@@ -34,6 +34,7 @@ typedef struct ElLowerer {
 
     ElMirValue** symbol_map;
     ElMirSymbol** mir_symbol_map;
+    uint32_t next_sym_id; // starts at hir->sym_count; used for anonymous symbols
 
     uint32_t break_target_id;
     uint32_t continue_target_id;
@@ -52,9 +53,11 @@ enum {
     EL_MIR_SLICE_FIELD_LEN  = 1,
 };
 
-ElMirValue*  _el_lowerer_extract_tuple_field(ElLowerer* lw, ElMirValue* tuple, usize index);
-ElMirValue*  _el_lowerer_get_tuple_field_ptr(ElLowerer* lw, ElMirValue* tuple_ptr, usize index);
-ElMirValue* _el_lowerer_make_tuple(ElLowerer* lw, ElMirType* tuple_type, ElMirValue** fields);
+ElMirValue*    _el_lowerer_extract_tuple_field(ElLowerer* lw, ElMirValue* tuple, usize index);
+ElMirValue*    _el_lowerer_get_tuple_field_ptr(ElLowerer* lw, ElMirValue* tuple_ptr, usize index);
+ElMirValue*    _el_lowerer_make_tuple(ElLowerer* lw, ElMirType* tuple_type, ElMirValue** fields);
+ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr);
+ElMirValue*    _el_lowerer_new_anon_global(ElLowerer* lw, ElMirType* type, ElMirConstant* init);
 
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir);
 void         _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLit* array_lit);

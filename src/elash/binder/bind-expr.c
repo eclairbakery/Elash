@@ -215,12 +215,23 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
 }
 
 ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* in, ElAstArrayLit* array_lit) {
-    (void) in;
-
     ElHirType* type = _el_binder_bind_type(binder, array_lit->type);
     if (type == NULL) return NULL;
 
-    return el_binder_bind_init(binder, array_lit->init, type);
+    ElHirExpr* init = el_binder_bind_init(binder, array_lit->init, type);
+    if (init == NULL) return NULL;
+
+    if (array_lit->scls == EL_STORAGECLS_GLOBAL) {
+        if (!_el_binder_is_const(binder, init)) {
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.non-const-global-init",
+                in->span, "global array literal must be constant"
+            );
+        }
+    }
+
+    init->as.array_lit.scls = array_lit->scls;
+    return init;
 }
 
 ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* member) {
