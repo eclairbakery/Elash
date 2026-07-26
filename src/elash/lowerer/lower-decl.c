@@ -113,6 +113,11 @@ void _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
 void _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
     switch (decl->kind) {
     case EL_HIR_DECL_VAR_DEF: {
+        // ugly but (i guess) works
+        if (decl->as.var_def.scls == EL_STORAGECLS_GLOBAL) {
+            return _el_lowerer_lower_global_decl(lw, decl);
+        }
+
         ElHirSymbol* sym = decl->as.var_def.var;
         ElMirType* type = el_lowerer_map_type(lw, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, type);
