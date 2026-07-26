@@ -9,13 +9,14 @@ ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr) {
     if (expr->kind == EL_HIR_EXPR_CONST) {
         ElHirConstant hir = expr->as.constant;
         switch (expr->type->as.prim.kind) {
-        case EL_PRIMTYPE_INT:   mirconst->as.int_   = hir.as.int_;           break;
-        case EL_PRIMTYPE_CHAR:  mirconst->as.int_   = (int64_t)hir.as.char_; break;
-        case EL_PRIMTYPE_BOOL:  mirconst->as.int_   = hir.as.bool_ ? 1 : 0;  break;
-        case EL_PRIMTYPE_FLOAT: mirconst->as.float_ = hir.as.float_;         break;
+        case EL_PRIMTYPE_INT:   mirconst->kind = EL_MIR_CONST_INT;   mirconst->as.int_   = hir.as.int_;           break;
+        case EL_PRIMTYPE_CHAR:  mirconst->kind = EL_MIR_CONST_INT;   mirconst->as.int_   = (int64_t)hir.as.char_; break;
+        case EL_PRIMTYPE_BOOL:  mirconst->kind = EL_MIR_CONST_INT;   mirconst->as.int_   = hir.as.bool_ ? 1 : 0;  break;
+        case EL_PRIMTYPE_FLOAT: mirconst->kind = EL_MIR_CONST_FLOAT; mirconst->as.float_ = hir.as.float_;         break;
         default: EL_UNREACHABLE("invalid hir constant primitive type");      break;
         }
     } else /* EL_HIR_EXPR_ARRAYLIT */ {
+        mirconst->kind = EL_MIR_CONST_ARRAY;
         ElHirArrayLit* arrlit = &expr->as.array_lit;
         mirconst->as.array.count = arrlit->count;
         mirconst->as.array.elements = EL_DYNARENA_NEW_ARR(lw->arena, ElMirConstant*, arrlit->count);

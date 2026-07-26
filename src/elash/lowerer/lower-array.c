@@ -9,7 +9,7 @@
 
 void _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLit* array_lit) {
     for (usize i = 0; i < array_lit->count; ++i) {
-        ElMirConstant idx_lit = { .as.int_ = (int64_t)i };
+        ElMirConstant idx_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = (int64_t)i };
         ElMirValue* index = el_mir_new_const(lw->arena, lw->builtins->type_usize, idx_lit);
 
         ElMirType* elem_type = el_lowerer_map_type(lw, array_lit->values[i]->type);
