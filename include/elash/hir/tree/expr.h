@@ -13,6 +13,7 @@
 #include "expr/intr.h"
 #include "expr/cast.h"
 #include "expr/array-lit.h"
+#include "expr/string-lit.h"
 #include "expr/untyped-lit.h"
 #include "expr/member.h"
 
@@ -25,6 +26,7 @@ typedef enum ElHirExprKind {
     EL_HIR_EXPR_INTR,
     EL_HIR_EXPR_CAST,
     EL_HIR_EXPR_ARRAYLIT,
+    EL_HIR_EXPR_STRINGLIT,
     EL_HIR_EXPR_UNTYPEDLIT,
     EL_HIR_EXPR_MEMBER,
     EL_HIR_EXPR_TMEMBER,
@@ -43,6 +45,7 @@ typedef struct ElHirExpr {
         ElHirIntrExpr    intr;
         ElHirCastExpr    cast;
         ElHirArrayLit    array_lit;
+        ElHirStringLit   string_lit;
         ElHirUntypedLit  untyped_lit;
         ElHirMemberExpr  member;
         ElHirTMemberExpr tmember;

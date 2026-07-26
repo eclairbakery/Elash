@@ -58,6 +58,8 @@ ElMirValue*    _el_lowerer_get_tuple_field_ptr(ElLowerer* lw, ElMirValue* tuple_
 ElMirValue*    _el_lowerer_make_tuple(ElLowerer* lw, ElMirType* tuple_type, ElMirValue** fields);
 ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr);
 ElMirValue*    _el_lowerer_new_anon_global(ElLowerer* lw, ElMirType* type, ElMirConstant* init);
+ElMirValue*    _el_lowerer_create_alloca(ElLowerer* lw, ElMirType* type);
+void           _el_lowerer_copy_str_to_ptr(ElLowerer* lw, ElMirValue* ptr, ElMirStrConst str);
 
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir);
 void         _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLit* array_lit);

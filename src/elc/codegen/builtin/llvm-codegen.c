@@ -72,13 +72,14 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElMirType* type) {
 }
 
 LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant* constant) {
-    if (type->kind == EL_MIR_TYPE_INT) {
-        LLVMTypeRef llvm_type = elc_llvm_map_type(ctx, type);
-        return LLVMConstInt(llvm_type, (unsigned long long)constant->as.int_, true);
-    } else if (type->kind == EL_MIR_TYPE_FLOAT) {
-        LLVMTypeRef llvm_type = elc_llvm_map_type(ctx, type);
-        return LLVMConstReal(llvm_type, constant->as.float_);
-    } else if (type->kind == EL_MIR_TYPE_ARRAY) {
+    switch (constant->kind) {
+    case EL_MIR_CONST_INT:
+        return LLVMConstInt(elc_llvm_map_type(ctx, type), (unsigned long long)constant->as.int_, true);
+    case EL_MIR_CONST_FLOAT:
+        return LLVMConstReal(elc_llvm_map_type(ctx, type), constant->as.float_);
+    case EL_MIR_CONST_STRING:
+        return LLVMConstStringInContext2(ctx->context, constant->as.string.val.data, (unsigned)constant->as.string.val.len, true);
+    case EL_MIR_CONST_ARRAY: {
         LLVMTypeRef element_llvm_type = elc_llvm_map_type(ctx, type->as.array.base);
         LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.array.count);
         for (usize i = 0; i < constant->as.array.count; ++i) {
@@ -88,7 +89,8 @@ LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant*
         free(elements);
         return res;
     }
-    EL_UNREACHABLE("unhandled constant type in codegen");
+    }
+    EL_UNREACHABLE("unhandled constant kind in codegen");
 }
 
 LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue* value) {
