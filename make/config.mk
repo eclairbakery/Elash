@@ -1,0 +1,110 @@
+ifndef ELASH_CONFIG
+ELASH_CONFIG :=
+
+########## the toolchain ###########
+CC ?= cc
+AR ?= ar
+BUILD ?= release
+
+###### platform detection #######
+ifeq ($(OS),Windows_NT)
+	PLATFORM := windows
+else
+	PLATFORM := posix
+endif
+
+########## version ###########
+ifeq ($(wildcard VERSION),)
+$(error VERSION file not found)
+endif
+
+ifeq ($(PLATFORM),windows)
+	VERSION   := $(strip $(shell type VERSION))
+	DIST_OS   := windows
+	DIST_ARCH := $(shell powershell -NoProfile -Command "$$env:PROCESSOR_ARCHITECTURE.ToLower()")
+else
+	VERSION   := $(strip $(shell cat VERSION))
+	DIST_OS   := $(shell uname -s | tr '[:upper:]' '[:lower:]')
+	DIST_ARCH := $(shell uname -m | tr '[:upper:]' '[:lower:]')
+endif
+
+########### flags ###########
+CSTD     := -std=c11
+WARNINGS := -Wall -Wextra -Werror=implicit-fallthrough
+PIC_CFLAGS := -fPIC
+
+COMMON_CFLAGS := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
+
+ifeq ($(BUILD),debug)
+	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG
+	DEFAULT_LDFLAGS :=
+else ifeq ($(BUILD),debug-san)
+	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG -fsanitize=address,undefined
+	DEFAULT_LDFLAGS := -fsanitize=address,undefined
+else ifeq ($(BUILD),release)
+	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O3 -DNDEBUG
+	DEFAULT_LDFLAGS :=
+else ifeq ($(BUILD),rel-debug)
+	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG
+	DEFAULT_LDFLAGS :=
+else ifeq ($(BUILD),rel-debug-san)
+	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG -fsanitize=address,undefined
+	DEFAULT_LDFLAGS := -fsanitize=address,undefined
+else
+	$(error Unknown BUILD=$(BUILD))
+endif
+
+EXTRA_CFLAGS  ?=
+EXTRA_LDFLAGS ?=
+
+CFLAGS  ?= $(DEFAULT_CFLAGS) $(EXTRA_CFLAGS)
+LDFLAGS ?= $(DEFAULT_LDFLAGS) $(EXTRA_LDFLAGS)
+
+######## llvm configuration #########
+LLVM_CONFIG ?= llvm-config
+HAS_LLVM    := $(shell $(LLVM_CONFIG) --version > /dev/null 2>&1 && echo yes || echo no)
+
+ifeq ($(HAS_LLVM),yes)
+	LLVM_CFLAGS  := $(shell $(LLVM_CONFIG) --cflags)
+	LLVM_LDFLAGS := $(shell $(LLVM_CONFIG) --ldflags --libs --system-libs)
+	ifeq ($(PLATFORM),posix)
+		LLVM_LDFLAGS += -lstdc++
+	endif
+else
+	LLVM_CFLAGS  :=
+	LLVM_LDFLAGS :=
+endif
+
+###### platform specific commands abstraction ####
+ifeq ($(PLATFORM),windows)
+	CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))' | Out-Null"
+	CMD_RM_RF   = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))' | Out-Null"
+	CMD_ARCHIVE = powershell -NoProfile -Command "Compress-Archive -Path '$(subst /,\,$(OUT_DIR)/*)' -DestinationPath '$(subst /,\,$(DIST_FILE))' -Force"
+	FIXPATH     = $(subst /,\,$(1))
+else ifeq ($(PLATFORM),posix)
+	CMD_MKDIR_P = mkdir -p "$(1)"
+	CMD_RM_RF = rm -rf "$(1)"
+	CMD_ARCHIVE = tar -czf $(DIST_FILE) -C $(OUT_DIR) bin lib
+	FIXPATH     = $(1)
+endif
+
+############### logging #################
+# for nicer output
+ifeq ($(V),1)
+    Q =
+    ifeq ($(OS),Windows_NT)
+        ECHO = @rem
+    else
+        ECHO = @:
+    endif
+else
+    Q = @
+    ECHO = @echo
+endif
+
+############ useful "functions" ##########
+rwildcard = \
+	$(foreach d,$(wildcard $(1)/*),$(call rwildcard,$(d),$(2))) \
+	$(filter $(subst *,%,$(2)),$(wildcard $(1)/$(2)))
+
+endif
