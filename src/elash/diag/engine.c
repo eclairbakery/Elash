@@ -78,7 +78,7 @@ void* el_diag_report_impl(
     diag->next = NULL;
     diag->prev = engine->diag_tail;
 
-    if (engine->diag_tail) {
+    if (engine->diag_tail != NULL) {
         engine->diag_tail->next = diag;
     } else {
         engine->diag_head = diag;

@@ -18,7 +18,7 @@ void el_hir_dump_stmt(ElHirStmt* node, usize indent, FILE* out) {
     case EL_HIR_STMT_RETURN:
         el_hir_dump_print_indent(indent, out);
         fputs("return", out);
-        if (node->as.return_.value) {
+        if (node->as.return_.value != NULL) {
             fputs(" ", out);
             el_hir_dump_expr(node->as.return_.value, 0, out);
         }

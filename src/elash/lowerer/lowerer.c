@@ -77,7 +77,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
             ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
             ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
             ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL);
-            if (lw->symbol_map) {
+            if (lw->symbol_map != NULL) {
                 lw->symbol_map[sym->id] = glob;
             }
             return glob;
@@ -184,7 +184,7 @@ ElMirSymbol* el_lowerer_map_symbol(ElLowerer* lw, ElHirSymbol* sym) {
         EL_UNREACHABLE("only var and func symbols are mapped to MIR");
     }
 
-    if (lw->mir_symbol_map) {
+    if (lw->mir_symbol_map != NULL) {
         lw->mir_symbol_map[sym->id] = mir_sym;
     }
     return mir_sym;

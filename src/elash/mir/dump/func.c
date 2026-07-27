@@ -8,7 +8,7 @@
 #include <inttypes.h>
 
 void el_mir_dump_func(const ElMirFunc* func, usize indent, FILE* out) {
-    if (!func) return;
+    if (func == NULL) return;
 
     for (usize i = 0; i < indent; ++i) fputs(" ", out);
 

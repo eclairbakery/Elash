@@ -89,7 +89,7 @@ ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
     );
 
     ElHirSymbol* existing = el_hir_scope_lookup_local(binder->global_scope, sig->name->name);
-    if (existing) {
+    if (existing != NULL) {
         if (existing->kind != EL_SYM_FUNC) {
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-redeclaration",

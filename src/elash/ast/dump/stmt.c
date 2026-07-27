@@ -19,7 +19,7 @@ void el_ast_dump_stmt(ElAstStmt* node, usize indent, FILE* out) {
     case EL_AST_STMT_RETURN:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "ReturnStmt:\n");
-        if (node->as.return_.value) {
+        if (node->as.return_.value != NULL) {
             el_ast_dump_expr(node->as.return_.value, indent + 1, out);
         } else {
             el_ast_dump_print_indent(indent + 1, out);

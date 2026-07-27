@@ -119,7 +119,7 @@ bool el_strbuf_append(ElStringBuf* sb, ElStringView sv) {
         return false;
     }
 
-    if (!memcpy(sb->data + sb->len, sv.data, sv.len)) {
+    if (memcpy(sb->data + sb->len, sv.data, sv.len) == NULL) {
         return false;
     }
     sb->len += sv.len;

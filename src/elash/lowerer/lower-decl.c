@@ -126,7 +126,7 @@ void _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_alloca_instr(lw->arena, ptr_reg, type));
         lw->symbol_map[sym->id] = ptr_reg;
 
-        if (decl->as.var_def.init) {
+        if (decl->as.var_def.init != NULL) {
             if (decl->as.var_def.init->kind == EL_HIR_EXPR_ARRAYLIT) {
                 _el_lowerer_lower_array_lit(lw, ptr_reg, &decl->as.var_def.init->as.array_lit);
             } else {

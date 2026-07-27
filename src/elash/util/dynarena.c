@@ -54,7 +54,7 @@ void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
             return ref;
         }
 
-        if (arena->current->next) {
+        if (arena->current->next != NULL) {
             arena->current = arena->current->next;
             arena->offset = 0;
         } else {
@@ -70,7 +70,7 @@ void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
     Chunk* new_chunk = _el_dynarena_alloc_chunk(chunk_size);
     if (!new_chunk) return NULL;
 
-    if (!arena->head) {
+    if (arena->head == NULL) {
         arena->head = new_chunk;
     } else {
         arena->current->next = new_chunk;
@@ -86,7 +86,7 @@ void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
 
 void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align) {
     void* ref = el_dynarena_alloc(arena, size, align);
-    if (ref) {
+    if (ref != NULL) {
         memset(ref, 0, size);
     }
     return ref;
@@ -94,7 +94,7 @@ void* el_dynarena_alloc_zeroed(ElDynArena* arena, usize size, usize align) {
 
 void* el_dynarena_alloc_init(ElDynArena* arena, usize size, usize align, void* init) {
     void *ref = el_dynarena_alloc(arena, size, align);
-    if (ref) {
+    if (ref != NULL) {
         memcpy(ref, init, size);
     }
     return ref;

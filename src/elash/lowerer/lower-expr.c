@@ -74,7 +74,7 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElHirSymbol* sym, const ElHir
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
         ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL);
-        if (lw->symbol_map) lw->symbol_map[sym->id] = glob;
+        if (lw->symbol_map != NULL) lw->symbol_map[sym->id] = glob;
 
         ElMirValue* reg = el_mir_new_reg(lw->arena, type, lw->current_func->reg_count++);
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, glob));
@@ -83,7 +83,7 @@ ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElHirSymbol* sym, const ElHir
     case EL_SYM_FUNC: {
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
         ElMirValue* glob = el_mir_new_global(lw->arena, type, mir_sym, NULL);
-        if (lw->symbol_map) lw->symbol_map[sym->id] = glob;
+        if (lw->symbol_map != NULL) lw->symbol_map[sym->id] = glob;
         return glob;
     }
     case EL_SYM_BUILTIN:

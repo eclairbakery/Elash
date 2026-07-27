@@ -23,7 +23,7 @@ static ElStringView EL_LEXERR_to_string_map[] = {
 ElStringView el_lexer_err_code_to_string(ElLexerErrorCode code) {
     if (code < 0 || code >= _EL_LEXERR_COUNT) return EL_SV_NULL;
     ElStringView s = EL_LEXERR_to_string_map[code];
-    if (!s.data) return EL_SV("UNKNOWN_ERROR");
+    if (s.data == NULL) return EL_SV("UNKNOWN_ERROR");
     return s;
 }
 
@@ -32,7 +32,7 @@ usize el_lexer_result_to_string(ElLexerErrorDetails r, char** out) {
 
     if (r.code == EL_LEXERR_SUCCESS) {
         *out = (char*)malloc(error_code_str.len + 1);
-        if (!*out) return 0;
+        if (*out == NULL) return 0;
         memcpy(*out, error_code_str.data, error_code_str.len);
         (*out)[error_code_str.len] = '\0';
         return error_code_str.len;
@@ -55,7 +55,7 @@ usize el_lexer_result_to_string(ElLexerErrorDetails r, char** out) {
 
     const usize full_len = error_code_str.len + (usize)loc_len + (usize)char_len;
     *out = malloc(full_len + 1);
-    if (!*out) return 0;
+    if (*out == NULL) return 0;
 
     char* p = *out;
     memcpy(p, error_code_str.data, error_code_str.len);
@@ -104,7 +104,7 @@ usize el_lexer_result_print(ElLexerErrorDetails r, FILE* out) {
 usize el_lexer_result_format(ElLexerErrorDetails r, usize n, char buf[static n]) {
     char* s = NULL;
     usize len = el_lexer_result_to_string(r, &s);
-    if (!s) return 0;
+    if (s == NULL) return 0;
 
     // NOLINTNEXTLINE
     usize to_copy = (len < n) ? len : (n > 0 ? n - 1 : 0);

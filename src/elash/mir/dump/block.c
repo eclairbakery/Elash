@@ -3,7 +3,7 @@
 #include <inttypes.h>
 
 void el_mir_dump_block(const ElMirBlock* block, usize indent, FILE* out) {
-    if (!block) return;
+    if (block == NULL) return;
 
     for (usize i = 0; i < indent; ++i) fputs(" ", out);
     fprintf(out, "@%"PRIu32":\n", block->id);

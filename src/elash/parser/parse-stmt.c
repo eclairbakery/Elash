@@ -154,7 +154,7 @@ ElAstStmt* _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok) {
             continue;
         }
 
-        if (stmt) {
+        if (stmt != NULL) {
             el_ast_stmt_list_append(&head, &tail, stmt);
         }
     }

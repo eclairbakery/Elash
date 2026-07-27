@@ -39,7 +39,7 @@ bool el_string_to_u64(ElStringView str, uint base, uint64_t* out) {
 
     if (!has_digits) return false;
 
-    if (out) *out = res;
+    if (out != NULL) *out = res;
     return true;
 }
 
@@ -64,7 +64,7 @@ bool el_string_to_i64(ElStringView str, uint base, int64_t* out) {
 
     if (negative) {
         if (ures > (uint64_t) INT64_MAX + 1) return false;
-        if (out) {
+        if (out != NULL) {
             if (ures == (uint64_t) INT64_MAX + 1) {
                 *out = INT64_MIN;
             } else {
@@ -73,7 +73,7 @@ bool el_string_to_i64(ElStringView str, uint base, int64_t* out) {
         }
     } else {
         if (ures > (uint64_t) INT64_MAX) return false;
-        if (out) *out = (int64_t) ures;
+        if (out != NULL) *out = (int64_t) ures;
     }
 
     return true;

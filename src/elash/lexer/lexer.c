@@ -552,7 +552,7 @@ static ElToken _el_lexer_token_stream_next(ElTokenStream* stream, ElDiagEngine* 
     ElLexerErrorCode err = el_lexer_next_token(lexer, &tok);
 
     if (err != EL_LEXERR_SUCCESS) {
-        if (engine) {
+        if (engine != NULL) {
             el_diag_handle_lexer_error(engine, &lexer->last_err_details);
         }
 

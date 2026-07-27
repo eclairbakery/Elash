@@ -52,7 +52,7 @@ bool elc_pipeline_request(ElcPipeline* pipeline, ElcArtifactKind kind, ElcArtifa
 
     // check if we already have it
     if (pipeline->registry[kind].kind != ELC_ART_NONE) {
-        if (out) *out = pipeline->registry[kind];
+        if (out != NULL) *out = pipeline->registry[kind];
         return true;
     }
 
@@ -84,7 +84,7 @@ bool elc_pipeline_request(ElcPipeline* pipeline, ElcArtifactKind kind, ElcArtifa
             elc_pipeline_notify(pipeline, ELC_OBS_STAGE_END, stage, NULL);
             elc_pipeline_notify(pipeline, ELC_OBS_ARTIFACT_PRODUCED, stage, &output);
 
-            if (out) {
+            if (out != NULL) {
                 *out = output;
             }
             return true;

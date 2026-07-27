@@ -112,7 +112,7 @@ bool el_tkque_at(const ElTokenQueue* tkque, usize index, ElToken* out_tok) {
         return false;
     }
 
-    if (out_tok) {
+    if (out_tok != NULL) {
         *out_tok = tkque->data[(tkque->head + index) % tkque->cap];
     }
     return true;
@@ -139,7 +139,7 @@ bool el_tkque_reserve(ElTokenQueue* tkque, usize min_cap) {
     }
 
     ElToken* new_data = malloc(new_cap * sizeof(ElToken));
-    if (!new_data) {
+    if (new_data == NULL) {
         return false;
     }
 
