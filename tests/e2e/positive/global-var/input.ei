@@ -4,7 +4,7 @@ int getGlobal() {
     return globalVar;
 }
 
-int assignGlobal() {
+void assignGlobal() {
     globalVar = 21;
 }
 
