@@ -15,8 +15,10 @@ jobs:
       - name: Checkout repository
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git clone https://github.com/${{ github.repository }}.git .
-          git checkout ${{ github.sha }}
+          git init
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git fetch --depth=1 origin "$GITHUB_SHA"
+          git checkout --detach FETCH_HEAD
 
       - name: Build
         run: make libelash-static elc -j$(nproc)
