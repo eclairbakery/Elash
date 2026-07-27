@@ -4,7 +4,6 @@ RUN apk add --no-cache \
     build-base \
     llvm \
     llvm-dev \
-    ccache \
     git \
     meson \
     ninja \
@@ -20,9 +19,4 @@ RUN git clone --recursive https://github.com/Snaipe/Criterion.git /tmp/criterion
     && rm -rf /tmp/criterion
 
 RUN apk del meson ninja cmake libffi-dev
-
-RUN mkdir -p /ccache
-
-ENV CC="ccache cc"
-ENV CCACHE_DIR=/ccache
 
