@@ -5,7 +5,6 @@ static bool lookahead_skip_balanced(ElParser* parser, usize* idx, ElTokenType op
     uint depth = 0;
     do {
         ElToken tok = el_parser_peek_at(parser, (*idx)++);
-
         if (tok.type == EL_TT_EOF) return false;
 
         if (tok.type == open)  depth++;
