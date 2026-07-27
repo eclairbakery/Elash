@@ -1,9 +1,9 @@
-name: Build CI image
+name: Build X64 CI image
 
 on:
   push:
     paths:
-      - ".github/docker/Dockerfile"
+      - '.github/docker/x64/Dockerfile'
 
 jobs:
   docker:
@@ -24,7 +24,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: .github/docker
+          context: .github/docker/x64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/elash-ci:latest
+          tags: ghcr.io/${{ github.repository_owner }}/elash-ci-x64:latest
 

@@ -1,0 +1,45 @@
+name: CI on Linux X86-64
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  run-ci:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/elash-ci-x64:latest
+    env:
+      CC: ccache cc
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Cache ccache
+        uses: actions/cache@v6
+        with:
+          path: /ccache
+          key: ${{ runner.os }}-${{ runner.arch }}-ccache-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-ccache-${{ github.ref_name }}-
+            ${{ runner.os }}-${{ runner.arch }}-ccache-
+
+      - name: Zero ccache stats
+        run: ccache -z
+
+      - name: Build
+        run: make libelash-static elc -j$(nproc)
+
+      - name: Show ccache stats
+        run: ccache -s
+
+      - name: Unit tests
+        run: make unit-test
+
+      - name: End-to-End tests
+        run: make test-e2e

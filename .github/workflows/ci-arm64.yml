@@ -1,4 +1,4 @@
-name: CI
+name: CI on Linux ARM64
 
 on:
   push:
@@ -9,13 +9,13 @@ on:
       - '**'
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  run-ci:
+    runs-on: ubuntu-24.04-arm
     container:
-      image: ghcr.io/${{ github.repository_owner }}/elash-ci:latest
-
+      image: ghcr.io/${{ github.repository_owner }}/elash-ci-arm64:latest
     env:
       CC: ccache cc
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -24,10 +24,10 @@ jobs:
         uses: actions/cache@v6
         with:
           path: /ccache
-          key: ${{ runner.os }}-ccache-${{ github.ref_name }}-${{ github.sha }}
+          key: ${{ runner.os }}-${{ runner.arch }}-ccache-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-ccache-${{ github.ref_name }}-
-            ${{ runner.os }}-ccache-
+            ${{ runner.os }}-${{ runner.arch }}-ccache-${{ github.ref_name }}-
+            ${{ runner.os }}-${{ runner.arch }}-ccache-
 
       - name: Zero ccache stats
         run: ccache -z
@@ -41,5 +41,6 @@ jobs:
       - name: Unit tests
         run: make unit-test
 
-      - name: End-to-End tests
+      - name: End‑to‑End tests
         run: make test-e2e
+
