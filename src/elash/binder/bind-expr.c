@@ -139,7 +139,7 @@ ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral
         return el_hir_new_untyped_float_lit(binder->hir_arena, in->span, lit->of.float_.value);
     case EL_AST_LIT_STRING: {
         ElHirType* type = el_hir_new_array_type(binder->type_arena, binder->builtins->type_char, lit->of.str_.value.len);
-        return el_hir_new_string_lit(binder->hir_arena, in->span, type, lit->of.str_.value, EL_STORAGECLS_GLOBAL);
+        return el_hir_new_string_lit(binder->hir_arena, in->span, type, lit->of.str_.value, EL_STORAGECLS_STATIC);
     }
     default:
         EL_TODO("support all literal types");
@@ -225,7 +225,7 @@ ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* in, ElAstArray
     ElHirExpr* init = el_binder_bind_init(binder, array_lit->init, type);
     if (init == NULL) return NULL;
 
-    if (array_lit->scls == EL_STORAGECLS_GLOBAL) {
+    if (array_lit->scls == EL_STORAGECLS_STATIC) {
         if (!_el_binder_is_const(binder, init)) {
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.non-const-global-init",

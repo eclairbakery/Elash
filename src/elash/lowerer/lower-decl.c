@@ -114,7 +114,7 @@ void _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
     switch (decl->kind) {
     case EL_HIR_DECL_VAR_DEF: {
         // ugly but (i guess) works
-        if (decl->as.var_def.scls == EL_STORAGECLS_GLOBAL) {
+        if (decl->as.var_def.scls == EL_STORAGECLS_STATIC) {
             return _el_lowerer_lower_global_decl(lw, decl);
         }
 

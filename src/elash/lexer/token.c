@@ -41,7 +41,7 @@ static struct {
 
     [EL_TT_KW_EXTERN]   = F("KW_EXTERN", "extern"),
     [EL_TT_KW_INTERNAL] = F("KW_INTERNAL", "internal"),
-    [EL_TT_KW_GLOBAL]   = F("KW_GLOBAL", "global"),
+    [EL_TT_KW_STATIC]   = F("KW_STATIC", "static"),
 
     [EL_TT_KW_AS] = F("KW_AS", "as"),
 
@@ -276,4 +276,3 @@ bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb) {
 
     return success;
 }
-

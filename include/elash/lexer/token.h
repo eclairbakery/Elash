@@ -42,7 +42,7 @@ typedef enum ElTokenType {
 
     EL_TT_KW_EXTERN,            // extern
     EL_TT_KW_INTERNAL,          // internal
-    EL_TT_KW_GLOBAL,            // global
+    EL_TT_KW_STATIC,            // global
 
     EL_TT_KW_VOLATILE,          // volatile
     EL_TT_KW_CONST,             // const
