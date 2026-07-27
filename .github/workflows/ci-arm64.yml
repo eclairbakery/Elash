@@ -19,6 +19,7 @@ jobs:
     steps:
       - name: Checkout repository
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           git clone https://github.com/${{ github.repository }}.git .
           git checkout ${{ github.sha }}
 
