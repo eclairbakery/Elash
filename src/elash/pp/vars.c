@@ -73,7 +73,7 @@ Entry* _el_pp_vars_find_slot(ElPpVars* vars, ElStringView key, bool* found) {
         }
 
         if (entry->state == _EL_PP_VARS_TOMBSTONE) {
-            if (!first_tombstone)
+            if (first_tombstone == NULL)
                 first_tombstone = entry;
         } else if (el_sv_eql(entry->key, key)) {
             *found = true;

@@ -40,7 +40,7 @@ LLVMTargetMachineRef elc_llvm_create_target_machine(char** out_triple) {
         LLVMCodeGenLevelDefault, LLVMRelocDefault, LLVMCodeModelDefault
     );
 
-    if (out_triple) {
+    if (out_triple != NULL) {
         *out_triple = triple;
     } else {
         LLVMDisposeMessage(triple);
@@ -77,7 +77,7 @@ ElcCodegenBuffer elc_llvm_lir_emit_to_buffer(const ElcLirHandle* handle, LLVMCod
         .data = malloc(LLVMGetBufferSize(buffer_ref))
     };
 
-    if (buffer.data) {
+    if (buffer.data != NULL) {
         memcpy(buffer.data, LLVMGetBufferStart(buffer_ref), buffer.size);
     } else {
         buffer.size = 0;

@@ -12,7 +12,7 @@ ElAstInit* el_parser_parse_init(ElParser* parser) {
         if (!el_parser_check(parser, EL_TT_RBRACE)) {
             while (true) {
                 ElAstInit* init = el_parser_parse_init(parser);
-                if (!init) break;
+                if (init == NULL) break;
 
                 el_ast_init_list_append(&head, &tail, init);
                 count++;

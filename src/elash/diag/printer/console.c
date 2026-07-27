@@ -36,7 +36,7 @@ void _el_diag_console_printer_print_sev(ElDiagSeverity sev, ElStringView cat, FI
 }
 
 void _el_diag_console_printer_print_loc(const ElSourceSpan* span, FILE* out) {
-    if (span->doc) {
+    if (span->doc != NULL) {
         fprintf(out, "at "EL_SV_FMT":%u:%u\n",
                 EL_SV_FARG(span->doc->filename), span->start.line, span->start.column);
     }

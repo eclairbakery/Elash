@@ -15,7 +15,7 @@ ElScope* el_hir_scope_new(ElScope* parent) {
     scope->count = 0;
     scope->entries = calloc(scope->capacity, sizeof(ElScopeEntry));
 
-    if (!scope->entries) {
+    if (scope->entries == NULL) {
         free(scope);
         return NULL;
     }
@@ -24,7 +24,7 @@ ElScope* el_hir_scope_new(ElScope* parent) {
 }
 
 void el_hir_scope_free(ElScope* scope) {
-    if (!scope) return;
+    if (scope == NULL) return;
     free(scope->entries);
     free(scope);
 }
@@ -35,7 +35,7 @@ static bool resize(ElScope* scope) {
 
     scope->capacity *= 2;
     scope->entries = calloc(scope->capacity, sizeof(ElScopeEntry));
-    if (!scope->entries) {
+    if (scope->entries == NULL) {
         scope->entries = old_entries;
         scope->capacity = old_capacity;
         return false;
@@ -43,7 +43,7 @@ static bool resize(ElScope* scope) {
 
     scope->count = 0;
     for (usize i = 0; i < old_capacity; i++) {
-        if (old_entries[i].symbol) {
+        if (old_entries[i].symbol != NULL) {
             (void) el_hir_scope_insert_ex(scope, old_entries[i].name, old_entries[i].symbol);
         }
     }
@@ -96,7 +96,7 @@ ElHirSymbol* el_hir_scope_lookup_local(ElScope* scope, ElStringView name) {
 ElHirSymbol* el_hir_scope_lookup(ElScope* scope, ElStringView name) {
     while (scope) {
         ElHirSymbol* symbol = el_hir_scope_lookup_local(scope, name);
-        if (symbol) return symbol;
+        if (symbol != NULL) return symbol;
         scope = scope->parent;
     }
     return NULL;

@@ -5,11 +5,11 @@
 #include <elash/defs/sv.h>
 
 void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
-    if (!instr) return;
+    if (instr == NULL) return;
 
     for (usize i = 0; i < indent; ++i) fputs(" ", out);
 
-    if (instr->result) {
+    if (instr->result != NULL) {
         el_mir_dump_value(instr->result, out);
         fputs(" = ", out);
     }
@@ -31,7 +31,7 @@ void el_mir_dump_instr(const ElMirInstr* instr, usize indent, FILE* out) {
     }
     case EL_MIR_INSTR_RET:
         fputs("ret ", out);
-        if (instr->as.return_.value) {
+        if (instr->as.return_.value != NULL) {
             el_mir_dump_value(instr->as.return_.value, out);
         } else {
             fputs("void", out);

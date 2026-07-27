@@ -23,8 +23,8 @@ ElStringView el_source_span_to_sv(ElSourceSpan span) {
 }
 
 ElSourceSpan el_source_span_merge(ElSourceSpan a, ElSourceSpan b) {
-    if (!a.doc) return b;
-    if (!b.doc) return a;
+    if (a.doc == NULL) return b;
+    if (b.doc == NULL) return a;
 
     EL_ASSERT(a.doc == b.doc, "Merging spans from different documents");
 

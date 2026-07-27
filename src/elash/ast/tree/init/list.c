@@ -11,7 +11,7 @@ ElAstInit* el_ast_new_init_list(ElDynArena* arena, ElSourceSpan span, ElAstInit*
 }
 
 void el_ast_init_list_append(ElAstInit** head, ElAstInit** tail, ElAstInit* init) {
-    if (*tail) {
+    if (*tail != NULL) {
         (*tail)->next = init;
         *tail = init;
     } else {
