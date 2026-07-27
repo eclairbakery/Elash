@@ -120,7 +120,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
 
     case EL_HIR_EXPR_ARRAYLIT: {
         ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
-        if (hir->as.array_lit.scls == EL_STORAGECLS_GLOBAL) {
+        if (hir->as.array_lit.scls == EL_STORAGECLS_STATIC) {
             return _el_lowerer_new_anon_global(lw, mir_type, _el_lowerer_lower_const(lw, hir));
         }
 
@@ -137,7 +137,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
         mirconst->kind = EL_MIR_CONST_STRING;
         mirconst->as.string.val = strlit->chars;
 
-        if (strlit->scls == EL_STORAGECLS_GLOBAL) {
+        if (strlit->scls == EL_STORAGECLS_STATIC) {
             return _el_lowerer_new_anon_global(lw, mir_type, mirconst);
         }
 

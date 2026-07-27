@@ -79,7 +79,7 @@ static ElAstDecl* el_parser_parse_func_internal_decl(ElParser* parser, ElAstFunc
 }
 
 static ElAstDecl* el_parser_parse_var_internal_decl(ElParser* parser) {
-    bool is_global = el_parser_match(parser, EL_TT_KW_GLOBAL);
+    bool is_global = el_parser_match(parser, EL_TT_KW_STATIC);
 
     ElAstType* type = _el_parser_parse_type(parser);
     if (type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
@@ -177,8 +177,8 @@ static ElAstDecl* el_parser_parse_internal_decl(ElParser* parser) {
     }
 
     usize idx = 0;
-    if (el_parser_peek_at(parser, idx).type == EL_TT_KW_GLOBAL) idx++;
-    
+    if (el_parser_peek_at(parser, idx).type == EL_TT_KW_STATIC) idx++;
+
     if (!_el_parser_lookahead_skip_type(parser, &idx) || el_parser_peek_at(parser, idx).type != EL_TT_IDENT) {
         el_parser_expect(parser, EL_TT_IDENT);
         return el_parser_sync(parser, EL_PARSER_SYNC_DECL);

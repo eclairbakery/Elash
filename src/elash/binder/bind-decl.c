@@ -148,7 +148,7 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
     }
 
     ElStorageClass scls = (var->is_global || binder->current_func == NULL)
-        ? EL_STORAGECLS_GLOBAL
+        ? EL_STORAGECLS_STATIC
         : EL_STORAGECLS_LOCAL;
 
     return el_hir_new_var_def(binder->hir_arena, in->span, sym, init, scls);

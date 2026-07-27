@@ -19,7 +19,7 @@
 
 bool _el_parser_is_type_literal(ElParser* parser) {
     usize idx = 0;
-    if (el_parser_peek_at(parser, idx).type == EL_TT_KW_GLOBAL) idx++;
+    if (el_parser_peek_at(parser, idx).type == EL_TT_KW_STATIC) idx++;
     if (!_el_parser_lookahead_skip_type(parser, &idx)) return false;
     return el_parser_peek_at(parser, idx).type == EL_TT_LBRACE;
 }
@@ -29,8 +29,8 @@ bool _el_parser_is_type_literal(ElParser* parser) {
 ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
     if (_el_parser_is_type_literal(parser)) {
         ElStorageClass scls = EL_STORAGECLS_LOCAL;
-        if (el_parser_match(parser, EL_TT_KW_GLOBAL)) {
-            scls = EL_STORAGECLS_GLOBAL;
+        if (el_parser_match(parser, EL_TT_KW_STATIC)) {
+            scls = EL_STORAGECLS_STATIC;
         }
 
         ElAstType* type = _el_parser_parse_type(parser);

@@ -131,7 +131,7 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
         { EL_SV("while"),    EL_TT_KW_WHILE      },
         { EL_SV("extern"),   EL_TT_KW_EXTERN     },
         { EL_SV("return"),   EL_TT_KW_RETURN     },
-        { EL_SV("global"),   EL_TT_KW_GLOBAL     },
+        { EL_SV("static"),   EL_TT_KW_STATIC     },
         { EL_SV("struct"),   EL_TT_KW_STRUCT     },
         { EL_SV("switch"),   EL_TT_KW_SWITCH     },
         { EL_SV("sizeof"),   EL_TT_KW_SIZEOF     },

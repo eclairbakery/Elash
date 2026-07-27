@@ -1,5 +1,5 @@
 int[5]& foo() {
-    return &global int[5] { 1, 2, 3, 4, 5 };
+    return &static int[5] { 1, 2, 3, 4, 5 };
 }
 
 int main() {
