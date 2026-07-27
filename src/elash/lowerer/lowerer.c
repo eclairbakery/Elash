@@ -64,31 +64,33 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id) {
     el_mir_ibuf_clear(&lw->ibuf);
 }
 
+ElMirValue* get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, ElHirType* type) {
+    if (sym->kind == EL_SYM_VAR) {
+        if (lw->symbol_map && lw->symbol_map[sym->id]) {
+            return lw->symbol_map[sym->id];
+        }
+
+        ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
+        ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
+        ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
+        ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL);
+        if (lw->symbol_map != NULL) {
+            lw->symbol_map[sym->id] = glob;
+        }
+        return glob;
+    }
+    if (sym->kind == EL_SYM_FUNC) {
+        ElMirType* mir_type = el_lowerer_map_type(lw, type);
+        ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
+        return el_mir_new_global(lw->arena, mir_type, mir_sym, NULL);
+    }
+    EL_UNREACHABLE("symbol is not an lvalue (this should be caught during semantic analysis)");
+}
+
 ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     switch (hir->kind) {
-    case EL_HIR_EXPR_SYMBOL: {
-        ElHirSymbol* sym = hir->as.symbol;
-        if (sym->kind == EL_SYM_VAR) {
-            if (lw->symbol_map && lw->symbol_map[sym->id]) {
-                return lw->symbol_map[sym->id];
-            }
-
-            ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
-            ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
-            ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-            ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL);
-            if (lw->symbol_map != NULL) {
-                lw->symbol_map[sym->id] = glob;
-            }
-            return glob;
-        }
-        if (sym->kind == EL_SYM_FUNC) {
-            ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
-            ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-            return el_mir_new_global(lw->arena, mir_type, mir_sym, NULL);
-        }
-        EL_UNREACHABLE("symbol is not an lvalue (this should be caught during semantic analysis)");
-    }
+    case EL_HIR_EXPR_SYMBOL:
+        return get_symbol_lvalue(lw, hir->as.symbol, hir->type);
 
     case EL_HIR_EXPR_BINARY:
         if (hir->as.binary.op == EL_SEMA_BIN_OP_INDEX) {

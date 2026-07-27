@@ -51,6 +51,7 @@ static bool _el_binder_create_param_symbols(
 ) {
     usize count = params->count;
     ElHirSymbol** param_syms = EL_DYNARENA_NEW_ARR(binder->sym_arena, ElHirSymbol*, count);
+
     bool has_error = false;
     usize i = 0;
 
