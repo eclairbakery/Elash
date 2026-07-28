@@ -54,13 +54,13 @@ ElPpErrorCode el_pp_next(ElPreprocessor* pp, ElToken* out_tok, ElDiagEngine* eng
         }
 
         ElToken input_tok = pp->input.next(&pp->input, engine);
-        
+
         switch (input_tok.type) {
         case EL_TT_NEWLINE:
         case EL_TT_WHITESPACE:
         case EL_TT_LINE_COMMENT:
         case EL_TT_BLOCK_COMMENT:
-            // skip whitespace, new lines and comments 
+            // skip whitespace, new lines and comments
             continue;
 
         case EL_TT_PP_NOTE:
@@ -70,7 +70,7 @@ ElPpErrorCode el_pp_next(ElPreprocessor* pp, ElToken* out_tok, ElDiagEngine* eng
                 return _el_pp_ret_error(pp, EL_PPERR_ALLOC_FAILED);
             if (!el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_INT_LITERAL, .lexeme = EL_SV("321"), .span = input_tok.span }))
                 return _el_pp_ret_error(pp, EL_PPERR_ALLOC_FAILED);
-            
+
             *out_tok = (ElToken) { .type = EL_TT_IDENT, .lexeme = EL_SV("hello"), .span = input_tok.span };
             return _el_pp_ret_success(pp);
 
@@ -85,7 +85,7 @@ static ElToken _el_pp_token_stream_next(ElTokenStream* self, ElDiagEngine* engin
     ElPreprocessor* pp = (ElPreprocessor*)self->ctx;
     ElToken tok;
     ElPpErrorCode err = el_pp_next(pp, &tok, engine);
-    
+
     if (err != EL_PPERR_SUCCESS) {
         // TODO: map pp errors into diagnostics engine
         // for now, i think we can just return unknown token on error
@@ -93,7 +93,7 @@ static ElToken _el_pp_token_stream_next(ElTokenStream* self, ElDiagEngine* engin
             tok.type = EL_TT_UNKNOWN;
         }
     }
-    
+
     return tok;
 }
 

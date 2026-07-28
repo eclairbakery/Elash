@@ -11,7 +11,7 @@ static usize _el_strbuf_next_cap(usize current_cap, usize required_min_cap) {
         new_cap = required_min_cap;
     }
     return new_cap;
-} 
+}
 
 bool el_strbuf_init(ElStringBuf* sb) {
     return el_strbuf_init_with_cap(sb, EL_STRBUF_DEFAULT_CAP);
@@ -100,7 +100,7 @@ bool el_strbuf_reserve_exact(ElStringBuf* sb, usize new_cap) {
     if (new_cap <= sb->cap) {
         return true;
     }
-    
+
     char* new_data = realloc(sb->data, new_cap);
     if (new_data == NULL) return false;
 
