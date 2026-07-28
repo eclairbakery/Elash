@@ -1,4 +1,4 @@
-name: CI on macOS
+name: CI on MacOS ARM64
 
 on:
   push:
@@ -26,7 +26,6 @@ jobs:
         run: |
           echo "EXTRA_CFLAGS=-I$(brew --prefix)/include" >> $GITHUB_ENV
           echo "EXTRA_LDFLAGS=-L$(brew --prefix)/lib" >> $GITHUB_ENV
-          echo "$(brew --prefix)/opt/llvm/bin" >> $GITHUB_PATH
 
       - name: Ensure ccache directory
         run: mkdir -p ~/.ccache
