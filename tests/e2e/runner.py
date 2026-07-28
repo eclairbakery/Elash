@@ -87,15 +87,20 @@ def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negat
     if skip_file.is_file():
         return None
 
-    safe_name = name.replace(os.sep, '_')
+    safe_name = name.replace(os.sep, '_').replace('/', '_')
     obj = work_dir.joinpath(f'{safe_name}.o')
-    exe = work_dir.joinpath(safe_name)
+    exe_name = f'{safe_name}.exe' if sys.platform == 'win32' else safe_name
+    exe = work_dir.joinpath(exe_name)
 
     res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if is_negative or res.returncode != 0:
         return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='compilation')
 
-    res = subprocess.run(['cc', str(obj), '-o', str(exe)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    cc_cmd = ['cc', str(obj), '-o', str(exe)]
+    if sys.platform == 'win32':
+        cc_cmd.append('-mconsole')
+
+    res = subprocess.run(cc_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if res.returncode != 0:
         return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='linking')
 
