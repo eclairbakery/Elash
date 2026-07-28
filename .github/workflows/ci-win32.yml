@@ -1,9 +1,6 @@
 name: CI on Windows X64
 
 on:
-  push:
-    branches:
-      - '**'
   pull_request:
     branches:
       - '**'
