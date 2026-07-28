@@ -1,0 +1,50 @@
+name: CI on macOS
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  run-ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, macos-26-intel]
+    env:
+      CC: ccache clang
+      LLVM_CONFIG: /opt/homebrew/opt/llvm/bin/llvm-config
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: brew install llvm ccache
+
+      - name: Cache ccache
+        uses: actions/cache@v6
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-${{ runner.arch }}-ccache-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-ccache-${{ github.ref_name }}-
+            ${{ runner.os }}-${{ runner.arch }}-ccache-
+
+      - name: Zero ccache stats
+        run: ccache -z
+
+      - name: Build
+        run: make libelash-static elc -j$(sysctl -n hw.ncpu)
+
+      - name: Show ccache stats
+        run: ccache -s
+
+      - name: Unit tests
+        run: make unit-test
+
+      - name: End-to-End tests
+        run: make test-e2e
