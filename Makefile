@@ -26,7 +26,7 @@ $(ELC_BIN): LDFLAGS += $(LLVM_LDFLAGS)
 DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
         $(patsubst %.c,$(DEP_ROOT_DIR)/shared/%.d,$(LIBELASH_C_SRCS) $(LIBELC_C_SRCS))
 
-.PHONY: all dirs lint clean check-llvm
+.PHONY: all dirs lint clean check-llvm inspect
 .PHONY: libelash libelash-shared libelash-static
 .PHONY: libelc libelc-shared libelc-static
 .PHONY: elc archive
@@ -61,6 +61,9 @@ dirs:
 
 lint:
 	clang-tidy $(ALL_C_SRCS) -- $(CFLAGS)
+inspect:
+	$(MAKE) clean
+	$(MAKE) libelash libelc >/dev/null
 
 $(LIBELASH_STATIC): $(LIBELASH_OBJ_STATIC)
 	@$(call CMD_MKDIR_P,$(dir $@))
