@@ -25,6 +25,11 @@ jobs:
       - name: Install dependencies
         run: brew install llvm ccache criterion
 
+      - name: Set Homebrew paths
+        run: |
+          echo "EXTRA_CFLAGS=-I$(brew --prefix)/include" >> $GITHUB_ENV
+          echo "EXTRA_LDFLAGS=-L$(brew --prefix)/lib" >> $GITHUB_ENV
+
       - name: Cache ccache
         uses: actions/cache@v6
         with:
