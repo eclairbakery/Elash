@@ -12,6 +12,7 @@ jobs:
   run-ci:
     runs-on: windows-latest
     env:
+      CC: ccache gcc
       CCACHE_DIR: ${{ github.workspace }}/.ccache
     defaults:
       run:
