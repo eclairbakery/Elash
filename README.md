@@ -1,3 +1,2 @@
 # Elash
-
-A new, backwards compatibile with C, programming language.
+A new C-inspired programming language
