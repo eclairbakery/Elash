@@ -48,6 +48,10 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         }
         break;
 
+    case EL_HIR_EXPR_STRINGLIT:
+        fprintf(out, "\"" EL_SV_FMT "\"", EL_SV_FARG(node->as.string_lit.chars));
+        break;
+
     case EL_HIR_EXPR_SYMBOL:
         el_sema_dump_symbol(node->as.symbol, out);
         break;

@@ -28,6 +28,16 @@ static void el_ast_dump_func_sig(const ElAstFuncSignature* sig, usize indent, FI
 
 void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
     switch (node->type) {
+    case EL_AST_DECL_TYPEDEF:
+        el_ast_dump_print_indent(indent, out);
+        fprintf(out, "Typedef:\n");
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(node->as.typedef_.name));
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "target:\n");
+        el_ast_dump_type(node->as.typedef_.target, indent + 2, out);
+        break;
+
     case EL_AST_DECL_VAR_DEF:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "VarDef:\n");

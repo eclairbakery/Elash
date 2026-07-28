@@ -31,6 +31,9 @@ static void el_hir_dump_func_sig(ElHirSymbol* symbol, usize indent, FILE* out, c
 
 void el_hir_dump_decl(ElHirDecl* node, usize indent, FILE* out) {
     switch (node->kind) {
+    case EL_HIR_DECL_NONE:
+        break;
+
     case EL_HIR_DECL_VAR_DEF: {
         ElHirVarDef* var_def = &node->as.var_def;
         el_hir_dump_print_indent(indent, out);
