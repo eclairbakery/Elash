@@ -1,6 +1,9 @@
 name: CI on Linux ARM64
 
 on:
+  push:
+    branches:
+      - '**'
   pull_request:
     branches:
       - '**'
@@ -8,24 +11,28 @@ on:
 jobs:
   run-ci:
     runs-on: ubuntu-24.04-arm
-    container:
-      image: ghcr.io/${{ github.repository_owner }}/elash-ci-arm64:latest
 
     steps:
       - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Cache ccache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-${{ runner.arch }}-ccache-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-ccache-${{ github.ref_name }}-
+            ${{ runner.os }}-${{ runner.arch }}-ccache-
+
+      - name: Run CI inside container
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git init
-          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
-          git fetch --depth=1 origin "$GITHUB_SHA"
-          git checkout --detach FETCH_HEAD
-
-      - name: Build
-        run: make libelash-static elc -j$(nproc)
-
-      - name: Unit tests
-        run: make unit-test
-
-      - name: End‑to‑End tests
-        run: make test-e2e
+          docker run --rm \
+            -v "${{ github.workspace }}:${{ github.workspace }}" \
+            -v "${HOME}/.cache/ccache:/ccache" \
+            -w "${{ github.workspace }}" \
+            -e CC="ccache cc" \
+            -e CCACHE_DIR="/ccache" \
+            "ghcr.io/${{ github.repository_owner }}/elash-ci-arm64:latest" \
+            sh -c "ccache -z && make libelash-static elc -j\$(nproc) && ccache -s && make unit-test && make test-e2e"
 
