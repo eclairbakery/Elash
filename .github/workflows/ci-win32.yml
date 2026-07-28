@@ -11,6 +11,8 @@ on:
 jobs:
   run-ci:
     runs-on: windows-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
     defaults:
       run:
         shell: msys2 {0}
@@ -36,12 +38,12 @@ jobs:
           version: "21.1"
 
       - name: Ensure ccache directory
-        run: mkdir -p ~/.ccache
+        run: mkdir -p "${GITHUB_WORKSPACE}/.ccache"
 
       - name: Cache ccache
         uses: actions/cache@v6
         with:
-          path: ~/.ccache
+          path: ${{ github.workspace }}/.ccache
           key: ${{ runner.os }}-${{ runner.arch }}-ccache-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-ccache-${{ github.ref_name }}-
