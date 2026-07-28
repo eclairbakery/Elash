@@ -108,17 +108,19 @@ def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negat
     exe_name = f'{safe_name}.exe' if sys.platform == 'win32' else safe_name
     exe = work_dir.joinpath(exe_name)
 
-    res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    if is_negative or res.returncode != 0:
-        return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='compilation')
+    if is_negative or not obj.is_file() or obj.stat().st_mtime < input_file.stat().st_mtime:
+        res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if is_negative or res.returncode != 0:
+            return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='compilation')
 
-    cc_cmd = ['cc', str(obj), '-o', str(exe)]
-    if sys.platform == 'win32':
-        cc_cmd.append('-mconsole')
+    if not exe.is_file() or exe.stat().st_mtime < obj.stat().st_mtime:
+        cc_cmd = ['cc', str(obj), '-o', str(exe)]
+        if sys.platform == 'win32':
+            cc_cmd.append('-mconsole')
 
-    res = subprocess.run(cc_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    if res.returncode != 0:
-        return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='linking')
+        res = subprocess.run(cc_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if res.returncode != 0:
+            return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='linking')
 
     res = subprocess.run([str(exe)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='runtime')
