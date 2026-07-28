@@ -7,5 +7,8 @@ if [ -f .git/hooks/pre-commit ]; then
     .git/hooks/pre-commit "$@"
 fi
 
-make unit-test &>/dev/null
-make test-e2e >/dev/null
+TEST_PARALLELISM="$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)"
+export TEST_PARALLELISM
+
+if [ ! -n "${ELASH_PRECOMMIT_NO_UNIT:-}" ]; then make unit-test &>/dev/null; fi
+if [ ! -n "${ELASH_PRECOMMIT_NO_E2E:-}" ];  then make test-e2e >/dev/null;   fi
