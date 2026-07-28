@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -eu
+
+cd "$(dirname "$0")/../.." || exit 1
+
+if [ -f .git/hooks/pre-commit ]; then
+    .git/hooks/pre-commit "$@"
+fi
+
+make unit-test &>/dev/null
+make test-e2e >/dev/null
