@@ -31,19 +31,22 @@ CLR_RED    = '\033[0;31m'
 CLR_BOLD   = '\033[0;1m'
 CLR_RESET  = '\033[0m'
 
-def print_info(msg: str):
-    print(f'[{CLR_BLUE}----{CLR_RESET}] {msg}')
+def eprint(*a, **k):
+    return print(*a, **k, file=sys.stderr)
+
+def print_info(msg: str, err: bool = True):
+    (eprint if err else print)(f'[{CLR_BLUE}----{CLR_RESET}] {msg}')
 
 def print_pass(name: str):
     print(f'[{CLR_GREEN}PASS{CLR_RESET}] Test passed: {name}')
 def print_skip(name: str):
     print(f'[{CLR_BLUE}SKIP{CLR_RESET}] Test skipped: {name}')
 def print_fail(name: str):
-    print(f'[{CLR_RED}FAIL{CLR_RESET}] Test failed: {name}')
+    eprint(f'[{CLR_RED}FAIL{CLR_RESET}] Test failed: {name}')
 
 def error(*args):
-    print(f'{CLR_RED}error: {CLR_RESET}', end='')
-    print(*args)
+    eprint(f'{CLR_RED}error: {CLR_RESET}', end='')
+    eprint(*args)
     sys.exit(1)
 
 def get_expectation(path: Path, name: str) -> TestExpectation:

@@ -108,6 +108,7 @@ $(OBJ_ROOT_DIR)/shared/%.o: %.c
 
 -include $(DEPS)
 
+include make/utilities.mk
 include tests/build.mk
 
 clean:
