@@ -4,7 +4,7 @@
 #include <elash/diag/meta.h>
 #include <elash/lexer/token.h>
 
-static ElAstFuncParamList el_parser_parse_func_params(ElParser* parser) {
+static ElAstFuncParamList parse_func_params(ElParser* parser) {
     ElAstFuncParamList params = el_ast_make_func_param_list();
 
     while (parser->current.type != EL_TT_RPAREN && parser->current.type != EL_TT_EOF) {
@@ -37,7 +37,7 @@ static ElAstFuncParamList el_parser_parse_func_params(ElParser* parser) {
     return params;
 }
 
-static ElAstFuncSignature el_parser_parse_func_sig(ElParser* parser) {
+static ElAstFuncSignature parse_func_sig(ElParser* parser) {
     ElAstFuncSignature sig = {0};
 
     ElAstType* ret_type = _el_parser_parse_type(parser);
@@ -49,7 +49,7 @@ static ElAstFuncSignature el_parser_parse_func_sig(ElParser* parser) {
     el_parser_expect(parser, EL_TT_LPAREN);
     if (el_parser_has_errs(parser)) return sig;
 
-    ElAstFuncParamList params = el_parser_parse_func_params(parser);
+    ElAstFuncParamList params = parse_func_params(parser);
     if (el_parser_has_errs(parser)) return sig;
 
     ElToken rparen_tok = parser->current;
@@ -60,7 +60,7 @@ static ElAstFuncSignature el_parser_parse_func_sig(ElParser* parser) {
     return el_ast_func_signature(span, ret_type, name, params);
 }
 
-static ElAstDecl* el_parser_parse_func_internal_decl(ElParser* parser, ElAstFuncSignature sig) {
+static ElAstDecl* parse_func_internal_decl(ElParser* parser, ElAstFuncSignature sig) {
     if (el_parser_check(parser, EL_TT_LBRACE)) {
         ElToken lbrace_tok = parser->current;
         el_parser_advance(parser);
@@ -78,7 +78,7 @@ static ElAstDecl* el_parser_parse_func_internal_decl(ElParser* parser, ElAstFunc
     return el_ast_new_func_decl(parser->arena, span, sig);
 }
 
-static ElAstDecl* el_parser_parse_var_internal_decl(ElParser* parser) {
+static ElAstDecl* parse_var_internal_decl(ElParser* parser) {
     bool is_global = el_parser_match(parser, EL_TT_KW_STATIC);
 
     ElAstType* type = _el_parser_parse_type(parser);
@@ -100,7 +100,7 @@ static ElAstDecl* el_parser_parse_var_internal_decl(ElParser* parser) {
     return el_ast_new_var_def(parser->arena, span, type, name, init, is_global);
 }
 
-static ElAstDecl* el_parser_parse_extern_decl(ElParser* parser, ElToken extern_tok) {
+static ElAstDecl* parse_extern_decl(ElParser* parser, ElToken extern_tok) {
     usize idx = 0;
     if (!_el_parser_lookahead_skip_type(parser, &idx) || el_parser_peek_at(parser, idx).type != EL_TT_IDENT) {
         el_parser_expect(parser, EL_TT_IDENT);
@@ -108,7 +108,7 @@ static ElAstDecl* el_parser_parse_extern_decl(ElParser* parser, ElToken extern_t
     }
 
     if (el_parser_peek_at(parser, idx + 1).type == EL_TT_LPAREN) {
-        ElAstFuncSignature sig = el_parser_parse_func_sig(parser);
+        ElAstFuncSignature sig = parse_func_sig(parser);
         if (sig.ret_type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
         if (el_parser_check(parser, EL_TT_LBRACE)) {
@@ -151,9 +151,8 @@ static ElAstDecl* el_parser_parse_extern_decl(ElParser* parser, ElToken extern_t
     }
 }
 
-static ElAstDecl* el_parser_parse_alias_decl(ElParser* parser, ElToken alias_tok) {
-    ElToken name_tok = parser->current;
-    el_parser_expect(parser, EL_TT_IDENT);
+static ElAstDecl* parse_alias_decl(ElParser* parser, ElToken alias_tok) {
+    ElToken name_tok = el_parser_expect(parser, EL_TT_IDENT);
     if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
     el_parser_expect(parser, EL_TT_ASSIGN);
@@ -162,18 +161,38 @@ static ElAstDecl* el_parser_parse_alias_decl(ElParser* parser, ElToken alias_tok
     ElAstToE* target = _el_parser_parse_type_or_expr(parser);
     if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
-    ElToken semi_tok = parser->current;
-    el_parser_expect(parser, EL_TT_SEMICOLON);
+    ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
 
     ElSourceSpan span = el_source_span_merge(alias_tok.span, semi_tok.span);
     return el_ast_new_alias(parser->arena, span, name_tok.lexeme, *target);
 }
 
+// 100% not just copy pased from the function above (no idea how to dedup this)
+static ElAstDecl* parse_typedef_decl(ElParser* parser, ElToken typedef_tok) {
+    ElToken name_tok = el_parser_expect(parser, EL_TT_IDENT);
+    if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+
+    el_parser_expect(parser, EL_TT_KW_AS);
+    if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+
+    ElAstType* target = _el_parser_parse_type(parser);
+    if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+
+    ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
+
+    ElSourceSpan span = el_source_span_merge(typedef_tok.span, semi_tok.span);
+    return el_ast_new_typedef(parser->arena, span, name_tok.lexeme, target);
+}
+
 static ElAstDecl* el_parser_parse_internal_decl(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_KW_ALIAS)) {
-        ElToken alias_tok = parser->current;
-        el_parser_advance(parser);
-        return el_parser_parse_alias_decl(parser, alias_tok);
+        ElToken alias_tok = el_parser_advance(parser);
+        return parse_alias_decl(parser, alias_tok);
+    }
+
+    if (el_parser_check(parser, EL_TT_KW_TYPEDEF)) {
+        ElToken typedef_tok = el_parser_advance(parser);
+        return parse_typedef_decl(parser, typedef_tok);
     }
 
     usize idx = 0;
@@ -185,19 +204,19 @@ static ElAstDecl* el_parser_parse_internal_decl(ElParser* parser) {
     }
 
     if (el_parser_peek_at(parser, idx + 1).type == EL_TT_LPAREN) {
-        ElAstFuncSignature sig = el_parser_parse_func_sig(parser);
+        ElAstFuncSignature sig = parse_func_sig(parser);
         if (sig.ret_type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
-        return el_parser_parse_func_internal_decl(parser, sig);
+        return parse_func_internal_decl(parser, sig);
     }
 
-    return el_parser_parse_var_internal_decl(parser);
+    return parse_var_internal_decl(parser);
 }
 
 ElAstDecl* el_parser_parse_decl(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_KW_EXTERN)) {
         ElToken extern_tok = parser->current;
         el_parser_advance(parser);
-        return el_parser_parse_extern_decl(parser, extern_tok);
+        return parse_extern_decl(parser, extern_tok);
     }
 
     return el_parser_parse_internal_decl(parser);

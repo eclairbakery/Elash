@@ -79,6 +79,7 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
             break;
 
         case EL_AST_DECL_ALIAS:
+        case EL_AST_DECL_TYPEDEF:
             // very cool trick
             // the loop increments i every iteration but struct-local aliases
             // are not declaring any fields so we can just decrement i here

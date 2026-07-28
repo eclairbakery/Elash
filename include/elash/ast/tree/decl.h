@@ -3,6 +3,7 @@
 #include <elash/srcdoc/span.h>
 
 #include "decl/alias.h"
+#include "decl/typedef.h"
 #include "decl/var-def.h"
 #include "decl/var-decl.h"
 #include "decl/func-def.h"
@@ -10,6 +11,7 @@
 
 typedef enum ElAstDeclType {
     EL_AST_DECL_ALIAS,
+    EL_AST_DECL_TYPEDEF,
     EL_AST_DECL_VAR_DEF,
     EL_AST_DECL_VAR_DECL,
     EL_AST_DECL_FUNC_DEF,
@@ -21,6 +23,7 @@ typedef struct ElAstDecl {
     ElSourceSpan span;
     union {
         ElAstAlias    alias;
+        ElAstTypedef  typedef_;
         ElAstVarDef   var_def;
         ElAstVarDecl  var_decl;
         ElAstFuncDef  func_def;

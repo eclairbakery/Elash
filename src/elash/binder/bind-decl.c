@@ -266,6 +266,8 @@ ElHirDecl* el_binder_bind_decl(ElBinder* binder, ElAstDecl* in) {
         return bind_func_decl(binder, in, &in->as.func_decl);
     case EL_AST_DECL_ALIAS:
         return bind_alias(binder, in, &in->as.alias);
+    case EL_AST_DECL_TYPEDEF:
+        EL_TODO("implement typedef");
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstDeclType, in->type);
 }
