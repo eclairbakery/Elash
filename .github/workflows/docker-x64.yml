@@ -1,5 +1,9 @@
 name: Build X64 CI image
 
+permissions:
+  contents: read
+  packages: write
+
 on:
   push:
     paths:
@@ -8,11 +12,6 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
     steps:
       - uses: actions/checkout@v6
 
