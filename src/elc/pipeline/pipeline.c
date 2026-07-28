@@ -84,9 +84,7 @@ bool elc_pipeline_request(ElcPipeline* pipeline, ElcArtifactKind kind, ElcArtifa
             elc_pipeline_notify(pipeline, ELC_OBS_STAGE_END, stage, NULL);
             elc_pipeline_notify(pipeline, ELC_OBS_ARTIFACT_PRODUCED, stage, &output);
 
-            if (out != NULL) {
-                *out = output;
-            }
+            if (out != NULL) *out = output;
             return true;
         }
     }
