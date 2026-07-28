@@ -28,18 +28,12 @@ jobs:
             base-devel
             mingw-w64-ucrt-x86_64-toolchain
             mingw-w64-ucrt-x86_64-ccache
+            mingw-w64-ucrt-x86_64-llvm
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2
         with:
           version: "21.1"
-
-      - name: Add LLVM to MSYS2 Path
-        shell: powershell
-        run: |
-          if ($env:LLVM_PATH) {
-            echo "$env:LLVM_PATH\bin" >> $env:GITHUB_PATH
-          }
 
       - name: Ensure ccache directory
         run: mkdir -p ~/.ccache
