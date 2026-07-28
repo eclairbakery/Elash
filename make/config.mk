@@ -8,8 +8,16 @@ BUILD ?= release
 
 ###### platform detection #######
 ifeq ($(OS),Windows_NT)
+ifneq ($(findstring MSYS,$(MSYSTEM)),)
+	IS_MSYS := yes
+else ifneq ($(findstring MINGW,$(MSYSTEM)),)
+	IS_MSYS := yes
+else
+	IS_MSYS := no
+endif
 	PLATFORM := windows
 else
+	IS_MSYS := no
 	PLATFORM := posix
 endif
 
@@ -18,7 +26,11 @@ ifeq ($(wildcard VERSION),)
 $(error VERSION file not found)
 endif
 
-ifeq ($(PLATFORM),windows)
+ifeq ($(IS_MSYS),yes)
+	VERSION   := $(strip $(shell cat VERSION))
+	DIST_OS   := windows
+	DIST_ARCH := $(shell uname -m | tr '[:upper:]' '[:lower:]')
+else ifeq ($(PLATFORM),windows)
 	VERSION   := $(strip $(shell type VERSION))
 	DIST_OS   := windows
 	DIST_ARCH := $(shell powershell -NoProfile -Command "$$env:PROCESSOR_ARCHITECTURE.ToLower()")
@@ -76,16 +88,16 @@ else
 endif
 
 ###### platform specific commands abstraction ####
-ifeq ($(PLATFORM),windows)
-	CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))' | Out-Null"
-	CMD_RM_RF   = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))' | Out-Null"
-	CMD_ARCHIVE = powershell -NoProfile -Command "Compress-Archive -Path '$(subst /,\,$(OUT_DIR)/*)' -DestinationPath '$(subst /,\,$(DIST_FILE))' -Force"
-	FIXPATH     = $(subst /,\,$(1))
-else ifeq ($(PLATFORM),posix)
-	CMD_MKDIR_P = mkdir -p "$(1)"
-	CMD_RM_RF = rm -rf "$(1)"
-	CMD_ARCHIVE = tar -czf $(DIST_FILE) -C $(OUT_DIR) bin lib
-	FIXPATH     = $(1)
+ifneq ($(filter yes,$(IS_MSYS))$(filter posix,$(PLATFORM)),)
+    CMD_MKDIR_P = mkdir -p "$(1)"
+    CMD_RM_RF   = rm -rf "$(1)"
+    CMD_ARCHIVE = tar -czf $(DIST_FILE) -C $(OUT_DIR) bin lib
+    FIXPATH     = $(1)
+else ifeq ($(PLATFORM),windows)
+    CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))' | Out-Null"
+    CMD_RM_RF   = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))' | Out-Null"
+    CMD_ARCHIVE = Compress-Archive -Path '$(subst /,\,$(OUT_DIR)/*)' -DestinationPath '$(subst /,\,$(DIST_FILE))' -Force
+    FIXPATH     = $(subst /,\,$(1))
 endif
 
 ############### logging #################
