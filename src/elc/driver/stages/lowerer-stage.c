@@ -9,7 +9,6 @@ bool elc_lowerer_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, cons
     el_lowerer_init(&lowerer, ctx->arena, ctx->diag, ctx->lowerer_builtins);
 
     ElMirModule* mod = el_lowerer_lower_module(&lowerer, input->as.hir);
-
     el_lowerer_free(&lowerer);
 
     output->as.mir = mod;
