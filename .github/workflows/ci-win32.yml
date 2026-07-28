@@ -34,6 +34,13 @@ jobs:
         with:
           version: "21.1"
 
+      - name: Add LLVM to MSYS2 Path
+        shell: powershell
+        run: |
+          if ($env:LLVM_PATH) {
+            echo "$env:LLVM_PATH\bin" >> $env:GITHUB_PATH
+          }
+
       - name: Ensure ccache directory
         run: mkdir -p ~/.ccache
 
