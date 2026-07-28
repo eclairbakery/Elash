@@ -36,7 +36,7 @@ LLVMTargetMachineRef elc_llvm_create_target_machine(char** out_triple) {
     }
 
     LLVMTargetMachineRef machine = LLVMCreateTargetMachine(
-        target, triple, "generic", "", 
+        target, triple, "generic", "",
         LLVMCodeGenLevelDefault, LLVMRelocDefault, LLVMCodeModelDefault
     );
 
@@ -62,7 +62,7 @@ ElcCodegenBuffer elc_llvm_lir_emit_to_buffer(const ElcLirHandle* handle, LLVMCod
     ElcLLVMLir* data = handle->data;
     char* triple = NULL;
     LLVMTargetMachineRef machine = elc_llvm_create_target_machine(&triple);
-    if (!machine) EL_TODO("Handle error");
+    if (machine == NULL) EL_TODO("Handle error");
 
     elc_llvm_setup_module_layout(data->module, machine, triple);
 
@@ -127,7 +127,7 @@ ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
     ctx->arena = arena;
     ctx->globals = NULL;
     ctx->globals_count = 0;
-    
+
     LLVMInitializeNativeTarget();
     LLVMInitializeNativeAsmPrinter();
 

@@ -35,10 +35,9 @@ static inline char next(ElLexer* lexer) {
     lexer->current_loc.column++;
 
     if (c == '\r') {
-        if (peek(lexer) == '\n') { // CRLF
-            lexer->current_loc.offset++;
+        if (peek(lexer) == '\n') {
+            c = input.data[lexer->current_loc.offset++];
         }
-
         lexer->current_loc.line++;
         lexer->current_loc.column = 0;
     } else if (c == '\n') {
@@ -395,7 +394,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
                 next(lexer);
                 usize content_start_offset = lexer->current_loc.offset;
 
-                while (peek(lexer) != '\n' && peek(lexer) != '\0') next(lexer);
+                while (peek(lexer) != '\n' && peek(lexer) != '\r' && peek(lexer) != '\0') next(lexer);
 
                 if (lexer->flags & EL_LF_SKIP_COMMENTS) continue;
 
@@ -459,7 +458,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
 
             bool terminated = false;
 
-            while (peek(lexer) != '\0' && peek(lexer) != '\n') {
+            while (peek(lexer) != '\0' && peek(lexer) != '\n' && peek(lexer) != '\r') {
                 if (peek(lexer) == '\\') {
                     next(lexer);
                     if (peek(lexer) == '\0') EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_INVALID_ESCAPE, el_source_span_make(lexer->doc, lexer->current_loc, lexer->current_loc), {});

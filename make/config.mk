@@ -6,7 +6,15 @@ CC ?= cc
 AR ?= ar
 BUILD ?= release
 
-###### platform detection #######
+###### platform & shell detection #######
+IS_POSIX_SHELL := $(shell echo posix 2>/dev/null)
+
+ifeq ($(IS_POSIX_SHELL),posix)
+	USE_POSIX_SHELL := yes
+else
+	USE_POSIX_SHELL := no
+endif
+
 ifeq ($(OS),Windows_NT)
 	PLATFORM := windows
 else
@@ -18,14 +26,14 @@ ifeq ($(wildcard VERSION),)
 $(error VERSION file not found)
 endif
 
-ifeq ($(PLATFORM),windows)
+ifeq ($(USE_POSIX_SHELL),yes)
+	VERSION   := $(strip $(shell cat VERSION))
+	DIST_OS   := $(if $(filter windows,$(PLATFORM)),windows,$(shell uname -s | tr '[:upper:]' '[:lower:]'))
+	DIST_ARCH := $(shell uname -m | tr '[:upper:]' '[:lower:]')
+else
 	VERSION   := $(strip $(shell type VERSION))
 	DIST_OS   := windows
 	DIST_ARCH := $(shell powershell -NoProfile -Command "$$env:PROCESSOR_ARCHITECTURE.ToLower()")
-else
-	VERSION   := $(strip $(shell cat VERSION))
-	DIST_OS   := $(shell uname -s | tr '[:upper:]' '[:lower:]')
-	DIST_ARCH := $(shell uname -m | tr '[:upper:]' '[:lower:]')
 endif
 
 ########### flags ###########
@@ -76,16 +84,16 @@ else
 endif
 
 ###### platform specific commands abstraction ####
-ifeq ($(PLATFORM),windows)
-	CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))' | Out-Null"
-	CMD_RM_RF   = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))' | Out-Null"
-	CMD_ARCHIVE = powershell -NoProfile -Command "Compress-Archive -Path '$(subst /,\,$(OUT_DIR)/*)' -DestinationPath '$(subst /,\,$(DIST_FILE))' -Force"
-	FIXPATH     = $(subst /,\,$(1))
-else ifeq ($(PLATFORM),posix)
+ifeq ($(USE_POSIX_SHELL),yes)
 	CMD_MKDIR_P = mkdir -p "$(1)"
-	CMD_RM_RF = rm -rf "$(1)"
+	CMD_RM_RF   = rm -rf "$(1)"
 	CMD_ARCHIVE = tar -czf $(DIST_FILE) -C $(OUT_DIR) bin lib
 	FIXPATH     = $(1)
+else
+	CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))' | Out-Null"
+	CMD_RM_RF   = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))' | Out-Null"
+	CMD_ARCHIVE = Compress-Archive -Path '$(subst /,\,$(OUT_DIR)/*)' -DestinationPath '$(subst /,\,$(DIST_FILE))' -Force
+	FIXPATH     = $(subst /,\,$(1))
 endif
 
 ############### logging #################
