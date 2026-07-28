@@ -10,10 +10,7 @@ on:
 
 jobs:
   run-ci:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, macos-26-intel]
+    runs-on: macos-latest
     env:
       CC: ccache clang
       LLVM_CONFIG: /opt/homebrew/opt/llvm/bin/llvm-config
@@ -30,6 +27,9 @@ jobs:
           echo "EXTRA_CFLAGS=-I$(brew --prefix)/include" >> $GITHUB_ENV
           echo "EXTRA_LDFLAGS=-L$(brew --prefix)/lib" >> $GITHUB_ENV
           echo "$(brew --prefix)/opt/llvm/bin" >> $GITHUB_PATH
+
+      - name: Ensure ccache directory
+        run: mkdir -p ~/.ccache
 
       - name: Cache ccache
         uses: actions/cache@v6
