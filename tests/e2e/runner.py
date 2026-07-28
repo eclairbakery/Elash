@@ -1,11 +1,24 @@
+#!/usr/bin/env python
+
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Literal, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import subprocess
+import threading
+import builtins
+import argparse
+import difflib
+import typing
 import sys
 import os
-import difflib
+
+# very advanced lock mechanism
+PRINT_LOCK = threading.Lock()
+def very_advanced_thread_safe_print_function_to_fix_issues_with_parallelism_version_1_0_0(*a, **k):
+    with PRINT_LOCK: builtins.print(*a, **k)
+print = very_advanced_thread_safe_print_function_to_fix_issues_with_parallelism_version_1_0_0
 
 type TestStage = Literal['compilation'] | Literal['linking'] | Literal['runtime'];
 
@@ -171,18 +184,21 @@ def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
             return False
         return True
 
-def run_suite(elc_bin: Path, work_dir: Path) -> bool:
+def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int]) -> bool:
     passed_count  = 0
     failed_count  = 0
     skipped_count = 0
 
     test_dirs = _collect_test_dirs()
 
+    tasks = []
     for path in test_dirs:
         name = str(path.relative_to(script_dir))
-        expected = get_expectation(path, name)
-        actual = run_test_case(elc_bin, work_dir, path, name, expected.diags is not None)
+        tasks.append((path, name, get_expectation(path, name)))
 
+    # Process results as they finish
+    def handle_result(name, expected, actual):
+        nonlocal passed_count, failed_count, skipped_count
         if actual is None:
             print_skip(name)
             skipped_count += 1
@@ -192,6 +208,20 @@ def run_suite(elc_bin: Path, work_dir: Path) -> bool:
         else:
             report_failure(name, expected, actual)
             failed_count += 1
+
+    if jobs is None or jobs > 1:
+        with ThreadPoolExecutor(max_workers=jobs) as executor:
+            future_to_test = {}
+            for path, name, expected in tasks:
+                future = executor.submit(run_test_case, elc_bin, work_dir, path, name, expected.diags is not None)
+                future_to_test[future] = (name, expected)
+
+            for future in as_completed(future_to_test):
+                name, expected = future_to_test[future]
+                handle_result(name, expected, future.result())
+    else:
+        for path, name, expected in tasks:
+            handle_result(name, expected, run_test_case(elc_bin, work_dir, path, name, expected.diags is not None))
 
     tested_count = passed_count + failed_count + skipped_count
     print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')
@@ -203,17 +233,31 @@ def run_suite(elc_bin: Path, work_dir: Path) -> bool:
 
     return failed_count == 0
 
-def main():
-    if len(sys.argv) <= 2:
-        error('expected argument\nusage: python runner.py <path-to-elc-binary> <work-dir>')
+class CliArgs(argparse.Namespace):
+    elc_bin:  Path
+    work_dir: Path
+    parallel: Optional[int]
 
-    elc_bin  = Path(sys.argv[1]).resolve()
-    work_dir = Path(sys.argv[2]).resolve()
+def main():
+    parser = argparse.ArgumentParser(description="Elash's end-to-end test runner");
+    parser.add_argument('elc_bin', type=Path, help='Path to elc binary');
+    parser.add_argument('work_dir', type=Path, help='Path to working directory');
+    parser.add_argument(
+        '-j', '--parallel', nargs='?',
+        const=None, default=1, type=int,
+        help='run in parallel with optional N workers limit'
+    );
+
+    #very advanced static typing
+    args: CliArgs = typing.cast(CliArgs, parser.parse_args())
+
+    elc_bin  = args.elc_bin.resolve()
+    work_dir = args.work_dir.resolve()
 
     if not work_dir.exists():
         os.makedirs(str(work_dir), exist_ok=True)
 
-    if not run_suite(elc_bin, work_dir):
+    if not run_suite(elc_bin, work_dir, args.parallel):
         sys.exit(1)
 
 if __name__ == '__main__':
