@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install dependencies
-        run: brew install llvm ccache
+        run: brew install llvm ccache criterion
 
       - name: Cache ccache
         uses: actions/cache@v6
