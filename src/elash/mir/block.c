@@ -7,7 +7,7 @@ ElMirBlock* el_mir_new_block(ElDynArena* arena, uint32_t id, ElMirInstr** instru
     block->next = NULL;
     block->id = id;
     block->instr_count = instr_count;
-    
+
     if (instructions != NULL && instr_count > 0) {
         memcpy(block->instructions, instructions, sizeof(ElMirInstr*) * instr_count);
     }
