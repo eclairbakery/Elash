@@ -14,6 +14,6 @@ int branchlessMin(int a, int b) {
 
 int main() {
     int a = 123;
-    int b = 47;
+    int b = 48;
     return branchlessMin(a, b);
 }
