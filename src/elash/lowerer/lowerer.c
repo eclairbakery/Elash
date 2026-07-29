@@ -95,9 +95,14 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_BINARY:
         if (hir->as.binary.op == EL_SEMA_BIN_OP_INDEX) {
             ElMirValue* ptr;
-            if (hir->as.binary.left->type->kind == EL_HIR_TYPE_RWSLICE) {
+            ElHirType* left_type = hir->as.binary.left->type;
+            while (left_type->kind == EL_HIR_TYPE_DISTINCT) {
+                left_type = left_type->as.distinct.orig;
+            }
+
+            if (left_type->kind == EL_HIR_TYPE_RWSLICE) {
                 ptr = el_lowerer_lower_expr(lw, hir->as.binary.left);
-            } else if (hir->as.binary.left->type->kind == EL_HIR_TYPE_SLICE) {
+            } else if (left_type->kind == EL_HIR_TYPE_SLICE) {
                 ElMirValue* slice = el_lowerer_lower_expr(lw, hir->as.binary.left);
                 ptr = _el_lowerer_extract_tuple_field(lw, slice, 0);
             } else {

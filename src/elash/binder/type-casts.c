@@ -15,6 +15,11 @@ static inline bool is_fixed_fp_width(ElHirFpWidth width) {
     return width != EL_HIR_FPWIDTH_EFFICIENT;
 }
 
+static inline bool is_distinct_conv(ElHirType* from, ElHirType* to) {
+    return (from->kind == EL_HIR_TYPE_DISTINCT && el_hir_type_eql(from->as.distinct.orig, to)) ||
+            (to->kind == EL_HIR_TYPE_DISTINCT && el_hir_type_eql(to->as.distinct.orig, from));
+}
+
 ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 
 ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
@@ -23,6 +28,15 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
         return _cast_untyped(binder, span, expr, to);
 
     if (type_eql(from, to)) return expr;
+
+    if (to->kind == EL_HIR_TYPE_DISTINCT) {
+        ElHirExpr* casted = _el_binder_implicit_cast(binder, span, expr, to->as.distinct.orig);
+        if (casted != NULL) return el_hir_new_cast_expr(binder->hir_arena, expr->span, to, casted);
+    }
+    if (from->kind == EL_HIR_TYPE_DISTINCT) {
+        expr = el_hir_new_cast_expr(binder->hir_arena, expr->span, from->as.distinct.orig, expr);
+        from = expr->type;
+    }
 
     if (from->kind == EL_HIR_TYPE_PRIM && to->kind == EL_HIR_TYPE_PRIM) {
         bool is_int_conv = from->as.prim.kind == EL_PRIMTYPE_INT && to->as.prim.kind == EL_PRIMTYPE_INT;
@@ -70,7 +84,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
             // let's give the user some nice error message in this case
             el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
-                "invalid cast from array type '${from}' to '${to}' pointer",
+                "invalid cast from array type ${from} to ${to} pointer",
                 EL_DIAG_TYPE("from", from), EL_DIAG_TYPE("to", to),
             );
             el_diag_help(
@@ -105,6 +119,18 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
         }
     }
 
+    if (is_distinct_conv(from, to)) {
+        el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
+            "cannot implicitly convert from ${from} to ${to}",
+            EL_DIAG_TYPE("from", from), EL_DIAG_TYPE("to", to),
+        );
+        el_diag_help(
+            binder->diag, "distinct types require an explicit cast with 'as'",
+        );
+        return NULL;
+    }
+
     el_diag_report(
         binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
         "invalid cast from '${from}' to '${to}'",
@@ -115,6 +141,12 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
 
 ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
     (void) span;
+    if (to->kind == EL_HIR_TYPE_DISTINCT) {
+        ElHirExpr* casted = _cast_untyped(binder, span, expr, to->as.distinct.orig);
+        if (casted == NULL) return NULL;
+        return el_hir_new_cast_expr(binder->hir_arena, expr->span, to, casted);
+    }
+
     if (to->kind == EL_HIR_TYPE_PRIM) {
         switch (expr->as.untyped_lit.kind) {
         case EL_HIR_UNTYPED_INT:

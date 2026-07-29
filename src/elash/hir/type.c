@@ -52,8 +52,17 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
         EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, type->as.prim.kind);
     case EL_HIR_TYPE_REF:
         el_sema_format_type_internal(type->as.ref.base, write, ctx);
-        write("*", ctx);
+        write("&", ctx);
         return;
+    case EL_HIR_TYPE_DISTINCT: {
+        ElStringView name = type->as.distinct.name;
+        char buf[2] = { '\0', '\0' };
+        for (usize j = 0; j < name.len; j++) {
+            buf[0] = name.data[j];
+            write(buf, ctx);
+        }
+        return;
+    }
     case EL_HIR_TYPE_ARRAY:
         el_sema_format_type_internal(type->as.array.base, write, ctx);
         write("[", ctx);
@@ -66,7 +75,7 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
         return;
     case EL_HIR_TYPE_RWSLICE:
         el_sema_format_type_internal(type->as.rwslice.base, write, ctx);
-        write("[*]", ctx);
+        write("[&]", ctx);
         return;
     case EL_HIR_TYPE_FUNC:
         el_sema_format_type_internal(type->as.func.ret_type, write, ctx);
@@ -111,6 +120,9 @@ bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
     if (lhs->kind != rhs->kind)     return false;
 
     switch (rhs->kind) {
+    case EL_HIR_TYPE_DISTINCT:
+        return false; // if its the same type it should be caught by pointer
+                      // comparison like 5 lines above.
     case EL_HIR_TYPE_PRIM:
         if (lhs->as.prim.kind != rhs->as.prim.kind) return false;
         switch (lhs->as.prim.kind) {

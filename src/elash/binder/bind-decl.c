@@ -77,7 +77,7 @@ static bool _el_binder_create_param_symbols(
     return true;
 }
 
-ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
+static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
     ElHirType* ret_type = _el_binder_bind_type(binder, sig->ret_type);
 
     ElHirType** param_types = NULL;
@@ -254,6 +254,29 @@ static ElHirDecl* bind_alias(ElBinder* binder, ElAstDecl* in, ElAstAlias* alias)
     return el_hir_decl_none(binder->hir_arena, in->span);
 }
 
+static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* typedef_) {
+    ElHirType* target = _el_binder_bind_type(binder, typedef_->target);
+    if (target == NULL) return NULL;
+
+    // TODO: This is boilerplate and will break once we introduce actual
+    //       forward declarations, so we probably need to introduce some
+    //       helper functions like is_incomplete() and ensure_is_complete()
+    if (el_hir_type_eql(target, binder->builtins->type_void)) {
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.incomplete-type",
+            in->span, "incomplete type 'void' cannot be used in a typedef"
+        );
+    }
+
+    ElHirType* distinct = el_hir_new_distinct_type(binder->type_arena, target, typedef_->name);
+    ElHirSymbol* the_symbol = el_hir_new_type_symbol(binder->sym_arena, binder->sym_id_counter++, typedef_->name, distinct);
+
+    if (!el_hir_scope_insert(binder->current_scope, the_symbol))
+        return REPORT_REDEFINITION(binder, in->span, typedef_->name);
+
+    return el_hir_decl_none(binder->hir_arena, in->span);
+}
+
 ElHirDecl* el_binder_bind_decl(ElBinder* binder, ElAstDecl* in) {
     switch (in->type) {
     case EL_AST_DECL_VAR_DEF:
@@ -267,7 +290,7 @@ ElHirDecl* el_binder_bind_decl(ElBinder* binder, ElAstDecl* in) {
     case EL_AST_DECL_ALIAS:
         return bind_alias(binder, in, &in->as.alias);
     case EL_AST_DECL_TYPEDEF:
-        EL_TODO("implement typedef");
+        return bind_typedef(binder, in, &in->as.typedef_);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstDeclType, in->type);
 }
