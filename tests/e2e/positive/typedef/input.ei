@@ -18,7 +18,8 @@ int main() {
     if (anotherfp != 3.14)
         return 2;
 
-    String s = "Hello";
+    String s = "Hello" as String; // TODO: this is currently needed as string literals
+                                  // aren't untyped and i'm pretty sure they should be
     char[] sslice = s as char[];
     if (sslice[0] != 'H' || s[1] != 'e' || sslice[2] != 'l')
         return 3;

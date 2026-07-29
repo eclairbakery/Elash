@@ -88,6 +88,8 @@ ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
         return el_mir_new_ptr_type(lw->arena, el_lowerer_map_type(lw, type->as.rwslice.base));
     case EL_HIR_TYPE_SLICE:
         return make_slice_type(lw, &type->as.slice);
+    case EL_HIR_TYPE_DISTINCT:
+        return el_lowerer_map_type(lw, type->as.distinct.orig);
     }
     EL_UNREACHABLE("unknown hir type kind");
 }
