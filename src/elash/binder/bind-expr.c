@@ -95,10 +95,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
 
         if (left->type == NULL) REPORT_NON_INDEXABLE;
 
-        ElHirType* type_to_check = left->type;
-        while (type_to_check->kind == EL_HIR_TYPE_DISTINCT) {
-            type_to_check = type_to_check->as.distinct.orig;
-        }
+        const ElHirType* type_to_check = el_hir_type_unwrap_distinct(left->type);
 
         switch (type_to_check->kind) {
         case EL_HIR_TYPE_ARRAY:   type = type_to_check->as.array.base;   break;
@@ -265,14 +262,17 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
     ElHirExpr* expr = el_binder_bind_expr(binder, member->expr);
     if (expr == NULL) return NULL;
 
-    if (expr->type == NULL || expr->type->kind != EL_HIR_TYPE_STRUCT) {
+    const ElHirType* type = expr->type;
+    if (type != NULL) type = el_hir_type_unwrap_distinct(type);
+
+    if (type == NULL || type->kind != EL_HIR_TYPE_STRUCT) {
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.not-struct",
             member->expr->span, "member access requires a struct value"
         );
     }
 
-    ElHirStructType* stype = &expr->type->as.struct_;
+    ElHirStructType* stype = &type->as.struct_;
 
     bool found = false;
     usize field_index;
@@ -302,28 +302,31 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
     ElHirExpr* expr = el_binder_bind_expr(binder, tmember->expr);
     if (expr == NULL) return NULL;
 
-    if (expr->type == NULL || expr->type->kind != EL_HIR_TYPE_TUPLE) {
+    const ElHirType* type = expr->type;
+    if (type != NULL) type = el_hir_type_unwrap_distinct(type);
+
+    if (type == NULL || type->kind != EL_HIR_TYPE_TUPLE) {
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.not-tuple",
             tmember->expr->span, "tuple element access requires a tuple value",
         );
     }
 
-    ElHirTupleType* type = &expr->type->as.tuple;
-    if (tmember->index >= type->count) {
+    ElHirTupleType* ttype = &type->as.tuple;
+    if (tmember->index >= ttype->count) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.tuple-index-bounds",
             tmember->index_span, "out of bounds tuple element access",
         );
         el_diag_help(
             binder->diag, "expected value in range 0..${count}",
-            EL_DIAG_INT("count", type->count),
+            EL_DIAG_INT("count", ttype->count),
         );
         return NULL;
     }
 
     return el_hir_new_tmember_expr(
-        binder->hir_arena, in->span, type->elements[tmember->index],
+        binder->hir_arena, in->span, ttype->elements[tmember->index],
         expr, tmember->index
     );
 }
