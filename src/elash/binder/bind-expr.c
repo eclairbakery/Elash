@@ -238,14 +238,14 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
     return _el_binder_explicit_cast(binder, in->span, expr, type);
 }
 
-ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* in, ElAstArrayLit* array_lit) {
-    ElHirType* type = _el_binder_bind_type(binder, array_lit->type);
+ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* in, ElAstTypedInit* tinit) {
+    ElHirType* type = _el_binder_bind_type(binder, tinit->type);
     if (type == NULL) return NULL;
 
-    ElHirExpr* init = el_binder_bind_init(binder, array_lit->init, type);
+    ElHirExpr* init = el_binder_bind_init(binder, tinit->init, type);
     if (init == NULL) return NULL;
 
-    if (array_lit->scls == EL_STORAGECLS_STATIC) {
+    if (tinit->scls == EL_STORAGECLS_STATIC) {
         if (!_el_binder_is_const(binder, init)) {
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.non-const-global-init",
@@ -254,7 +254,7 @@ ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* in, ElAstArray
         }
     }
 
-    init->as.array_lit.scls = array_lit->scls;
+    init->as.array_lit.scls = tinit->scls;
     return init;
 }
 
@@ -335,15 +335,15 @@ ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
     if (in == NULL) return NULL;
 
     switch (in->type) {
-    case EL_AST_EXPR_BINARY:   return _el_binder_bind_bin_expr(binder, in, &in->as.binary);
-    case EL_AST_EXPR_UNARY:    return _el_binder_bind_unary_expr(binder, in, &in->as.unary);
-    case EL_AST_EXPR_LITERAL:  return _el_binder_bind_literal(binder, in, &in->as.literal);
-    case EL_AST_EXPR_IDENT:    return _el_binder_bind_ident(binder, in, &in->as.ident);
-    case EL_AST_EXPR_CALL:     return _el_binder_bind_call(binder, in, &in->as.call);
-    case EL_AST_EXPR_CAST:     return _el_binder_bind_cast(binder, in, &in->as.cast);
-    case EL_AST_EXPR_ARRAYLIT: return _el_binder_bind_array_lit(binder, in, &in->as.array_lit);
-    case EL_AST_EXPR_MEMBER:   return _el_binder_bind_member_expr(binder, in, &in->as.member);
-    case EL_AST_EXPR_TMEMBER:  return _el_binder_bind_tmember_expr(binder, in, &in->as.tmember);
+    case EL_AST_EXPR_BINARY:    return _el_binder_bind_bin_expr(binder, in, &in->as.binary);
+    case EL_AST_EXPR_UNARY:     return _el_binder_bind_unary_expr(binder, in, &in->as.unary);
+    case EL_AST_EXPR_LITERAL:   return _el_binder_bind_literal(binder, in, &in->as.literal);
+    case EL_AST_EXPR_IDENT:     return _el_binder_bind_ident(binder, in, &in->as.ident);
+    case EL_AST_EXPR_CALL:      return _el_binder_bind_call(binder, in, &in->as.call);
+    case EL_AST_EXPR_CAST:      return _el_binder_bind_cast(binder, in, &in->as.cast);
+    case EL_AST_EXPR_TYPEDINIT: return _el_binder_bind_array_lit(binder, in, &in->as.typedinit);
+    case EL_AST_EXPR_MEMBER:    return _el_binder_bind_member_expr(binder, in, &in->as.member);
+    case EL_AST_EXPR_TMEMBER:   return _el_binder_bind_tmember_expr(binder, in, &in->as.tmember);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstExprType, in->type);
 }
