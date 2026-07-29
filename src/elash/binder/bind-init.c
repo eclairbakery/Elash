@@ -1,5 +1,6 @@
 #include <elash/binder/binder.h>
 #include <elash/util/assert.h>
+#include <elash/util/todo.h>
 
 #include <elash/diag/engine.h>
 #include <elash/diag/meta.h>
@@ -55,6 +56,8 @@ ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expec
     }
     case EL_AST_INIT_LIST:
         return _el_binder_bind_init_list(binder, in, expected_type);
+    case EL_AST_INIT_DESIG:
+        EL_TODO("implement designed initializers");
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstInitKind, in->kind);
 }

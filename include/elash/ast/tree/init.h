@@ -4,12 +4,14 @@
 #include <elash/util/dynarena.h>
 
 #include "init/list.h"
+#include "init/desig.h"
 
 typedef struct ElAstExpr ElAstExpr;
 
 typedef enum ElAstInitKind {
     EL_AST_INIT_EXPR,
     EL_AST_INIT_LIST,
+    EL_AST_INIT_DESIG,
 } ElAstInitKind;
 
 typedef struct ElAstInit {
@@ -18,11 +20,9 @@ typedef struct ElAstInit {
     union {
         ElAstExpr* expr;
         ElAstInitList list;
+        ElAstDesignatedInit desig;
     };
     struct ElAstInit* next;
 } ElAstInit;
 
 ElAstInit* el_ast_new_init_expr(ElDynArena* arena, ElAstExpr* expr);
-ElAstInit* el_ast_new_init_list(ElDynArena* arena, ElSourceSpan span, ElAstInit* head, usize count);
-
-void el_ast_init_list_append(ElAstInit** head, ElAstInit** tail, ElAstInit* init);
