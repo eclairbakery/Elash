@@ -272,7 +272,7 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
         );
     }
 
-    ElHirStructType* stype = &type->as.struct_;
+    const ElHirStructType* stype = &type->as.struct_;
 
     bool found = false;
     usize field_index;
@@ -312,7 +312,7 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
         );
     }
 
-    ElHirTupleType* ttype = &type->as.tuple;
+    const ElHirTupleType* ttype = &type->as.tuple;
     if (tmember->index >= ttype->count) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.tuple-index-bounds",
