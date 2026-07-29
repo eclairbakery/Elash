@@ -78,7 +78,7 @@ LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant*
     case EL_MIR_CONST_FLOAT:
         return LLVMConstReal(elc_llvm_map_type(ctx, type), constant->as.float_);
     case EL_MIR_CONST_STRING:
-        return LLVMConstStringInContext2(ctx->context, constant->as.string.val.data, (unsigned)constant->as.string.val.len, true);
+        return LLVMConstStringInContext(ctx->context, constant->as.string.val.data, (unsigned)constant->as.string.val.len, true);
     case EL_MIR_CONST_ARRAY: {
         LLVMTypeRef element_llvm_type = elc_llvm_map_type(ctx, type->as.array.base);
         LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.array.count);
