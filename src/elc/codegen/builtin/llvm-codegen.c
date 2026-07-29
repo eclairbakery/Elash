@@ -14,6 +14,10 @@
 
 #include <stdlib.h>
 
+#ifdef alloca
+#undef alloca
+#endif
+
 typedef ElcLLVMBackendFuncCtx FunctionContext;
 typedef ElcLLVMBackendCtx     Context;
 
