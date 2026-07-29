@@ -15,7 +15,7 @@
 - [ ] ~~For loops~~ *(moved to 0.2.0)*
 
 ### Type system
-- [ ] Strong aliases (typedef)
+- [x] Strong aliases (typedef)
 - [x] Basic primitive types
 - [x] Floating-point types
 - [x] Pointer types
