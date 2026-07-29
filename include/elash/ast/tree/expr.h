@@ -5,10 +5,10 @@
 #include "expr/bin.h"
 #include "expr/unary.h"
 #include "expr/literal.h"
-#include "expr/array-lit.h"
 #include "expr/call.h"
 #include "expr/cast.h"
 #include "expr/member.h"
+#include "expr/typed-init.h"
 
 #include "type.h"
 
@@ -19,7 +19,7 @@ typedef enum ElAstExprType {
     EL_AST_EXPR_BINARY,
     EL_AST_EXPR_UNARY,
     EL_AST_EXPR_LITERAL,
-    EL_AST_EXPR_ARRAYLIT,
+    EL_AST_EXPR_TYPEDINIT,
     EL_AST_EXPR_IDENT,
     EL_AST_EXPR_CALL,
     EL_AST_EXPR_CAST,
@@ -34,7 +34,7 @@ typedef struct ElAstExpr {
         ElAstBinExpr     binary;
         ElAstUnaryExpr   unary;
         ElAstLiteral     literal;
-        ElAstArrayLit    array_lit;
+        ElAstTypedInit   typedinit;
         ElAstIdent       ident;
         ElAstCallExpr    call;
         ElAstCastExpr    cast;

@@ -5,13 +5,13 @@
 
 #include <elash/sema/storage-cls.h>
 
-typedef struct ElAstArrayLit {
+typedef struct ElAstTypedInit {
     ElStorageClass scls;
     ElAstType*     type;
     ElAstInit*     init;
-} ElAstArrayLit;
+} ElAstTypedInit;
 
-ElAstExpr* el_ast_new_array_lit(
+ElAstExpr* el_ast_new_typedinit(
     ElDynArena* arena, ElSourceSpan span,
     ElStorageClass scls, ElAstType* type, ElAstInit* init
 );

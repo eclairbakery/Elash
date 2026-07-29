@@ -37,7 +37,7 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
         ElAstInit* init = el_parser_parse_init(parser);
         if (!init) return NULL;
 
-        return el_ast_new_array_lit(parser->arena, el_source_span_merge(type->span, init->span), scls, type, init);
+        return el_ast_new_typedinit(parser->arena, el_source_span_merge(type->span, init->span), scls, type, init);
     }
 
     if (el_parser_check(parser, EL_TT_IDENT)) {
