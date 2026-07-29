@@ -10,6 +10,7 @@
 #include "type/slice.h"
 #include "type/tuple.h"
 #include "type/struct.h"
+#include "type/distinct.h"
 #include "type/raw-slice.h"
 
 typedef enum ElHirTypeKind {
@@ -21,6 +22,7 @@ typedef enum ElHirTypeKind {
     EL_HIR_TYPE_RWSLICE,
     EL_HIR_TYPE_STRUCT,
     EL_HIR_TYPE_TUPLE,
+    EL_HIR_TYPE_DISTINCT,
 } ElHirTypeKind;
 
 typedef struct ElHirType ElHirType;
@@ -35,6 +37,7 @@ struct ElHirType {
         ElHirStructType   struct_;
         ElHirTupleType    tuple;
         ElHirFuncType     func;
+        ElHirDistinctType distinct;
     } as;
 };
 
@@ -44,3 +47,4 @@ void el_sema_dump_type(const ElHirType* type, FILE* out);
 void el_sema_format_type(const ElHirType* type, ElStringBuf* sb);
 
 bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs);
+const ElHirType* el_hir_type_unwrap_distinct(const ElHirType* type);

@@ -37,7 +37,6 @@ static bool el_hir_expr_is_lvalue(const ElHirExpr* hir) {
 ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
     ElMirValue* operand = el_lowerer_lower_expr(lw, hir->as.cast.expr);
     ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
-    ElMirValue* result = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
 
     ElMirType* from_type = el_lowerer_map_type(lw, hir->as.cast.expr->type);
     bool from_is_integral = is_int_or_char(from_type);
@@ -45,6 +44,10 @@ ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
     bool from_is_float = from_type->kind == EL_MIR_TYPE_FLOAT;
     bool to_is_float = mir_type->kind == EL_MIR_TYPE_FLOAT;
 
+    if (el_mir_type_eql(from_type, mir_type))
+        return operand;
+
+    ElMirValue* result = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
     if (from_is_integral && to_is_integral) {
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_intcast_instr(lw->arena, result, operand));
     } else if (from_is_float || to_is_float) {
