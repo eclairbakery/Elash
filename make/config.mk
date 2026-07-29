@@ -38,7 +38,7 @@ endif
 
 ########### flags ###########
 CSTD     := -std=c11
-WARNINGS := -Wall -Wextra -Werror=implicit-fallthrough -Werror=switch -Werror=uninitialized -Werror=return-type
+WARNINGS := -Wall -Wextra -Werror=implicit-fallthrough -Werror=switch -Werror=uninitialized -Werror=return-type -Werror=discarded-qualifiers
 PIC_CFLAGS := -fPIC
 
 COMMON_CFLAGS := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
