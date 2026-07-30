@@ -1,32 +1,119 @@
 #include <elash/parser/parser.h>
 #include <elash/ast/tree/init.h>
+#include <elash/util/strconv.h>
 
-ElAstInit* el_parser_parse_init(ElParser* parser) {
-    if (el_parser_check(parser, EL_TT_LBRACE)) {
-        ElToken lbrace = el_parser_advance(parser);
+static bool is_designator_start(ElParser* parser) {
+    return el_parser_check(parser, EL_TT_DOT) || el_parser_check(parser, EL_TT_LBRACKET);
+}
 
-        ElAstInit* head = NULL;
-        ElAstInit* tail = NULL;
-        usize count = 0;
+static ElAstInit* parse_init_list(ElParser* parser, ElToken lbrace_tok) {
+    ElAstInit* head = NULL;
+    ElAstInit* tail = NULL;
+    usize count = 0;
 
-        if (!el_parser_check(parser, EL_TT_RBRACE)) {
-            while (true) {
-                ElAstInit* init = el_parser_parse_init(parser);
-                if (init == NULL) break;
+    while (true) {
+        ElAstInit* init = el_parser_parse_init(parser);
+        if (init == NULL) break;
 
-                el_ast_init_list_append(&head, &tail, init);
-                count++;
+        el_ast_init_list_append(&head, &tail, init);
+        count++;
 
-                if (!el_parser_match(parser, EL_TT_COMMA)) break;
-                if (el_parser_check(parser, EL_TT_RBRACE)) break;
+        if (!el_parser_match(parser, EL_TT_COMMA)) break;
+        if (el_parser_check(parser, EL_TT_RBRACE)) break;
+    }
+
+    ElToken rbrace_tok = el_parser_expect(parser, EL_TT_RBRACE);
+    return el_ast_new_init_list(parser->arena, el_source_span_merge(lbrace_tok.span, rbrace_tok.span), head, count);
+}
+
+static ElAstDesignator* parse_designator(ElParser* parser) {
+    if (el_parser_match(parser, EL_TT_DOT)) {
+        ElToken tok = parser->current;
+        if (tok.type == EL_TT_IDENT) {
+            el_parser_advance(parser);
+            return el_ast_new_desig_member(parser->arena, tok.lexeme);
+        }
+
+        if (tok.type == EL_TT_INT_LITERAL) {
+            el_parser_advance(parser);
+            uint64_t val;
+            // NOLINTNEXTLINE(readability-magic-numbers)
+            if (el_string_to_u64(tok.lexeme, 10, &val)) {
+                return el_ast_new_desig_tmember(parser->arena, (usize)val);
             }
         }
 
-        ElToken rbrace = el_parser_expect(parser, EL_TT_RBRACE);
-        return el_ast_new_init_list(parser->arena, el_source_span_merge(lbrace.span, rbrace.span), head, count);
+        _el_parser_report_unexpected(parser, tok);
+        el_parser_advance(parser); // very advanced error recovery mechanism frfr
+        return NULL;
+    }
+
+    // it's already guaranteed by is_designator_start
+    // but maybe expect here would be better anyway
+    // who cares
+    el_parser_advance(parser); // '['
+    ElAstExpr* index = el_parser_parse_expr(parser);
+    el_parser_expect(parser, EL_TT_RBRACKET); // ']'
+
+    return el_ast_new_desig_index(parser->arena, index);
+}
+
+static ElAstDesigInitElem* parse_desig_init_elem(ElParser* parser) {
+    ElAstDesignator* head = NULL;
+    ElAstDesignator* tail = NULL;
+    usize desig_count = 0;
+
+    while (is_designator_start(parser)) {
+        ElAstDesignator* desig = parse_designator(parser);
+        if (desig) {
+            el_ast_desig_list_append(&head, &tail, desig);
+            desig_count++;
+        }
+    }
+
+    el_parser_expect(parser, EL_TT_ASSIGN);
+    ElAstInit* init = el_parser_parse_init(parser);
+
+    return el_ast_new_desig_init_elem(parser->arena, head, desig_count, init);
+}
+
+static ElAstInit* parse_designated_init(ElParser* parser, ElToken lbrace_tok) {
+    ElAstDesigInitElem* head = NULL;
+    ElAstDesigInitElem* tail = NULL;
+    usize count = 0;
+
+    while (true) {
+        ElAstDesigInitElem* elem = parse_desig_init_elem(parser);
+        if (elem == NULL) break;
+
+        el_ast_desig_init_append(&head, &tail, elem);
+        count++;
+
+        if (!el_parser_match(parser, EL_TT_COMMA)) break;
+        if (el_parser_check(parser, EL_TT_RBRACE)) break;
+    }
+
+    ElToken rbrace_tok = el_parser_expect(parser, EL_TT_RBRACE);
+    return el_ast_new_desig_init(parser->arena, el_source_span_merge(lbrace_tok.span, rbrace_tok.span), head, count);
+}
+
+ElAstInit* el_parser_parse_init(ElParser* parser) {
+    if (el_parser_check(parser, EL_TT_LBRACE)) {
+        ElToken lbrace_tok = el_parser_advance(parser);
+
+        if (el_parser_check(parser, EL_TT_RBRACE)) {
+            ElToken rbrace_tok = el_parser_advance(parser);
+            return el_ast_new_init_empty(parser->arena, el_source_span_merge(lbrace_tok.span, rbrace_tok.span));
+        }
+
+        if (is_designator_start(parser)) {
+            return parse_designated_init(parser, lbrace_tok);
+        }
+
+        return parse_init_list(parser, lbrace_tok);
     }
 
     ElAstExpr* expr = el_parser_parse_expr(parser);
-    if (!expr) return NULL;
+    if (expr == NULL) return NULL;
     return el_ast_new_init_expr(parser->arena, expr);
 }

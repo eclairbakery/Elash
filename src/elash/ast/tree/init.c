@@ -9,3 +9,11 @@ ElAstInit* el_ast_new_init_expr(ElDynArena* arena, ElAstExpr* expr) {
         .next = NULL,
     });
 }
+
+ElAstInit* el_ast_new_init_empty(ElDynArena* arena, ElSourceSpan span) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElAstInit, {
+        .kind = EL_AST_INIT_EMPTY,
+        .span = span,
+        .next = NULL,
+    });
+}

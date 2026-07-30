@@ -1,0 +1,60 @@
+typedef Expression as struct {
+    char op;
+    struct {
+        int a;
+        int b;
+    } operands;
+};
+
+int eval(Expression expr) {
+    if (expr.op == '+') return expr.operands.a + expr.operands.b;
+    if (expr.op == '-') return expr.operands.a - expr.operands.b;
+    if (expr.op == '*') return expr.operands.a * expr.operands.b;
+    if (expr.op == '/') return expr.operands.a / expr.operands.b;
+    return 0; // unreachable in this test
+}
+
+Expression multiplication(int a, int b) {
+    return Expression {
+        .op = '*',
+        .operands.a = a,
+        .operands.b = b,
+    };
+}
+
+int sum(int[4] array) {
+    int r = 0; int i = 0;
+    while (i < len(array))
+        r += array[i];
+    return r;
+}
+
+int main() {
+    Expression add = Expression {
+        .op = '+',
+        .operands = {
+            .a = 20, .b = 35,
+        },
+    };
+
+    if (eval(add) != 55)
+        return 1;
+
+    Expression mul = multiplication(3, 10);
+    if (eval(mul) != 30)
+        return 2;
+
+    int[4] array = {
+        [0] = 12,
+        [3] = 10,
+        [2] = 10,
+        [1] = 20,
+    };
+
+    if (sum(array) != 52)
+        return 3;
+    if (array[3] != 10 || array[1] != 20 || array[2] != 10)
+        return 4;
+
+    return 0;
+}
