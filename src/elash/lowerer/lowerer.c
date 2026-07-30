@@ -125,26 +125,26 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
         }
         break;
 
-    case EL_HIR_EXPR_ARRAYLIT: {
+    case EL_HIR_EXPR_AGGCONST: {
         ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
-        if (hir->as.array_lit.scls == EL_STORAGECLS_STATIC) {
+        if (hir->as.aggconst.scls == EL_STORAGECLS_STATIC) {
             return _el_lowerer_new_anon_global(lw, mir_type, _el_lowerer_lower_const(lw, hir));
         }
 
         ElMirValue* ptr = _el_lowerer_create_alloca(lw, mir_type);
-        _el_lowerer_lower_array_lit(lw, ptr, &hir->as.array_lit);
+        _el_lowerer_lower_aggconst(lw, ptr, &hir->as.aggconst);
         return ptr;
     }
 
-    case EL_HIR_EXPR_STRINGLIT: {
+    case EL_HIR_EXPR_STRCONST: {
         ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
-        ElHirStringLit* strlit = &hir->as.string_lit;
+        ElHirStringConst* strconst = &hir->as.strconst;
 
         ElMirConstant* mirconst = EL_DYNARENA_NEW(lw->arena, ElMirConstant);
         mirconst->kind = EL_MIR_CONST_STRING;
-        mirconst->as.string.val = strlit->chars;
+        mirconst->as.string.val = strconst->chars;
 
-        if (strlit->scls == EL_STORAGECLS_STATIC) {
+        if (strconst->scls == EL_STORAGECLS_STATIC) {
             return _el_lowerer_new_anon_global(lw, mir_type, mirconst);
         }
 

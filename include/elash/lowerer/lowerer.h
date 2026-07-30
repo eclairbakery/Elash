@@ -62,7 +62,7 @@ ElMirValue*    _el_lowerer_create_alloca(ElLowerer* lw, ElMirType* type);
 void           _el_lowerer_copy_str_to_ptr(ElLowerer* lw, ElMirValue* ptr, ElMirStrConst str);
 
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir);
-void         _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLit* array_lit);
+void         _el_lowerer_lower_aggconst(ElLowerer* lw, ElMirValue* ptr, ElHirAggConst* aggconst);
 void         _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl);
 void         _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl);
 

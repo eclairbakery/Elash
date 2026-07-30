@@ -7,21 +7,21 @@
 #include <elash/mir/instr.h>
 #include <elash/mir/type.h>
 
-void _el_lowerer_lower_array_lit(ElLowerer* lw, ElMirValue* ptr, ElHirArrayLit* array_lit) {
-    for (usize i = 0; i < array_lit->count; ++i) {
+void _el_lowerer_lower_aggconst(ElLowerer* lw, ElMirValue* ptr, ElHirAggConst* aggconst) {
+    for (usize i = 0; i < aggconst->count; ++i) {
         ElMirConstant idx_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = (int64_t)i };
         ElMirValue* index = el_mir_new_const(lw->arena, lw->builtins->type_usize, idx_lit);
 
-        ElMirType* elem_type = el_lowerer_map_type(lw, array_lit->values[i]->type);
+        ElMirType* elem_type = el_lowerer_map_type(lw, aggconst->values[i]->type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, elem_type);
         ElMirValue* elem_ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
 
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, elem_ptr, ptr, index));
 
-        if (array_lit->values[i]->kind == EL_HIR_EXPR_ARRAYLIT) {
-            _el_lowerer_lower_array_lit(lw, elem_ptr, &array_lit->values[i]->as.array_lit);
+        if (aggconst->values[i]->kind == EL_HIR_EXPR_AGGCONST) {
+            _el_lowerer_lower_aggconst(lw, elem_ptr, &aggconst->values[i]->as.aggconst);
         } else {
-            ElMirValue* val = el_lowerer_lower_expr(lw, array_lit->values[i]);
+            ElMirValue* val = el_lowerer_lower_expr(lw, aggconst->values[i]);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, elem_ptr, val));
         }
     }

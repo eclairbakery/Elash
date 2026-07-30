@@ -1,3 +1,4 @@
+#include "elash/hir/tree/expr.h"
 #include <elash/lowerer/lowerer.h>
 #include <elash/lowerer/builtin.h>
 
@@ -228,16 +229,16 @@ ElMirValue* _el_lowerer_lower_call_expr(ElLowerer* lw, ElHirExpr* hir, ElHirCall
     return result;
 }
 
-ElMirValue* _el_lowerer_lower_array_lit_expr(ElLowerer* lw, ElHirExpr* hir) {
+ElMirValue* _el_lowerer_lower_aggconst_expr(ElLowerer* lw, ElHirExpr* hir) {
     ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
 
-    if (hir->as.array_lit.scls == EL_STORAGECLS_STATIC) {
+    if (hir->as.aggconst.scls == EL_STORAGECLS_STATIC) {
         return _el_lowerer_new_anon_global(lw, mir_type, _el_lowerer_lower_const(lw, hir));
     }
 
     ElMirValue* ptr = _el_lowerer_create_alloca(lw, mir_type);
 
-    _el_lowerer_lower_array_lit(lw, ptr, &hir->as.array_lit);
+    _el_lowerer_lower_aggconst(lw, ptr, &hir->as.aggconst);
 
     ElMirValue* res = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, res, ptr));
@@ -265,16 +266,16 @@ ElMirValue* _el_lowerer_lower_intr_expr(ElLowerer* lw, ElHirExpr* hir) {
     EL_UNREACHABLE_ENUM_VAL(ElHirIntrKind, hir->as.intr.kind);
 }
 
-ElMirValue* _el_lowerer_lower_string_lit_expr(ElLowerer* lw, ElHirExpr* hir) {
+ElMirValue* _el_lowerer_lower_string_const_expr(ElLowerer* lw, ElHirExpr* hir) {
     ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
-    ElHirStringLit* strlit = &hir->as.string_lit;
+    ElHirStringConst* strconst = &hir->as.strconst;
 
     ElMirConstant* mirconst = EL_DYNARENA_NEW(lw->arena, ElMirConstant);
     mirconst->kind = EL_MIR_CONST_STRING;
-    mirconst->as.string.val = strlit->chars;
+    mirconst->as.string.val = strconst->chars;
 
     ElMirValue* ptr;
-    if (strlit->scls == EL_STORAGECLS_STATIC) {
+    if (strconst->scls == EL_STORAGECLS_STATIC) {
         ptr = _el_lowerer_new_anon_global(lw, mir_type, mirconst);
     } else {
         ptr = _el_lowerer_create_alloca(lw, mir_type);
@@ -293,8 +294,8 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_UNARY:     return _el_lowerer_lower_unary_expr(lw, hir, &hir->as.unary);
     case EL_HIR_EXPR_CALL:      return _el_lowerer_lower_call_expr(lw, hir, &hir->as.call);
     case EL_HIR_EXPR_INTR:      return _el_lowerer_lower_intr_expr(lw, hir);
-    case EL_HIR_EXPR_ARRAYLIT:  return _el_lowerer_lower_array_lit_expr(lw, hir);
-    case EL_HIR_EXPR_STRINGLIT: return _el_lowerer_lower_string_lit_expr(lw, hir);
+    case EL_HIR_EXPR_AGGCONST:  return _el_lowerer_lower_aggconst_expr(lw, hir);
+    case EL_HIR_EXPR_STRCONST:  return _el_lowerer_lower_string_const_expr(lw, hir);
     case EL_HIR_EXPR_CAST:      return _el_lowerer_lower_cast_expr(lw, hir);
     case EL_HIR_EXPR_SYMBOL:    return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);
     case EL_HIR_EXPR_TMEMBER: {
@@ -339,7 +340,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
         }
         return el_mir_new_const(lw->arena, mir_type, mir_const);
     }
-    case EL_HIR_EXPR_UNTYPEDLIT:
+    case EL_HIR_EXPR_LITERAL:
         EL_UNREACHABLE("untyped literal in lowerer");
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirExprKind, hir->kind);
