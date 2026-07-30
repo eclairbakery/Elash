@@ -8,11 +8,11 @@
 typedef struct ElHirExpr ElHirExpr;
 typedef struct ElHirType ElHirType;
 
-typedef struct ElHirStringLit {
+typedef struct ElHirStringConst {
     ElStorageClass scls;
     ElStringView chars;
-} ElHirStringLit;
+} ElHirStringConst;
 
-ElHirExpr* el_hir_new_string_lit(
+ElHirExpr* el_hir_new_string_const(
     ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElStringView chars, ElStorageClass scls
 );

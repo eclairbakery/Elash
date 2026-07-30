@@ -148,33 +148,33 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
     }
 
     if (to->kind == EL_HIR_TYPE_PRIM) {
-        switch (expr->as.untyped_lit.kind) {
-        case EL_HIR_UNTYPED_INT:
+        switch (expr->as.literal.kind) {
+        case EL_HIR_LITERAL_INT:
             if (to->as.prim.kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->hir_arena, expr->span, to, expr->as.untyped_lit.of.int_);
+                return el_hir_new_int_constant(binder->hir_arena, expr->span, to, expr->as.literal.of.int_);
             } else if (to->as.prim.kind == EL_PRIMTYPE_CHAR) {
-                return el_hir_new_char_constant(binder->hir_arena, expr->span, to, (char)expr->as.untyped_lit.of.int_);
+                return el_hir_new_char_constant(binder->hir_arena, expr->span, to, (char)expr->as.literal.of.int_);
             } else if (to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
-                return el_hir_new_float_constant(binder->hir_arena, expr->span, to, (double)expr->as.untyped_lit.of.int_);
+                return el_hir_new_float_constant(binder->hir_arena, expr->span, to, (double)expr->as.literal.of.int_);
             }
             break;
-        case EL_HIR_UNTYPED_CHAR:
+        case EL_HIR_LITERAL_CHAR:
             if (to->as.prim.kind == EL_PRIMTYPE_CHAR) {
-                return el_hir_new_char_constant(binder->hir_arena, expr->span, to, expr->as.untyped_lit.of.char_);
+                return el_hir_new_char_constant(binder->hir_arena, expr->span, to, expr->as.literal.of.char_);
             } else if (to->as.prim.kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->hir_arena, expr->span, to, (int64_t)expr->as.untyped_lit.of.char_);
+                return el_hir_new_int_constant(binder->hir_arena, expr->span, to, (int64_t)expr->as.literal.of.char_);
             }
             break;
-        case EL_HIR_UNTYPED_BOOL:
+        case EL_HIR_LITERAL_BOOL:
             if (to->as.prim.kind == EL_PRIMTYPE_BOOL) {
-                return el_hir_new_bool_constant(binder->hir_arena, expr->span, to, expr->as.untyped_lit.of.bool_);
+                return el_hir_new_bool_constant(binder->hir_arena, expr->span, to, expr->as.literal.of.bool_);
             }
             break;
-        case EL_HIR_UNTYPED_FLOAT:
+        case EL_HIR_LITERAL_FLOAT:
             if (to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
-                return el_hir_new_float_constant(binder->hir_arena, expr->span, to, expr->as.untyped_lit.of.float_);
+                return el_hir_new_float_constant(binder->hir_arena, expr->span, to, expr->as.literal.of.float_);
             } else if (to->as.prim.kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->hir_arena, expr->span, to, (int64_t)expr->as.untyped_lit.of.float_);
+                return el_hir_new_int_constant(binder->hir_arena, expr->span, to, (int64_t)expr->as.literal.of.float_);
             }
             break;
         }
@@ -183,23 +183,23 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
     return el_diag_report(
         binder->diag, EL_DIAG_ERROR, "invalid-cast",
         span, "untyped ${of} literal cannot be converted to type ${to}",
-        EL_DIAG_STRING("of", el_hir_untyped_lit_kind_to_string(expr->as.untyped_lit.kind)),
+        EL_DIAG_STRING("of", el_hir_literal_kind_to_string(expr->as.literal.kind)),
         EL_DIAG_TYPE("to", to),
     );
 }
 
 ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr) {
     if (expr->type != NULL) return expr;
-    if (expr->kind == EL_HIR_EXPR_UNTYPEDLIT) {
-        switch (expr->as.untyped_lit.kind) {
-        case EL_HIR_UNTYPED_INT:
-            return el_hir_new_int_constant(binder->hir_arena, expr->span, binder->builtins->type_int, expr->as.untyped_lit.of.int_);
-        case EL_HIR_UNTYPED_CHAR:
-            return el_hir_new_char_constant(binder->hir_arena, expr->span, binder->builtins->type_char, expr->as.untyped_lit.of.char_);
-        case EL_HIR_UNTYPED_BOOL:
-            return el_hir_new_bool_constant(binder->hir_arena, expr->span, binder->builtins->type_bool, expr->as.untyped_lit.of.bool_);
-        case EL_HIR_UNTYPED_FLOAT:
-            return el_hir_new_float_constant(binder->hir_arena, expr->span, binder->builtins->type_float, expr->as.untyped_lit.of.float_);
+    if (expr->kind == EL_HIR_EXPR_LITERAL) {
+        switch (expr->as.literal.kind) {
+        case EL_HIR_LITERAL_INT:
+            return el_hir_new_int_constant(binder->hir_arena, expr->span, binder->builtins->type_int, expr->as.literal.of.int_);
+        case EL_HIR_LITERAL_CHAR:
+            return el_hir_new_char_constant(binder->hir_arena, expr->span, binder->builtins->type_char, expr->as.literal.of.char_);
+        case EL_HIR_LITERAL_BOOL:
+            return el_hir_new_bool_constant(binder->hir_arena, expr->span, binder->builtins->type_bool, expr->as.literal.of.bool_);
+        case EL_HIR_LITERAL_FLOAT:
+            return el_hir_new_float_constant(binder->hir_arena, expr->span, binder->builtins->type_float, expr->as.literal.of.float_);
         }
     }
     return expr;

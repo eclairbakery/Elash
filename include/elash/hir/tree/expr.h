@@ -12,10 +12,10 @@
 #include "expr/call.h"
 #include "expr/intr.h"
 #include "expr/cast.h"
-#include "expr/array-lit.h"
-#include "expr/string-lit.h"
-#include "expr/untyped-lit.h"
 #include "expr/member.h"
+#include "expr/literal.h"
+#include "expr/aggconst.h"
+#include "expr/strconst.h"
 
 typedef enum ElHirExprKind {
     EL_HIR_EXPR_BINARY,
@@ -25,9 +25,9 @@ typedef enum ElHirExprKind {
     EL_HIR_EXPR_CALL,
     EL_HIR_EXPR_INTR,
     EL_HIR_EXPR_CAST,
-    EL_HIR_EXPR_ARRAYLIT,
-    EL_HIR_EXPR_STRINGLIT,
-    EL_HIR_EXPR_UNTYPEDLIT,
+    EL_HIR_EXPR_AGGCONST,
+    EL_HIR_EXPR_STRCONST,
+    EL_HIR_EXPR_LITERAL,
     EL_HIR_EXPR_MEMBER,
     EL_HIR_EXPR_TMEMBER,
 } ElHirExprKind;
@@ -35,7 +35,7 @@ typedef enum ElHirExprKind {
 typedef struct ElHirExpr {
     ElHirExprKind kind;
     ElSourceSpan span;
-    ElHirType* type; // NULL if it's untyped (i.e. kind == untyped lit)
+    ElHirType* type; // NULL if it's untyped (i.e. kind == literal)
     union {
         ElHirBinExpr     binary;
         ElHirUnaryExpr   unary;
@@ -44,9 +44,9 @@ typedef struct ElHirExpr {
         ElHirCallExpr    call;
         ElHirIntrExpr    intr;
         ElHirCastExpr    cast;
-        ElHirArrayLit    array_lit;
-        ElHirStringLit   string_lit;
-        ElHirUntypedLit  untyped_lit;
+        ElHirAggConst    aggconst;
+        ElHirStringConst strconst;
+        ElHirLiteral     literal;
         ElHirMemberExpr  member;
         ElHirTMemberExpr tmember;
     } as;

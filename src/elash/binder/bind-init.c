@@ -5,7 +5,7 @@
 #include <elash/diag/engine.h>
 #include <elash/diag/meta.h>
 
-#include <elash/hir/tree/expr/array-lit.h>
+#include <elash/hir/tree/expr/aggconst.h>
 
 ElHirExpr* _el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type) {
     if (expected_type->kind != EL_HIR_TYPE_ARRAY) {
@@ -35,7 +35,7 @@ ElHirExpr* _el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType*
         if (values[i] == NULL) return NULL;
     }
 
-    return el_hir_new_array_lit(binder->hir_arena, in->span, expected_type, values, in->list.count, EL_STORAGECLS_LOCAL);
+    return el_hir_new_agg_const(binder->hir_arena, in->span, expected_type, values, in->list.count, EL_STORAGECLS_LOCAL);
 }
 
 ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type) {
