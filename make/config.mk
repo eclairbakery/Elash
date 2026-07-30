@@ -87,11 +87,13 @@ endif
 ifeq ($(USE_POSIX_SHELL),yes)
 	CMD_MKDIR_P = mkdir -p "$(1)"
 	CMD_RM_RF   = rm -rf "$(1)"
+	DIST_FILE  := $(DIST_NAME).tar.gz
 	CMD_ARCHIVE = tar -czf $(DIST_FILE) -C $(OUT_DIR) bin lib
 	FIXPATH     = $(1)
 else
 	CMD_MKDIR_P = powershell -NoProfile -Command "New-Item -ItemType Directory -Force -Path '$(subst /,\,$(1))' | Out-Null"
 	CMD_RM_RF   = powershell -NoProfile -Command "Remove-Item -Recurse -Force -Path '$(subst /,\,$(1))' | Out-Null"
+	DIST_FILE  := $(DIST_NAME).zip
 	CMD_ARCHIVE = Compress-Archive -Path '$(subst /,\,$(OUT_DIR)/*)' -DestinationPath '$(subst /,\,$(DIST_FILE))' -Force
 	FIXPATH     = $(subst /,\,$(1))
 endif

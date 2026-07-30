@@ -15,7 +15,7 @@ EXE_EXT :=
 ifeq ($(PLATFORM),windows)
 	EXE_EXT    := .exe
 	SHARED_EXT := .dll
-	STATIC_EXT := .lib
+	STATIC_EXT := .a
 else ifeq ($(PLATFORM),posix)
 	EXE_EXT    :=
 	SHARED_EXT := .so
@@ -33,8 +33,3 @@ LIBELC_SHARED    := $(LIB_DIR)/lib$(LIBELC_NAME)$(SHARED_EXT)
 ELC_BIN := $(BIN_DIR)/elc$(EXE_EXT)
 
 DIST_NAME := $(OUT_DIR)/elash-$(VERSION)-$(DIST_OS)-$(DIST_ARCH)-$(BUILD)
-ifeq ($(PLATFORM),windows)
-	DIST_FILE := $(DIST_NAME).zip
-else
-	DIST_FILE := $(DIST_NAME).tar.gz
-endif
