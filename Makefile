@@ -33,7 +33,8 @@ DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
 
 all: dirs elc libelash libelc
 
-archive: all
+archive: $(DIST_FILE)
+$(DIST_FILE): all
 ifeq ($(filter %.zip,$(DIST_FILE)),$(DIST_FILE))
 	$(ECHO) "ZIP $@"
 else
