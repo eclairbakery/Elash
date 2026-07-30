@@ -1,14 +1,13 @@
-#include <elash/hir/tree/expr/aggconst.h>
 #include <elash/hir/tree/expr.h>
 
-ElHirExpr* el_hir_new_agg_const(
+ElHirExpr* el_hir_new_agg_init(
     ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElHirExpr** values, usize count, ElStorageClass scls
 ) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
-        .kind = EL_HIR_EXPR_AGGCONST,
+        .kind = EL_HIR_EXPR_AGGINIT,
         .type = type,
         .span = span,
-        .as.aggconst = {
+        .as.agginit = {
             .values = values,
             .count  = count,
             .scls = scls,

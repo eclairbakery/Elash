@@ -240,8 +240,8 @@ ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr) {
         }
         return expr;
     }
-    case EL_HIR_EXPR_AGGCONST: {
-        ElHirAggConst* arr = &expr->as.aggconst;
+    case EL_HIR_EXPR_AGGINIT: {
+        ElHirAggInit* arr = &expr->as.agginit;
         for (usize i = 0; i < arr->count; ++i) {
             arr->values[i] = _el_binder_simplify_expr(binder, arr->values[i]);
         }

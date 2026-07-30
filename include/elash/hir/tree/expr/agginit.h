@@ -8,12 +8,12 @@
 typedef struct ElHirExpr ElHirExpr;
 typedef struct ElHirType ElHirType;
 
-typedef struct ElHirAggConst {
+typedef struct ElHirAggInit {
     ElStorageClass scls;
     ElHirExpr** values;
     usize count;
-} ElHirAggConst;
+} ElHirAggInit;
 
-ElHirExpr* el_hir_new_agg_const(
+ElHirExpr* el_hir_new_agg_init(
     ElDynArena* arena, ElSourceSpan span, ElHirType* type, ElHirExpr** values, usize count, ElStorageClass scls
 );

@@ -254,7 +254,7 @@ ElHirExpr* _el_binder_bind_arr_lit(ElBinder* binder, ElAstExpr* in, ElAstTypedIn
         }
     }
 
-    init->as.aggconst.scls = tinit->scls;
+    init->as.agginit.scls = tinit->scls;
     return init;
 }
 

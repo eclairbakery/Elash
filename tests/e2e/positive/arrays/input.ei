@@ -7,6 +7,10 @@ int sumArray(int[3] arr) {
     return sum;
 }
 
+int getOne() {
+    return 1;
+}
+
 int main() {
     int[3] arr = { 10, 20, 30 };
 
@@ -23,7 +27,8 @@ int main() {
         return 4;
     }
 
-    int n = int[5] { 0, 1, 2, 3, 4 } [2];
+    int runtime = 3;
+    int n = int[5] { 0, getOne(), 2, runtime, 4 } [2];
     if (n != 2) return 5;
 
     if (sumArray({ 10, 20, 30 }) != sumArray(int[3] { 10, 20, 30 })) {

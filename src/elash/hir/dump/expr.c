@@ -67,11 +67,11 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         break;
     }
 
-    case EL_HIR_EXPR_AGGCONST:
+    case EL_HIR_EXPR_AGGINIT:
         fputs("{", out);
-        for (usize i = 0; i < node->as.aggconst.count; ++i) {
+        for (usize i = 0; i < node->as.agginit.count; ++i) {
             if (i > 0) fputs(", ", out);
-            el_hir_dump_expr(node->as.aggconst.values[i], 0, out);
+            el_hir_dump_expr(node->as.agginit.values[i], 0, out);
         }
         fputs("}", out);
         break;

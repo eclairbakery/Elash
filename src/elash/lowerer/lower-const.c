@@ -3,7 +3,7 @@
 #include <elash/util/assert.h>
 
 ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr) {
-    EL_ASSERT(expr->kind == EL_HIR_EXPR_CONST || expr->kind == EL_HIR_EXPR_AGGCONST, "Expression must be a constant or array literal");
+    EL_ASSERT(expr->kind == EL_HIR_EXPR_CONST || expr->kind == EL_HIR_EXPR_AGGINIT, "Expression must be a constant or array literal");
 
     ElMirConstant* mirconst = EL_DYNARENA_NEW(lw->arena, ElMirConstant);
     if (expr->kind == EL_HIR_EXPR_CONST) {
@@ -15,9 +15,9 @@ ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr) {
         case EL_PRIMTYPE_FLOAT: mirconst->kind = EL_MIR_CONST_FLOAT; mirconst->as.float_ = hir.as.float_;         break;
         default: EL_UNREACHABLE("invalid hir constant primitive type");      break;
         }
-    } else /* EL_HIR_EXPR_AGGCONST */ {
+    } else /* EL_HIR_EXPR_AGGINIT */ {
         mirconst->kind = EL_MIR_CONST_ARRAY;
-        ElHirAggConst* arrlit = &expr->as.aggconst;
+        ElHirAggInit* arrlit = &expr->as.agginit;
         mirconst->as.array.count = arrlit->count;
         mirconst->as.array.elements = EL_DYNARENA_NEW_ARR(lw->arena, ElMirConstant*, arrlit->count);
 
