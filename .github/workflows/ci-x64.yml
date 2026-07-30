@@ -7,9 +7,12 @@ on:
   push:
     branches:
       - '**'
+    tags:
+      - '**'
   pull_request:
     branches:
       - '**'
+  workflow_dispatch:
 
 jobs:
   run-ci:
@@ -46,3 +49,14 @@ jobs:
 
       - name: End-to-End tests
         run: make test-e2e
+
+      - name: Archive
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+        run: make archive
+
+      - name: Upload Artifact
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: out/*-release.tar.gz
