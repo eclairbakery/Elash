@@ -14,7 +14,7 @@
 #include "expr/cast.h"
 #include "expr/member.h"
 #include "expr/literal.h"
-#include "expr/aggconst.h"
+#include "expr/agginit.h"
 #include "expr/strconst.h"
 
 typedef enum ElHirExprKind {
@@ -25,7 +25,7 @@ typedef enum ElHirExprKind {
     EL_HIR_EXPR_CALL,
     EL_HIR_EXPR_INTR,
     EL_HIR_EXPR_CAST,
-    EL_HIR_EXPR_AGGCONST,
+    EL_HIR_EXPR_AGGINIT,
     EL_HIR_EXPR_STRCONST,
     EL_HIR_EXPR_LITERAL,
     EL_HIR_EXPR_MEMBER,
@@ -44,7 +44,7 @@ typedef struct ElHirExpr {
         ElHirCallExpr    call;
         ElHirIntrExpr    intr;
         ElHirCastExpr    cast;
-        ElHirAggConst    aggconst;
+        ElHirAggInit     agginit;
         ElHirStringConst strconst;
         ElHirLiteral     literal;
         ElHirMemberExpr  member;

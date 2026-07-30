@@ -127,8 +127,8 @@ void _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
         lw->symbol_map[sym->id] = ptr_reg;
 
         if (decl->as.var_def.init != NULL) {
-            if (decl->as.var_def.init->kind == EL_HIR_EXPR_AGGCONST) {
-                _el_lowerer_lower_aggconst(lw, ptr_reg, &decl->as.var_def.init->as.aggconst);
+            if (decl->as.var_def.init->kind == EL_HIR_EXPR_AGGINIT) {
+                _el_lowerer_lower_agginit(lw, ptr_reg, &decl->as.var_def.init->as.agginit);
             } else {
                 ElMirValue* init_val = el_lowerer_lower_expr(lw, decl->as.var_def.init);
                 el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, ptr_reg, init_val));

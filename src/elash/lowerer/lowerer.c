@@ -125,14 +125,14 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
         }
         break;
 
-    case EL_HIR_EXPR_AGGCONST: {
+    case EL_HIR_EXPR_AGGINIT: {
         ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
-        if (hir->as.aggconst.scls == EL_STORAGECLS_STATIC) {
+        if (hir->as.agginit.scls == EL_STORAGECLS_STATIC) {
             return _el_lowerer_new_anon_global(lw, mir_type, _el_lowerer_lower_const(lw, hir));
         }
 
         ElMirValue* ptr = _el_lowerer_create_alloca(lw, mir_type);
-        _el_lowerer_lower_aggconst(lw, ptr, &hir->as.aggconst);
+        _el_lowerer_lower_agginit(lw, ptr, &hir->as.agginit);
         return ptr;
     }
 
