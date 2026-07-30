@@ -16,6 +16,7 @@
 
 ### Type system
 - [x] Strong aliases (typedef)
+- [ ] Structs initialization
 - [x] Basic primitive types
 - [x] Floating-point types
 - [x] Pointer types
@@ -40,7 +41,7 @@
 - [x] Variable assignment operator
 - [x] Compound assignment operators (+=, -=, ...)
 - [x] String literals
-- [ ] Struct initializers
+- [ ] Designated initializers
 
 ### Compiler CLI
 - [x] diagnostics engine
