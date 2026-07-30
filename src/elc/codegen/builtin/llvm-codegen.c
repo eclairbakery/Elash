@@ -82,16 +82,27 @@ LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant*
     case EL_MIR_CONST_FLOAT:
         return LLVMConstReal(elc_llvm_map_type(ctx, type), constant->as.float_);
     case EL_MIR_CONST_STRING:
-        return LLVMConstStringInContext(ctx->context, constant->as.string.val.data, (unsigned)constant->as.string.val.len, true);
-    case EL_MIR_CONST_ARRAY: {
-        LLVMTypeRef element_llvm_type = elc_llvm_map_type(ctx, type->as.array.base);
-        LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.array.count);
-        for (usize i = 0; i < constant->as.array.count; ++i) {
-            elements[i] = elc_llvm_map_constant(ctx, type->as.array.base, constant->as.array.elements[i]);
+        return LLVMConstStringInContext(ctx->context, constant->as.str.val.data, (unsigned)constant->as.str.val.len, true);
+    case EL_MIR_CONST_AGG: {
+        if (type->kind == EL_MIR_TYPE_ARRAY) {
+            LLVMTypeRef element_llvm_type = elc_llvm_map_type(ctx, type->as.array.base);
+            LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.agg.count);
+            for (usize i = 0; i < constant->as.agg.count; ++i) {
+                elements[i] = elc_llvm_map_constant(ctx, type->as.array.base, constant->as.agg.elements[i]);
+            }
+            LLVMValueRef res = LLVMConstArray(element_llvm_type, elements, (unsigned)constant->as.agg.count);
+            free(elements);
+            return res;
+        } else if (type->kind == EL_MIR_TYPE_TUPLE) {
+            LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.agg.count);
+            for (usize i = 0; i < constant->as.agg.count; ++i) {
+                elements[i] = elc_llvm_map_constant(ctx, type->as.tuple.items[i], constant->as.agg.elements[i]);
+            }
+            LLVMValueRef res = LLVMConstNamedStruct(elc_llvm_map_type(ctx, type), elements, (unsigned)constant->as.agg.count);
+            free(elements);
+            return res;
         }
-        LLVMValueRef res = LLVMConstArray(element_llvm_type, elements, (unsigned)constant->as.array.count);
-        free(elements);
-        return res;
+        EL_UNREACHABLE("invalid aggregate type for constant lowering");
     }
     }
     EL_UNREACHABLE("unhandled constant kind in codegen");

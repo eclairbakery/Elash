@@ -3,7 +3,7 @@
 #include <elash/util/assert.h>
 
 ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr) {
-    EL_ASSERT(expr->kind == EL_HIR_EXPR_CONST || expr->kind == EL_HIR_EXPR_AGGINIT, "Expression must be a constant or array literal");
+    EL_ASSERT(expr->kind == EL_HIR_EXPR_CONST || expr->kind == EL_HIR_EXPR_AGGINIT, "Expression must be a constant or aggregate literal");
 
     ElMirConstant* mirconst = EL_DYNARENA_NEW(lw->arena, ElMirConstant);
     if (expr->kind == EL_HIR_EXPR_CONST) {
@@ -16,13 +16,13 @@ ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr) {
         default: EL_UNREACHABLE("invalid hir constant primitive type");      break;
         }
     } else /* EL_HIR_EXPR_AGGINIT */ {
-        mirconst->kind = EL_MIR_CONST_ARRAY;
+        mirconst->kind = EL_MIR_CONST_AGG;
         ElHirAggInit* arrlit = &expr->as.agginit;
-        mirconst->as.array.count = arrlit->count;
-        mirconst->as.array.elements = EL_DYNARENA_NEW_ARR(lw->arena, ElMirConstant*, arrlit->count);
+        mirconst->as.agg.count = arrlit->count;
+        mirconst->as.agg.elements = EL_DYNARENA_NEW_ARR(lw->arena, ElMirConstant*, arrlit->count);
 
         for (usize i = 0; i < arrlit->count; ++i) {
-            mirconst->as.array.elements[i] = _el_lowerer_lower_const(lw, arrlit->values[i]);
+            mirconst->as.agg.elements[i] = _el_lowerer_lower_const(lw, arrlit->values[i]);
         }
     }
 

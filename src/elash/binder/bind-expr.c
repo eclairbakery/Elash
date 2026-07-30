@@ -95,7 +95,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
 
         if (left->type == NULL) REPORT_NON_INDEXABLE;
 
-        const ElHirType* type_to_check = el_hir_type_unwrap_distinct(left->type);
+        ElHirType* type_to_check = el_hir_type_unwrap_distinct(left->type);
 
         switch (type_to_check->kind) {
         case EL_HIR_TYPE_ARRAY:   type = type_to_check->as.array.base;   break;
@@ -262,7 +262,7 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
     ElHirExpr* expr = el_binder_bind_expr(binder, member->expr);
     if (expr == NULL) return NULL;
 
-    const ElHirType* type = expr->type;
+    ElHirType* type = expr->type;
     if (type != NULL) type = el_hir_type_unwrap_distinct(type);
 
     if (type == NULL || type->kind != EL_HIR_TYPE_STRUCT) {
@@ -302,7 +302,7 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
     ElHirExpr* expr = el_binder_bind_expr(binder, tmember->expr);
     if (expr == NULL) return NULL;
 
-    const ElHirType* type = expr->type;
+    ElHirType* type = expr->type;
     if (type != NULL) type = el_hir_type_unwrap_distinct(type);
 
     if (type == NULL || type->kind != EL_HIR_TYPE_TUPLE) {
@@ -312,7 +312,7 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
         );
     }
 
-    const ElHirTupleType* ttype = &type->as.tuple;
+    ElHirTupleType* ttype = &type->as.tuple;
     if (tmember->index >= ttype->count) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.tuple-index-bounds",
