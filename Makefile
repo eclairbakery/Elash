@@ -34,7 +34,12 @@ DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
 all: dirs elc libelash libelc
 
 archive: all
-	@$(call CMD_ARCHIVE)
+ifeq ($(filter %.zip,$(DIST_FILE)),$(DIST_FILE))
+	$(ECHO) "ZIP $@"
+else
+	$(ECHO) "TAR $@"
+endif
+	$(Q)$(call CMD_ARCHIVE)
 
 libelash-static: $(LIBELASH_STATIC)
 libelash-shared: $(LIBELASH_SHARED)
