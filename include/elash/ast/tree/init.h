@@ -12,6 +12,7 @@ typedef enum ElAstInitKind {
     EL_AST_INIT_EXPR,
     EL_AST_INIT_LIST,
     EL_AST_INIT_DESIG,
+    EL_AST_INIT_EMPTY,
 } ElAstInitKind;
 
 typedef struct ElAstInit {
@@ -26,3 +27,4 @@ typedef struct ElAstInit {
 } ElAstInit;
 
 ElAstInit* el_ast_new_init_expr(ElDynArena* arena, ElAstExpr* expr);
+ElAstInit* el_ast_new_init_empty(ElDynArena* arena, ElSourceSpan span);

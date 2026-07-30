@@ -40,6 +40,8 @@ ElHirExpr* _el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType*
 
 ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type) {
     switch (in->kind) {
+    case EL_AST_INIT_EMPTY:
+        EL_TODO("handle empty initializer");
     case EL_AST_INIT_EXPR: {
         ElHirExpr* expr = el_binder_bind_expr(binder, in->expr);
         if (expr == NULL) return NULL;
