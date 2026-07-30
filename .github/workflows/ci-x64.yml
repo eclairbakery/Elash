@@ -57,7 +57,7 @@ jobs:
       - name: Find Release File
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
         id: locate_file
-        run: echo "resolved_path=$(ls out/*-release.tar.gz | head -n 1)" >> "$GITHUB_OUTPUT"
+        run: echo "resolved_path=$(ls out/release/*-release.tar.gz | head -n 1)" >> "$GITHUB_OUTPUT"
 
       - name: Upload Artifact
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
