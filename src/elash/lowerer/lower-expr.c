@@ -266,13 +266,13 @@ ElMirValue* _el_lowerer_lower_intr_expr(ElLowerer* lw, ElHirExpr* hir) {
     EL_UNREACHABLE_ENUM_VAL(ElHirIntrKind, hir->as.intr.kind);
 }
 
-ElMirValue* _el_lowerer_lower_string_const_expr(ElLowerer* lw, ElHirExpr* hir) {
+ElMirValue* _el_lowerer_lower_strconst_expr(ElLowerer* lw, ElHirExpr* hir) {
     ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
     ElHirStringConst* strconst = &hir->as.strconst;
 
     ElMirConstant* mirconst = EL_DYNARENA_NEW(lw->arena, ElMirConstant);
     mirconst->kind = EL_MIR_CONST_STRING;
-    mirconst->as.string.val = strconst->chars;
+    mirconst->as.str.val = strconst->chars;
 
     ElMirValue* ptr;
     if (strconst->scls == EL_STORAGECLS_STATIC) {
@@ -295,7 +295,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_CALL:      return _el_lowerer_lower_call_expr(lw, hir, &hir->as.call);
     case EL_HIR_EXPR_INTR:      return _el_lowerer_lower_intr_expr(lw, hir);
     case EL_HIR_EXPR_AGGINIT:  return _el_lowerer_lower_agginit_expr(lw, hir);
-    case EL_HIR_EXPR_STRCONST:  return _el_lowerer_lower_string_const_expr(lw, hir);
+    case EL_HIR_EXPR_STRCONST:  return _el_lowerer_lower_strconst_expr(lw, hir);
     case EL_HIR_EXPR_CAST:      return _el_lowerer_lower_cast_expr(lw, hir);
     case EL_HIR_EXPR_SYMBOL:    return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);
     case EL_HIR_EXPR_TMEMBER: {

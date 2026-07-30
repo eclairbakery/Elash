@@ -1,6 +1,8 @@
 #include <elash/lowerer/lowerer.h>
 #include <elash/lowerer/builtin.h>
 
+#include <elash/util/assert.h>
+
 #include <elash/mir/value/const.h>
 #include <elash/mir/value/reg.h>
 #include <elash/mir/instr/gep.h>
@@ -8,15 +10,23 @@
 #include <elash/mir/type.h>
 
 void _el_lowerer_lower_agginit(ElLowerer* lw, ElMirValue* ptr, ElHirAggInit* agginit) {
-    for (usize i = 0; i < agginit->count; ++i) {
-        ElMirConstant idx_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = (int64_t)i };
-        ElMirValue* index = el_mir_new_const(lw->arena, lw->builtins->type_usize, idx_lit);
+    EL_ASSERT(ptr->type->kind == EL_MIR_TYPE_PTR, "expected pointer for agginit target");
+    ElMirType* target_type = ptr->type->as.ptr.base;
 
+    for (usize i = 0; i < agginit->count; ++i) {
         ElMirType* elem_type = el_lowerer_map_type(lw, agginit->values[i]->type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, elem_type);
         ElMirValue* elem_ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
 
-        el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, elem_ptr, ptr, index));
+        if (target_type->kind == EL_MIR_TYPE_ARRAY) {
+            ElMirConstant idx_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = (int64_t)i };
+            ElMirValue* index = el_mir_new_const(lw->arena, lw->builtins->type_usize, idx_lit);
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, elem_ptr, ptr, index));
+        } else if (target_type->kind == EL_MIR_TYPE_TUPLE) {
+            el_mir_ibuf_push(&lw->ibuf, el_mir_new_gfp_instr(lw->arena, elem_ptr, ptr, i));
+        } else {
+            EL_UNREACHABLE("unexpected target type for agginit lowering");
+        }
 
         if (agginit->values[i]->kind == EL_HIR_EXPR_AGGINIT) {
             _el_lowerer_lower_agginit(lw, elem_ptr, &agginit->values[i]->as.agginit);

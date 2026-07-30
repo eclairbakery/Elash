@@ -176,7 +176,7 @@ bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
     EL_UNREACHABLE_ENUM_VAL(ElHirTypeKind, lhs->kind);
 }
 
-const ElHirType* el_hir_type_unwrap_distinct(const ElHirType* type) {
+ElHirType* el_hir_type_unwrap_distinct(ElHirType* type) {
     while (type->kind == EL_HIR_TYPE_DISTINCT) {
         type = type->as.distinct.orig;
     }

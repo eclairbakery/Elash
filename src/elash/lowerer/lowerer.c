@@ -142,7 +142,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
 
         ElMirConstant* mirconst = EL_DYNARENA_NEW(lw->arena, ElMirConstant);
         mirconst->kind = EL_MIR_CONST_STRING;
-        mirconst->as.string.val = strconst->chars;
+        mirconst->as.str.val = strconst->chars;
 
         if (strconst->scls == EL_STORAGECLS_STATIC) {
             return _el_lowerer_new_anon_global(lw, mir_type, mirconst);
