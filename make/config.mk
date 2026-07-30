@@ -21,6 +21,19 @@ else
 	PLATFORM := posix
 endif
 
+###### compiler kind detection ######
+CC_VERSION_OUTPUT := $(shell $(CC) --version)
+
+ifeq ($(findstring clang,$(CC_VERSION_OUTPUT)),clang)
+    CCKIND := clang
+else ifeq ($(findstring GCC,$(CC_VERSION_OUTPUT)),GCC)
+    CCKIND := gcc
+else ifeq ($(findstring icc,$(CC_VERSION_OUTPUT)),icc)
+    CCKIND := intel
+else
+    CCKIND := unknown
+endif
+
 ########## version ###########
 ifeq ($(wildcard VERSION),)
 $(error VERSION file not found)
@@ -38,8 +51,17 @@ endif
 
 ########### flags ###########
 CSTD     := -std=c11
-WARNINGS := -Wall -Wextra -Werror=implicit-fallthrough -Werror=switch -Werror=uninitialized -Werror=return-type -Werror=discarded-qualifiers
 PIC_CFLAGS := -fPIC
+
+ifneq ($(CCKIND),unknown)
+	WARNINGS := -Wall -Wextra -Werror=implicit-fallthrough -Werror=switch -Werror=uninitialized -Werror=return-type
+else
+	WARNINGS :=
+endif
+ifeq ($(CCKIND),gcc)
+	# seems to only be supported by gcc (clang does't recognize it)
+	WARNINGS += -Werror=discarded-qualifiers
+endif
 
 COMMON_CFLAGS := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
 
