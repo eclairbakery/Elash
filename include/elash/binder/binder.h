@@ -62,14 +62,16 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
 ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr);
 
+usize _el_binder_find_field(ElStringView name, const ElHirStructType* type, bool* found);
+bool _el_binder_eval_const_index(ElBinder* binder, ElAstExpr* expr, usize* out_idx);
 bool _el_binder_is_const(ElBinder* binder, ElHirExpr* expr);
 
 bool _el_binder_stmt_always_returns(ElBinder* binder, ElHirStmt* stmt);
 bool _el_binder_block_always_returns(ElBinder* binder, ElHirBlockStmt block);
 
-ElHirExpr* el_binder_bind_designated(ElBinder* binder, ElAstInit* in, ElHirType* expected_type);
-ElHirExpr* el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type);
-ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type);
+ElHirExpr* el_binder_bind_designated(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls);
+ElHirExpr* el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls);
+ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls);
 
 ElHirExpr* el_binder_bind_builtin_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElHirSymbol* builtin);
 

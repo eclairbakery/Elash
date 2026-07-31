@@ -1,0 +1,3 @@
+error[sema.missing-init]
+error[sema.duplicate-init]
+error[sema.tuple-index-bounds]
