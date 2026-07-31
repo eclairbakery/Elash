@@ -1,4 +1,4 @@
-PYTHON ?= python
+PYTHON ?= python3
 
 TESTS_DIR     := tests
 TESTS_OUT_DIR := $(OUT_DIR)/tests
