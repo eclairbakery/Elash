@@ -3,17 +3,20 @@
 
 #include <elash/util/assert.h>
 
-#define NICE_TO_HAVE_ASSERTIONS(usize_type, slice) \
+#define NICE_TO_HAVE_ASSERTIONS(slice) \
     EL_ASSERT(slice->type->kind == EL_HIR_TYPE_SLICE, "slice len intrinsic argument must be a slice"); \
-    EL_ASSERT( \
-        usize_type->kind == EL_HIR_TYPE_PRIM \
-        && usize_type->as.prim.kind == EL_PRIMTYPE_INT \
+
+#define ASSERT_USIZE(usize_type)                                          \
+    EL_ASSERT(                                                            \
+        usize_type->kind == EL_HIR_TYPE_PRIM                              \
+        && usize_type->as.prim.kind == EL_PRIMTYPE_INT                    \
         && usize_type->as.prim.as.integral.width == EL_HIR_IWIDTH_NATIVE, \
-        "usize_type param must be instance of usize type" \
+        "usize_type param must be instance of usize type"                 \
     );
 
 ElHirExpr* el_hir_new_slice_len_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* usize_type, ElHirExpr* slice) {
-    NICE_TO_HAVE_ASSERTIONS(usize_type, slice);
+    NICE_TO_HAVE_ASSERTIONS(slice);
+    ASSERT_USIZE(usize_type);
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_INTR,
         .type = usize_type,
@@ -25,11 +28,11 @@ ElHirExpr* el_hir_new_slice_len_intr(ElDynArena* arena, ElSourceSpan span, ElHir
     });
 }
 
-ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* usize_type, ElHirExpr* slice) {
-    NICE_TO_HAVE_ASSERTIONS(usize_type, slice);
+ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* rwslice_type, ElHirExpr* slice) {
+    NICE_TO_HAVE_ASSERTIONS(slice);
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_INTR,
-        .type = usize_type,
+        .type = rwslice_type,
         .span = span,
         .as.intr = {
             .kind = EL_HIR_INTR_SLICE_DATA,

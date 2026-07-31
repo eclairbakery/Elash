@@ -95,6 +95,16 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
             return NULL;
         }
     }
+    if (from->kind == EL_HIR_TYPE_SLICE) {
+        if (to->kind == EL_HIR_TYPE_RWSLICE) {
+            if (type_eql(from->as.slice.base, to->as.rwslice.base)) {
+                return el_hir_new_slice_data_intr(
+                    binder->hir_arena, expr->span,
+                    to, expr
+                );
+            }
+        }
+    }
 
     if (from->kind == EL_HIR_TYPE_PRIM && to->kind == EL_HIR_TYPE_PRIM) {
         if (from->as.prim.kind == EL_PRIMTYPE_INT && to->as.prim.kind == EL_PRIMTYPE_INT) {

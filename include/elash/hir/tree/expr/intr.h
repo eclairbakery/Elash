@@ -24,5 +24,5 @@ typedef struct ElHirIntrExpr {
 } ElHirIntrExpr;
 
 ElHirExpr* el_hir_new_slice_len_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* usize_type, ElHirExpr* slice);
-ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* usize_type, ElHirExpr* slice);
+ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* rwslice_type, ElHirExpr* slice);
 ElHirExpr* el_hir_new_make_slice_intr(ElDynArena* arena, ElSourceSpan span, ElHirExpr* rwslice, ElHirExpr* len);
