@@ -10,6 +10,10 @@ typedef struct ElMirConstant ElMirConstant;
 typedef struct ElMirGlobalValue {
     ElMirSymbol* sym;
     ElMirConstant* init; // NULL for zero-init
+    bool is_definition;
 } ElMirGlobalValue;
 
-ElMirValue* el_mir_new_global(ElDynArena* arena, ElMirType* type, ElMirSymbol* global, ElMirConstant* init);
+ElMirValue* el_mir_new_global(
+    ElDynArena* arena, ElMirType* type,
+    ElMirSymbol* global, ElMirConstant* init, bool is_definition
+);

@@ -38,7 +38,7 @@ void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElLow
 ElMirValue* _el_lowerer_new_anon_global(ElLowerer* lw, ElMirType* type, ElMirConstant* init) {
     ElMirSymbol* sym = el_mir_new_var_symbol(lw->arena, lw->next_sym_id++, EL_SV_NULL, type);
     ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, type);
-    return el_mir_new_global(lw->arena, ptr_type, sym, init);
+    return el_mir_new_global(lw->arena, ptr_type, sym, init, true);
 }
 
 ElMirValue* _el_lowerer_create_alloca(ElLowerer* lw, ElMirType* type) {
@@ -73,7 +73,7 @@ ElMirValue* get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, ElHirType* type) 
         ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-        ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL);
+        ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL, true);
         if (lw->symbol_map != NULL) {
             lw->symbol_map[sym->id] = glob;
         }
@@ -82,7 +82,7 @@ ElMirValue* get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, ElHirType* type) 
     if (sym->kind == EL_SYM_FUNC) {
         ElMirType* mir_type = el_lowerer_map_type(lw, type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
-        return el_mir_new_global(lw->arena, mir_type, mir_sym, NULL);
+        return el_mir_new_global(lw->arena, mir_type, mir_sym, NULL, sym->as.func.is_defined);
     }
     EL_UNREACHABLE("symbol is not an lvalue (this should be caught during semantic analysis)");
 }

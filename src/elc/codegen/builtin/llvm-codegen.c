@@ -108,6 +108,18 @@ LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant*
     EL_UNREACHABLE("unhandled constant kind in codegen");
 }
 
+#define SET_INIT(IS_DEF, GLOB, VAL, SYM)                                              \
+    if (IS_DEF) {                                                                     \
+        if ((VAL)->as.global.init != NULL) {                                          \
+            LLVMSetInitializer(                                                       \
+                (GLOB),                                                               \
+                elc_llvm_map_constant(ctx, (SYM)->as.var.type, (VAL)->as.global.init) \
+            );                                                                        \
+        } else {                                                                      \
+            LLVMSetInitializer(glob, LLVMConstNull(type));                            \
+        }                                                                             \
+    }
+
 LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue* value) {
     switch (value->kind) {
     case EL_MIR_VAL_CONST: {
@@ -135,11 +147,7 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
             EL_ASSERT(sym->kind == EL_MIR_SYM_VAR, "anonymous symbols should be variables");
             LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.var.type);
             LLVMValueRef glob = LLVMAddGlobal(ctx->current_mod, type, "");
-            if (value->as.global.init != NULL) {
-                LLVMSetInitializer(glob, elc_llvm_map_constant(ctx, sym->as.var.type, value->as.global.init));
-            } else {
-                LLVMSetInitializer(glob, LLVMConstNull(type));
-            }
+            SET_INIT(value->as.global.is_definition, glob, value, sym);
             ctx->globals[sym->id] = glob;
             return glob;
         }
@@ -155,12 +163,7 @@ LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue*
                 if (glob == NULL) {
                     LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.var.type);
                     glob = LLVMAddGlobal(ctx->current_mod, type, name);
-
-                    if (value->as.global.init != NULL) {
-                        LLVMSetInitializer(glob, elc_llvm_map_constant(ctx, sym->as.var.type, value->as.global.init));
-                    } else {
-                        LLVMSetInitializer(glob, LLVMConstNull(type));
-                    }
+                    SET_INIT(value->as.global.is_definition, glob, value, sym);
                 }
             }
         }
