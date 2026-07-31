@@ -48,8 +48,8 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         }
         break;
 
-    case EL_HIR_EXPR_STRINGLIT:
-        fprintf(out, "\"" EL_SV_FMT "\"", EL_SV_FARG(node->as.string_lit.chars));
+    case EL_HIR_EXPR_STRCONST:
+        fprintf(out, "\"" EL_SV_FMT "\"", EL_SV_FARG(node->as.strconst.chars));
         break;
 
     case EL_HIR_EXPR_SYMBOL:
@@ -67,11 +67,11 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         break;
     }
 
-    case EL_HIR_EXPR_ARRAYLIT:
+    case EL_HIR_EXPR_AGGINIT:
         fputs("{", out);
-        for (usize i = 0; i < node->as.array_lit.count; ++i) {
+        for (usize i = 0; i < node->as.agginit.count; ++i) {
             if (i > 0) fputs(", ", out);
-            el_hir_dump_expr(node->as.array_lit.values[i], 0, out);
+            el_hir_dump_expr(node->as.agginit.values[i], 0, out);
         }
         fputs("}", out);
         break;
@@ -100,12 +100,12 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         fputs(")", out);
         break;
 
-    case EL_HIR_EXPR_UNTYPEDLIT:
-        switch (node->as.untyped_lit.kind) {
-            case EL_HIR_UNTYPED_INT:   fprintf(out, "%"PRId64, node->as.untyped_lit.of.int_);        break;
-            case EL_HIR_UNTYPED_FLOAT: fprintf(out, "%lf", node->as.untyped_lit.of.float_);          break;
-            case EL_HIR_UNTYPED_CHAR:  fprintf(out, "'%c'", node->as.untyped_lit.of.char_);          break;
-            case EL_HIR_UNTYPED_BOOL:  fputs(node->as.untyped_lit.of.bool_ ? "true" : "false", out); break;
+    case EL_HIR_EXPR_LITERAL:
+        switch (node->as.literal.kind) {
+            case EL_HIR_LITERAL_INT:   fprintf(out, "%"PRId64, node->as.literal.of.int_);        break;
+            case EL_HIR_LITERAL_FLOAT: fprintf(out, "%lf", node->as.literal.of.float_);          break;
+            case EL_HIR_LITERAL_CHAR:  fprintf(out, "'%c'", node->as.literal.of.char_);          break;
+            case EL_HIR_LITERAL_BOOL:  fputs(node->as.literal.of.bool_ ? "true" : "false", out); break;
         }
         break;
 

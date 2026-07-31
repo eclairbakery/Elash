@@ -24,6 +24,10 @@ void el_ast_dump_init(ElAstInit* init, usize indent, FILE* out) {
     switch (init->kind) {
     case EL_AST_INIT_EXPR:
         return el_ast_dump_expr(init->expr, indent, out);
+    case EL_AST_INIT_EMPTY:
+        el_ast_dump_print_indent(indent, out);
+        fputs("EmptyInit\n", out);
+        return;
     case EL_AST_INIT_LIST:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "InitList(elems=%zu):\n", init->list.count);

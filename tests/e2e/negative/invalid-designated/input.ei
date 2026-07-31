@@ -1,0 +1,20 @@
+typedef Pair as struct {
+    int x;
+    int y;
+};
+
+typedef Vector as struct(float, float);
+
+int main() {
+    // y is not initialized
+    Pair p = { .x = 10 };
+
+    // duplicated initialized
+    Pair p2 = { .y = 20, .x = 40, .y = 30 };
+
+    // tuple index 2 is out of the range
+    Vector v = { .0 = 3.14, .1 = 1.12, .2 = 7.1 };
+
+    // index 3 is out of the range
+    int[3] arr = { [0] = 1, [3] = 2 };
+}

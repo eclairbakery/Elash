@@ -1,0 +1,86 @@
+typedef Expression as struct {
+    char op;
+    struct {
+        int a;
+        int b;
+    } operands;
+};
+
+int eval(Expression expr) {
+    if (expr.op == '+') return expr.operands.a + expr.operands.b;
+    if (expr.op == '-') return expr.operands.a - expr.operands.b;
+    if (expr.op == '*') return expr.operands.a * expr.operands.b;
+    if (expr.op == '/') return expr.operands.a / expr.operands.b;
+    return 0; // unreachable in this test
+}
+
+Expression multiplication(int a, int b) {
+    return Expression {
+        .op = '*',
+        .operands.a = a,
+        .operands.b = b,
+    };
+}
+
+int sum(int[4] array) {
+    int r = 0; usize i = 0;
+    while (i < len(array))
+        r += array[i++];
+    return r;
+}
+
+int runtimeify(int n) {
+    return n;
+}
+
+typedef IntWrapper as struct(int);
+alias ArrayWrapper = struct {
+    IntWrapper[3] array;
+};
+
+int main() {
+    struct(int, int) tuple = {
+        .1 = 53,
+        .0 = 12,
+    };
+    if (tuple.0 != 12 || tuple.1 != 53)
+        return 1;
+
+    Expression add = {
+        .op = '+',
+        .operands = {
+            .a = runtimeify(20), .b = 35,
+        },
+    };
+
+    if (eval(add) != 55)
+        return 2;
+
+    Expression mul = multiplication(3, 10);
+    if (eval(mul) != 30)
+        return 3;
+
+    int[4] array = {
+        [0] = 12,
+        [3] = runtimeify(10),
+        [2] = 10,
+        [1] = runtimeify(20),
+    };
+
+    if (sum(array) != 52)
+        return 4;
+    if (array[3] != 10 || array[1] != 20 || array[2] != 10)
+        return 5;
+
+    ArrayWrapper aw = {
+        .array[0].0   = 10,
+        .array[1+1].0 = runtimeify(30),
+        .array[1].0   = 20,
+    };
+
+    IntWrapper[3]& a = &aw.array;
+    if (a^[0].0 != 10 || a^[1].0 != 20 || a^[2].0 != 30)
+        return 6;
+
+    return 0;
+}

@@ -5,10 +5,10 @@
 #define TYPED_BOOL_RET(type, val, span)   el_hir_new_bool_constant(binder->hir_arena, span, type, val)
 #define TYPED_FLOAT_RET(type, val, span)  el_hir_new_float_constant(binder->hir_arena, span, type, val)
 
-#define UNTYPED_INT_RET(type, val, span)   el_hir_new_untyped_int_lit(binder->hir_arena, span, val)
-#define UNTYPED_CHAR_RET(type, val, span)  el_hir_new_untyped_char_lit(binder->hir_arena, span, val)
-#define UNTYPED_BOOL_RET(type, val, span)  el_hir_new_untyped_bool_lit(binder->hir_arena, span, val)
-#define UNTYPED_FLOAT_RET(type, val, span) el_hir_new_untyped_float_lit(binder->hir_arena, span, val)
+#define UNTYPED_INT_RET(type, val, span)   el_hir_new_int_lit(binder->hir_arena, span, val)
+#define UNTYPED_CHAR_RET(type, val, span)  el_hir_new_char_lit(binder->hir_arena, span, val)
+#define UNTYPED_BOOL_RET(type, val, span)  el_hir_new_bool_lit(binder->hir_arena, span, val)
+#define UNTYPED_FLOAT_RET(type, val, span) el_hir_new_float_lit(binder->hir_arena, span, val)
 
 // TODO: we probably should report an error on division/modulo by zero instead of returning NULL
 #define ARITH_BW_BIN_OP_CASES(a, b, RET_MACRO, type, span)                                          \
@@ -100,9 +100,9 @@
     }
 
 #define FOLD_BINARY_UNTYPED(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)        \
-    if (lkind == EL_HIR_UNTYPED_##KIND && rkind == EL_HIR_UNTYPED_##KIND) { \
-        T a = lhs->as.untyped_lit.of.MEMBER;                                \
-        T b = rhs->as.untyped_lit.of.MEMBER;                                \
+    if (lkind == EL_HIR_LITERAL_##KIND && rkind == EL_HIR_LITERAL_##KIND) { \
+        T a = lhs->as.literal.of.MEMBER;                                \
+        T b = rhs->as.literal.of.MEMBER;                                \
         switch (op) {                                                       \
         ARITH_BW_BIN_OP_CASES(a, b, UNTYPED_RET, NULL, lhs->span)           \
         COMP_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)          \
@@ -111,9 +111,9 @@
     }
 
 #define FOLD_BINARY_UNTYPED_FLOAT(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET)  \
-    if (lkind == EL_HIR_UNTYPED_##KIND && rkind == EL_HIR_UNTYPED_##KIND) { \
-        T a = lhs->as.untyped_lit.of.MEMBER;                                \
-        T b = rhs->as.untyped_lit.of.MEMBER;                                \
+    if (lkind == EL_HIR_LITERAL_##KIND && rkind == EL_HIR_LITERAL_##KIND) { \
+        T a = lhs->as.literal.of.MEMBER;                                \
+        T b = rhs->as.literal.of.MEMBER;                                \
         switch (op) {                                                       \
         ARITH_FLOAT_BIN_OP_CASES(a, b, UNTYPED_RET, NULL, lhs->span)        \
         COMP_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)          \
@@ -122,8 +122,8 @@
     }
 
 #define FOLD_UNARY_UNTYPED(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET) \
-    if (kind == EL_HIR_UNTYPED_##KIND) {                            \
-        T a = operand->as.untyped_lit.of.MEMBER;                    \
+    if (kind == EL_HIR_LITERAL_##KIND) {                            \
+        T a = operand->as.literal.of.MEMBER;                    \
         switch (op) {                                               \
         UNARY_INT_OP_CASES(a, UNTYPED_RET, NULL, operand->span)     \
         default: return NULL;                                       \
@@ -131,8 +131,8 @@
     }
 
 #define FOLD_UNARY_UNTYPED_FLOAT(KIND, T, MEMBER, TYPED_RET, UNTYPED_RET) \
-    if (kind == EL_HIR_UNTYPED_##KIND) {                                  \
-        T a = operand->as.untyped_lit.of.MEMBER;                          \
+    if (kind == EL_HIR_LITERAL_##KIND) {                                  \
+        T a = operand->as.literal.of.MEMBER;                          \
         switch (op) {                                                     \
         UNARY_FLOAT_OP_CASES(a, UNTYPED_RET, NULL, operand->span)         \
         default: return NULL;                                             \
@@ -180,15 +180,15 @@ static ElHirExpr* apply_unary_operator(ElBinder* binder, ElSemaUnaryOp op, ElHir
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): also same reason as before
 static ElHirExpr* apply_binary_operator_untyped(ElBinder* binder, ElHirExpr* lhs, ElSemaBinOp op, ElHirExpr* rhs) {
-    ElHirUntypedLitKind lkind = lhs->as.untyped_lit.kind;
-    ElHirUntypedLitKind rkind = rhs->as.untyped_lit.kind;
+    ElHirLiteralKind lkind = lhs->as.literal.kind;
+    ElHirLiteralKind rkind = rhs->as.literal.kind;
 
     EL_FOR_EACH_INTEGRAL_TYPE(FOLD_BINARY_UNTYPED);
     EL_FOR_EACH_FLOAT_TYPE(FOLD_BINARY_UNTYPED_FLOAT);
 
-    if (lkind == EL_HIR_UNTYPED_BOOL && rkind == EL_HIR_UNTYPED_BOOL) {
-        bool a = lhs->as.untyped_lit.of.bool_;
-        bool b = rhs->as.untyped_lit.of.bool_;
+    if (lkind == EL_HIR_LITERAL_BOOL && rkind == EL_HIR_LITERAL_BOOL) {
+        bool a = lhs->as.literal.of.bool_;
+        bool b = rhs->as.literal.of.bool_;
         switch (op) {
         BOOL_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span);
         default: return NULL;
@@ -199,11 +199,11 @@ static ElHirExpr* apply_binary_operator_untyped(ElBinder* binder, ElHirExpr* lhs
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): also also same reason as before
 static ElHirExpr* apply_unary_operator_untyped(ElBinder* binder, ElSemaUnaryOp op, ElHirExpr* operand) {
-    ElHirUntypedLitKind kind = operand->as.untyped_lit.kind;
+    ElHirLiteralKind kind = operand->as.literal.kind;
     EL_FOR_EACH_INTEGRAL_TYPE(FOLD_UNARY_UNTYPED);
     EL_FOR_EACH_FLOAT_TYPE(FOLD_UNARY_UNTYPED_FLOAT);
-    if (kind == EL_HIR_UNTYPED_BOOL) {
-        bool a = operand->as.untyped_lit.of.bool_;
+    if (kind == EL_HIR_LITERAL_BOOL) {
+        bool a = operand->as.literal.of.bool_;
         UNARY_BOOL_OP_CASES(a, UNTYPED_BOOL_RET, NULL, operand->span);
     }
     return NULL;
@@ -219,7 +219,7 @@ ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr) {
         bin->left  = _el_binder_simplify_expr(binder, bin->left);
         bin->right = _el_binder_simplify_expr(binder, bin->right);
 
-        if (bin->left->kind == EL_HIR_EXPR_UNTYPEDLIT && bin->right->kind == EL_HIR_EXPR_UNTYPEDLIT) {
+        if (bin->left->kind == EL_HIR_EXPR_LITERAL && bin->right->kind == EL_HIR_EXPR_LITERAL) {
             ElHirExpr* res = apply_binary_operator_untyped(binder, bin->left, bin->op, bin->right);
             if (res != NULL) return res;
         } else if (bin->left->kind == EL_HIR_EXPR_CONST && bin->right->kind == bin->left->kind) {
@@ -231,7 +231,7 @@ ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr) {
     case EL_HIR_EXPR_UNARY: {
         ElHirUnaryExpr* unary = &expr->as.unary;
         unary->operand = _el_binder_simplify_expr(binder, unary->operand);
-        if (unary->operand->kind == EL_HIR_EXPR_UNTYPEDLIT) {
+        if (unary->operand->kind == EL_HIR_EXPR_LITERAL) {
             ElHirExpr* res = apply_unary_operator_untyped(binder, unary->op, unary->operand);
             if (res != NULL) return res;
         } else if (unary->operand->kind == EL_HIR_EXPR_CONST) {
@@ -240,8 +240,8 @@ ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr) {
         }
         return expr;
     }
-    case EL_HIR_EXPR_ARRAYLIT: {
-        ElHirArrayLit* arr = &expr->as.array_lit;
+    case EL_HIR_EXPR_AGGINIT: {
+        ElHirAggInit* arr = &expr->as.agginit;
         for (usize i = 0; i < arr->count; ++i) {
             arr->values[i] = _el_binder_simplify_expr(binder, arr->values[i]);
         }

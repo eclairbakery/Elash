@@ -8,16 +8,16 @@ typedef struct ElMirValue ElMirValue;
 typedef struct ElMirConstant ElMirConstant;
 
 typedef enum ElMirConstKind {
+    EL_MIR_CONST_AGG,
     EL_MIR_CONST_INT,
     EL_MIR_CONST_FLOAT,
-    EL_MIR_CONST_ARRAY,
     EL_MIR_CONST_STRING,
 } ElMirConstKind;
 
-typedef struct ElMirArrConst {
+typedef struct ElMirAggConst {
     ElMirConstant** elements;
     usize count;
-} ElMirArrConst;
+} ElMirAggConst;
 
 typedef struct ElMirStrConst {
     ElStringView val;
@@ -26,8 +26,8 @@ typedef struct ElMirStrConst {
 typedef struct ElMirConstant {
     ElMirConstKind kind;
     union {
-        ElMirArrConst array;
-        ElMirStrConst string;
+        ElMirAggConst agg;
+        ElMirStrConst str;
 
         int64_t int_;
         double float_;

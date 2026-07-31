@@ -142,15 +142,15 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
         return REPORT_REDEFINITION(binder, var->name->span, sym->name);
     }
 
-    ElHirExpr* init = NULL;
-    if (var->init != NULL) {
-        init = el_binder_bind_init(binder, var->init, type);
-        if (init == NULL) return NULL;
-    }
-
     ElStorageClass scls = (var->is_global || binder->current_func == NULL)
         ? EL_STORAGECLS_STATIC
         : EL_STORAGECLS_LOCAL;
+
+    ElHirExpr* init = NULL;
+    if (var->init != NULL) {
+        init = el_binder_bind_init(binder, var->init, type, scls);
+        if (init == NULL) return NULL;
+    }
 
     return el_hir_new_var_def(binder->hir_arena, in->span, sym, init, scls);
 }

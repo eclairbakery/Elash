@@ -95,7 +95,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
 
         if (left->type == NULL) REPORT_NON_INDEXABLE;
 
-        const ElHirType* type_to_check = el_hir_type_unwrap_distinct(left->type);
+        ElHirType* type_to_check = el_hir_type_unwrap_distinct(left->type);
 
         switch (type_to_check->kind) {
         case EL_HIR_TYPE_ARRAY:   type = type_to_check->as.array.base;   break;
@@ -150,16 +150,16 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
 ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral* lit) {
     switch (lit->type) {
     case EL_AST_LIT_INT:
-        return el_hir_new_untyped_int_lit(binder->hir_arena, in->span, lit->of.int_.value);
+        return el_hir_new_int_lit(binder->hir_arena, in->span, lit->of.int_.value);
     case EL_AST_LIT_CHAR:
-        return el_hir_new_untyped_char_lit(binder->hir_arena, in->span, lit->of.char_.value);
+        return el_hir_new_char_lit(binder->hir_arena, in->span, lit->of.char_.value);
     case EL_AST_LIT_BOOL:
-        return el_hir_new_untyped_bool_lit(binder->hir_arena, in->span, lit->of.bool_.value);
+        return el_hir_new_bool_lit(binder->hir_arena, in->span, lit->of.bool_.value);
     case EL_AST_LIT_FLOAT:
-        return el_hir_new_untyped_float_lit(binder->hir_arena, in->span, lit->of.float_.value);
+        return el_hir_new_float_lit(binder->hir_arena, in->span, lit->of.float_.value);
     case EL_AST_LIT_STRING: {
         ElHirType* type = el_hir_new_array_type(binder->type_arena, binder->builtins->type_char, lit->of.str_.value.len);
-        return el_hir_new_string_lit(binder->hir_arena, in->span, type, lit->of.str_.value, EL_STORAGECLS_STATIC);
+        return el_hir_new_string_const(binder->hir_arena, in->span, type, lit->of.str_.value, EL_STORAGECLS_STATIC);
     }
     default:
         EL_TODO("support all literal types");
@@ -223,7 +223,7 @@ ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* 
     ElHirExpr** args = EL_DYNARENA_NEW_ARR(binder->hir_arena, ElHirExpr*, call->arg_count);
     usize i = 0;
     for (ElAstInit* curr = call->args; curr != NULL; curr = curr->next) {
-        args[i] = el_binder_bind_init(binder, curr, func->params[i]);
+        args[i] = el_binder_bind_init(binder, curr, func->params[i], EL_STORAGECLS_LOCAL);
         if (!args[i]) return NULL;
         i++;
     }
@@ -238,31 +238,19 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
     return _el_binder_explicit_cast(binder, in->span, expr, type);
 }
 
-ElHirExpr* _el_binder_bind_array_lit(ElBinder* binder, ElAstExpr* in, ElAstTypedInit* tinit) {
+ElHirExpr* _el_binder_bind_typedinit(ElBinder* binder, ElAstExpr* in, ElAstTypedInit* tinit) {
+    (void) in;
     ElHirType* type = _el_binder_bind_type(binder, tinit->type);
     if (type == NULL) return NULL;
 
-    ElHirExpr* init = el_binder_bind_init(binder, tinit->init, type);
-    if (init == NULL) return NULL;
-
-    if (tinit->scls == EL_STORAGECLS_STATIC) {
-        if (!_el_binder_is_const(binder, init)) {
-            return el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.non-const-global-init",
-                in->span, "global array literal must be constant"
-            );
-        }
-    }
-
-    init->as.array_lit.scls = tinit->scls;
-    return init;
+    return el_binder_bind_init(binder, tinit->init, type, tinit->scls);
 }
 
 ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* member) {
     ElHirExpr* expr = el_binder_bind_expr(binder, member->expr);
     if (expr == NULL) return NULL;
 
-    const ElHirType* type = expr->type;
+    ElHirType* type = expr->type;
     if (type != NULL) type = el_hir_type_unwrap_distinct(type);
 
     if (type == NULL || type->kind != EL_HIR_TYPE_STRUCT) {
@@ -275,13 +263,7 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
     const ElHirStructType* stype = &type->as.struct_;
 
     bool found = false;
-    usize field_index;
-    for (usize i = 0; i < stype->count; i++) {
-        if (el_sv_eql(stype->fields[i].name, member->name)) {
-            found = true, field_index = i;
-            break;
-        }
-    }
+    usize field_index = _el_binder_find_field(member->name, stype, &found);
 
     if (!found) {
         return el_diag_report(
@@ -302,7 +284,7 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
     ElHirExpr* expr = el_binder_bind_expr(binder, tmember->expr);
     if (expr == NULL) return NULL;
 
-    const ElHirType* type = expr->type;
+    ElHirType* type = expr->type;
     if (type != NULL) type = el_hir_type_unwrap_distinct(type);
 
     if (type == NULL || type->kind != EL_HIR_TYPE_TUPLE) {
@@ -312,7 +294,7 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
         );
     }
 
-    const ElHirTupleType* ttype = &type->as.tuple;
+    ElHirTupleType* ttype = &type->as.tuple;
     if (tmember->index >= ttype->count) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.tuple-index-bounds",
@@ -341,7 +323,7 @@ ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
     case EL_AST_EXPR_IDENT:     return _el_binder_bind_ident(binder, in, &in->as.ident);
     case EL_AST_EXPR_CALL:      return _el_binder_bind_call(binder, in, &in->as.call);
     case EL_AST_EXPR_CAST:      return _el_binder_bind_cast(binder, in, &in->as.cast);
-    case EL_AST_EXPR_TYPEDINIT: return _el_binder_bind_array_lit(binder, in, &in->as.typedinit);
+    case EL_AST_EXPR_TYPEDINIT: return _el_binder_bind_typedinit(binder, in, &in->as.typedinit);
     case EL_AST_EXPR_MEMBER:    return _el_binder_bind_member_expr(binder, in, &in->as.member);
     case EL_AST_EXPR_TMEMBER:   return _el_binder_bind_tmember_expr(binder, in, &in->as.tmember);
     }
