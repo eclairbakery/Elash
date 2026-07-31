@@ -18,7 +18,7 @@ static ElHirType* bind_array_type(ElBinder* binder, ElAstArrayType* array) {
     if (actual_size_hir == NULL) return NULL;
 
     int64_t size_val = actual_size_hir->as.constant.as.int_;
-    if (size_val <= 0)
+    if (size_val < 0)
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.invalid-array-size",
             array->size->span,
