@@ -116,9 +116,10 @@ $(OBJ_ROOT_DIR)/shared/%.o: %.c
 	$(Q)$(CC) $(CFLAGS) $(PIC_CFLAGS) -MMD -MP -MF $(DEP_ROOT_DIR)/shared/$*.d -c $< -o $@
 
 -include $(DEPS)
+include tests/build.mk
 
 include make/utilities.mk
-include tests/build.mk
+include make/install.mk
 
 clean:
 	@$(call CMD_RM_RF,build)
