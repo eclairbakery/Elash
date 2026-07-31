@@ -71,3 +71,35 @@ ElScope* _el_binder_pop_scope(ElBinder* binder) {
     el_hir_scope_free(binder->current_scope);
     return binder->current_scope = parent;
 }
+
+usize _el_binder_find_field(ElStringView name, const ElHirStructType* type, bool* found) {
+    *found = false;
+    usize idx = 0;
+    for (usize i = 0; i < type->count; i++) {
+        if (el_sv_eql(type->fields[i].name, name)) {
+            idx = i;
+            *found = true;
+            break;
+        }
+    }
+    return idx;
+}
+
+bool _el_binder_eval_const_index(ElBinder* binder, ElAstExpr* expr, usize* out_idx) {
+    ElHirExpr* bound = el_binder_bind_expr(binder, expr);
+    if (bound == NULL) return false;
+
+    if (bound->kind == EL_HIR_EXPR_LITERAL && bound->as.literal.kind == EL_HIR_LITERAL_INT) {
+        int64_t val = bound->as.literal.of.int_;
+        if (val < 0) return false;
+        *out_idx = (usize)val;
+        return true;
+    }
+    if (bound->kind == EL_HIR_EXPR_CONST) {
+        int64_t val = bound->as.constant.as.int_;
+        if (val < 0) return false;
+        *out_idx = (usize)val;
+        return true;
+    }
+    return false;
+}
