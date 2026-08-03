@@ -32,8 +32,18 @@ ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in) {
 }
 
 ElHirStmt* _el_binder_bind_return(ElBinder* binder, ElAstStmt* in) {
-    ElHirExpr* val = el_binder_bind_expr(binder, in->as.return_.value);
-    bool is_void_func = el_hir_type_eql(binder->current_func->as.func.type->as.func.ret_type, binder->builtins->type_void);
+    ElHirExpr* val = NULL;
+    if (in->as.return_.value != NULL) {
+        val = el_binder_bind_init(
+            binder, in->as.return_.value,
+            binder->current_func->as.func.type->as.func.ret_type,
+            EL_STORAGECLS_LOCAL
+        );
+        if (val == NULL) goto skip;
+    }
+
+    bool is_void_func
+        = el_hir_type_eql(binder->current_func->as.func.type->as.func.ret_type, binder->builtins->type_void);
 
     if (val == NULL) {
         if (!is_void_func) {
@@ -67,6 +77,7 @@ ElHirStmt* _el_binder_bind_return(ElBinder* binder, ElAstStmt* in) {
         }
     }
 
+skip:
     return el_hir_new_return_stmt(binder->hir_arena, in->span, val);
 }
 
