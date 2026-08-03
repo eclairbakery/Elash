@@ -1,50 +1,123 @@
+
+// syntax:
+// scope:path/to/file.ext
+// to keep the syntax clean, quotes are optional
 #include std:io
 
-#define A 123
+// same syntax applies to #embed
+// the difference between include and embed is that
+// include pastes the file content as normal tokens
+// while embed pastes it as a single TT_EMBEDDED_DATA
+// token that is later recognized by the parser etc.
+const byte[...] binaryfile = #embed assets:texture.png;
+
 #note "hello"
 
-#if defined(A)
-    #assign bool A_IS_123: A == 123
+// preprocessor functions
+#func FACTORIAL(N)
+    #var RESULT = 0
+    #var I = 2
+    #while I < N + 1
+        #assign RESULT *= I
+    #end
+    #return RESULT
+#end
+
+// functions can be called in all preprocessor expression contexts
+// for example in #if directive
+#if FACTORIAL(4) >= 20
+    // emit a warning
+    #warn "you won't believe it... 4! = ", FACTORIAL(4)
+    // similarly this emits a compile time error
+    // #error "my tuff text"
+#end
+
+// config system
+// --cfg feat:enum-to-str=true
+// HASCONFIG and CONFIG are just builtin functions
+#if HASCONFIG("feat:enum-to-str", "bool")
+    #var ENUM_TO_STR = CONFIG("feat:enum-to-str")
 #else
-    #assign bool A_IS_123: false
+    #var ENUM_TO_STR = false
 #end
 
-#macro CREATE_ENUM(str NAME, list ENUMERATORS)
-    #emit enum #{tokens::IDENT(NAME)} {
-    #foreach E in ENUMERATORS
-        #emit #{tokens::IDENT(E)},
+// #{...} in emit directive means
+//  "enter preprocessor expression mode here and insert the result to the token stream"
+// #<...> in preproc expressions means
+//  "tokenize text between the angle brackets and return it as a token"
+//  (it can be only one token)
+// #(...) in preproc expression means
+//  "tokenize text between the angle brackets and return it as a tokstream"
+//  (basically quote! from rust)
+// #; means
+
+// normal macro params are implicitly typed as a `tokstream`
+// ...NAME means variadic arguments, typed as a `list`
+#macro CREATE_ENUM(NAME, ...ENUMERATORS)
+    // the macro expansion result is rescanned for macros
+    // and other preprocessor instructions, for example,
+    // this is valid: `#emit #note "hello!"`
+    // the maximum rescan limit is set to 80
+    // (that's why you should probably avoid macro
+    //  recursion, unless you really need to use it)
+
+    #emit typedef #{NAME} as enum {
+    #for E: ENUMERATORS
+        #emit #{E},
     #end
     #emit }
 
-    #emit str[] #{tokens::IDENT(NAME)}_names = {
-    #foreach E in ENUMERATORS
-        #emit [(int)#{tokens::IDENT(NAME)}::#{tokens::IDENT(E)}] = #{tokens::STRING(E)},
-    #end
-    #emit };
+    #if ENUM_TO_STR
+        #assign NAMES_ARRAY  = ICAT(NAME, #<_names>)
+        #assign TO_STRING_FN = ICAT(NAME, #<_to_string>)
 
-    #emit str #{tokens::IDENT(NAME)}_to_string(#{tokens::IDENT(NAME)} value) {
-    #emit return #{tokens::IDENT(NAME)}_names[(int)value];
+        #emit strview[] #{NAMES_ARRAY} = {
+        #for E in ENUMERATORS
+            #emit [#{NAME}::#{E} bitcast usize] = #{STRINGIFY(E)},
+        #end
+        #emit };
+
+        #emit strview #{TO_STRING_FN}(#{NAME} value) {
+        #emit     return #{NAMES_ARRAY}[value bitcast usize];
+        #emit }
+    #end
+#end
+
+// you can also use [] or {} as the arguments delimiter
+#macro LIST[...ELEMS]
+    #emit {
+    #for E in ELEMS
+        #emit #{ELEM},
+    #end
     #emit }
 #end
 
-const byte[...] binary_file = #embed assets:file.bin;
-const usize binary_file_size = sizeof(binary_file);
+// to call a macro from outside preprocessor context,
+// you use @MACRO_NAME <param list>
 
 // expands to:
-// enum Color {
+// typedef Color as enum {
 // Red,
 // Green,
 // Blue,
 // }
-// str[] Color_names = {
-// [(int)Color::Red] = "Red",
-// [(int)Color::Green] = "Green",
-// [(int)Color::Blue] = "Blue",
+
+// and (if feat:enum-to-str config is set to true):
+// strview[] Color_names = {
+// [Color::Red bitcast usize] = "Red",
+// [Color::Green bitcast usize] = "Green",
+// [Color::Blue bitcast usize] = "Blue",
 // };
-// str Color_to_string(Color value) {
-// return Color_names[(int)value];
+// strview Color_to_string(Color value) {
+// return Color_names[value bitcast usize];
 // }
-CREATE_ENUM("Color", ("Red", "Green", "Blue"));
+@CREATE_ENUM(Color,
+    Red, Green, Blue
+);
+
+// expands to:
+// int[3] array = { 10, 20, 30, };
+int[3] array = @LIST[ 10, 20, 30 ];
 
 int main() {
     Color color = Color::Red;
