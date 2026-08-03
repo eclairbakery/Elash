@@ -4,7 +4,7 @@
 ### Statements
 - [ ] Init-statements in `if` and `while`
 - [ ] Post-iteration statement in `while` loop
-- [ ] Initializers as `return` values
+- [x] Initializers as `return` values
 
 ### Type system
 - [ ] Enum types

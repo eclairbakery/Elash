@@ -15,7 +15,7 @@ int eval(Expression expr) {
 }
 
 Expression multiplication(int a, int b) {
-    return Expression {
+    return {
         .op = '*',
         .operands.a = a,
         .operands.b = b,

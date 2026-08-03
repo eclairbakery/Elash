@@ -3,6 +3,8 @@
 #include <elash/util/todo.h>
 
 ElHirExpr* _el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
+    if (in == NULL) return NULL;
+
     switch (in->kind) {
     case EL_AST_INIT_EMPTY:
         // TODO: this works for now but it's not the best solution

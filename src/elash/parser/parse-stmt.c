@@ -14,13 +14,13 @@ ElAstStmt* _el_parser_parse_return(ElParser* parser, ElToken return_tok) {
         return el_ast_new_return_stmt(parser->arena, el_source_span_merge(return_tok.span, semi_tok.span), NULL);
     }
 
-    ElAstExpr* expr = el_parser_parse_expr(parser);
+    ElAstInit* init = el_parser_parse_init(parser);
     if (el_parser_has_errs(parser)) return NULL;
 
     ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
     if (el_parser_has_errs(parser)) return NULL;
 
-    return el_ast_new_return_stmt(parser->arena, el_source_span_merge(return_tok.span, semi_tok.span), expr);
+    return el_ast_new_return_stmt(parser->arena, el_source_span_merge(return_tok.span, semi_tok.span), init);
 }
 
 ElAstStmt* _el_parser_parse_if(ElParser* parser, ElToken if_tok) {
