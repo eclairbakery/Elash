@@ -65,7 +65,7 @@ FUZZ_BINARY := $(TESTS_OUT_DIR)/fuzz/fuzzer$(EXE_EXT)
 $(FUZZ_BINARY): $(TESTS_DIR)/fuzz/fuzzer.c $(LIBELASH_STATIC) $(LIBELC_STATIC) | test-dirs
 	@$(call CMD_MKDIR_P,$(dir $@))
 	@$(ECHO) "CC $@"
-	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELASH_STATIC) $(LIBELC_STATIC) $(TESTS_LDFLAGS) -o $@
+	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELASH_STATIC) $(LIBELC_STATIC) $(LDFLAGS) -o $@
 
 .PHONY: test-fuzz-% test-fuzz
 
