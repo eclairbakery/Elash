@@ -184,6 +184,9 @@ static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView ar
     if (handle_dump_switch(p, arg, EL_SV("--dump-lir"),     &p->out->dump_lir))     return ELC_CLI_PARSE_RESULT_OK;
     if (handle_dump_switch(p, arg, EL_SV("--dump-asm"),     &p->out->dump_asm))     return ELC_CLI_PARSE_RESULT_OK;
 
+    if (el_sv_eql(arg, EL_SV("--no-stdlib")))  { p->out->stdlib  = false; return ELC_CLI_PARSE_RESULT_OK; }
+    if (el_sv_eql(arg, EL_SV("--no-corelib"))) { p->out->corelib = false; return ELC_CLI_PARSE_RESULT_OK; }
+
     return (ElcCliParseResult) {
         .code = ELC_CLI_PARSE_UNKNOWN_LONG_FLAG,
         .ctx.str = arg
@@ -280,6 +283,7 @@ static ElcCliParseResult handle_pos_arg(ElcArgParseContext* p, ElStringView arg)
 ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out, ElDynArena* arena) {
     memset(out, 0, sizeof(ElcArgs));
     out->output = el_sv_from_cstr("-");
+    out->stdlib = out->corelib = true;
     out->opt = ELC_OPT_UNSPEC;
     out->until = ELC_ART_OBJ;
     out->emit = ELC_ART_OBJ;
