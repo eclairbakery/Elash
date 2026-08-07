@@ -26,7 +26,7 @@
 - [ ] Optional member operator (`?.`)
 
 ### Driver/CLI
-- [ ] `-I[:src/sys] <scope>=<path>` flag
+- [x] `-I[src/sys] <name>=<path>` flag
 - [ ] `--no-corelib` and `--no-stdlib` flags
 - [ ] Predefined modes (`release`, `debug`)
 - [ ] Invoke system linker

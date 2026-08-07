@@ -1,5 +1,6 @@
 #pragma once
 
+#include <elash/util/dynarena.h>
 #include <elc/cli/args.h>
 #include <stdio.h>
 
@@ -10,6 +11,7 @@ typedef struct ElcArgParseContext {
 
     int i;
     ElcArgs* out;
+    ElDynArena* arena;
 
     bool stop_flags;
     bool cmd_set;
@@ -40,6 +42,6 @@ typedef struct ElcCliParseResult {
 
 #define ELC_CLI_PARSE_RESULT_OK ((ElcCliParseResult) { .code = ELC_CLI_PARSE_OK })
 
-ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out_args);
+ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out_args, ElDynArena* arena);
 void elc_cli_print_usage(FILE* out, const char* program_name);
 void elc_cli_print_error(FILE* out, ElcCliParseResult res);

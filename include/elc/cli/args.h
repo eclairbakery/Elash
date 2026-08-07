@@ -1,6 +1,8 @@
 #pragma once
 
 #include <elash/defs/sv.h>
+#include <elash/pp/ipath.h>
+
 #include <elc/pipeline/artifact.h>
 
 typedef struct ElcCliDumpSwitch {
@@ -29,6 +31,8 @@ typedef enum ElcPreference {
 typedef struct ElcArgs {
     ElStringView input;  // filename or - for stdin
     ElStringView output; // filename or - for stdout
+
+    ElPpIncPaths ipaths;
 
     ElcCliDumpSwitch dump_toks;
     ElcCliDumpSwitch dump_pp_toks;
