@@ -216,6 +216,8 @@ int main() {
     ElAstModule* mod = gen_module(&arena, MAX_DEPTH);
 
     ElTokenBuf tokens;
+    el_tkbuf_init(&tokens);
+
     ElUnparser unparser;
     el_unparser_init(&unparser, &tokens, &arena);
     el_unparser_unparse_module(&unparser, mod);
@@ -228,6 +230,7 @@ int main() {
 
     el_srcdoc_print(&doc, stdout);
 
+    el_tkbuf_destroy(&tokens);
     el_srcdoc_destroy(&doc);
     el_dynarena_free(&arena);
 }
