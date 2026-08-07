@@ -49,7 +49,7 @@ ElAstInit* el_ast_new_desig_init(ElDynArena* arena, ElSourceSpan span, ElAstDesi
 
 void el_ast_desig_list_append(ElAstDesignator** head, ElAstDesignator** tail, ElAstDesignator* desig) {
     desig->next = NULL;
-    if (*tail) {
+    if (*tail != NULL) {
         (*tail)->next = desig;
         *tail = desig;
     } else {
@@ -59,7 +59,7 @@ void el_ast_desig_list_append(ElAstDesignator** head, ElAstDesignator** tail, El
 
 void el_ast_desig_init_append(ElAstDesigInitElem** head, ElAstDesigInitElem** tail, ElAstDesigInitElem* elem) {
     elem->next = NULL;
-    if (*tail) {
+    if (*tail != NULL) {
         (*tail)->next = elem;
         *tail = elem;
     } else {

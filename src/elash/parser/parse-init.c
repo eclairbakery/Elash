@@ -65,7 +65,7 @@ static ElAstDesigInitElem* parse_desig_init_elem(ElParser* parser) {
 
     while (is_designator_start(parser)) {
         ElAstDesignator* desig = parse_designator(parser);
-        if (desig) {
+        if (desig != NULL) {
             el_ast_desig_list_append(&head, &tail, desig);
             desig_count++;
         }
