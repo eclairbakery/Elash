@@ -48,6 +48,9 @@ typedef struct ElcArgs {
     ElcOptLevel opt;
     ElcPreference color;
 
+    bool stdlib;
+    bool corelib;
+
     bool help;
     bool version;
 } ElcArgs;

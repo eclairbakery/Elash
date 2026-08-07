@@ -27,7 +27,7 @@
 
 ### Driver/CLI
 - [x] `-I[src/sys] <name>=<path>` flag
-- [ ] `--no-corelib` and `--no-stdlib` flags
+- [x] `--no-corelib` and `--no-stdlib` flags
 - [ ] Predefined modes (`release`, `debug`)
 - [ ] Invoke system linker
 - [ ] Produce final executable
