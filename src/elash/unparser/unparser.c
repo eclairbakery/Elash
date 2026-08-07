@@ -2,7 +2,6 @@
 
 #include <elash/lexer/token.h>
 
-#include <threads.h>
 #include <stdarg.h>
 #include <stdio.h>
 
