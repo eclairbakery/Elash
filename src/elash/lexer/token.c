@@ -47,7 +47,7 @@ static struct {
 
     [EL_TT_KW_VOLATILE] = F("KW_VOLATILE", "volatile"),
     [EL_TT_KW_CONST] = F("KW_CONST", "const"),
-    [EL_TT_KW_WRITE] = F("KW_WRITE", "write"),
+    [EL_TT_KW_WONLY] = F("KW_WONLY", "wonly"),
 
     [EL_TT_KW_ENUM]    = F("KW_ENUM", "enum"),
     [EL_TT_KW_UNION]   = F("KW_UNION", "union"),

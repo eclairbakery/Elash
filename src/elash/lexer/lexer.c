@@ -123,7 +123,7 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
         { EL_SV("true"),     EL_TT_TRUE_LITERAL  },
         { EL_SV("break"),    EL_TT_KW_BREAK      },
         { EL_SV("const"),    EL_TT_KW_CONST      },
-        { EL_SV("write"),    EL_TT_KW_WRITE      },
+        { EL_SV("wonly"),    EL_TT_KW_WONLY      },
         { EL_SV("alias"),    EL_TT_KW_ALIAS      },
         { EL_SV("false"),    EL_TT_FALSE_LITERAL },
         { EL_SV("union"),    EL_TT_KW_UNION      },
