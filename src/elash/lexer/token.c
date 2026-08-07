@@ -234,6 +234,18 @@ usize el_token_print(const ElToken* tok, FILE* out) {
     return bytes_written;
 }
 
+static bool needs_separator(ElTokenType tt) {
+    return 0
+     || el_token_type_is_keyword(tt)
+     || tt == EL_TT_IDENT
+     || tt == EL_TT_INT_LITERAL   || tt == EL_TT_FLOAT_LITERAL
+     || tt == EL_TT_PLUS          || tt == EL_TT_MINUS
+     || tt == EL_TT_STAR          || tt == EL_TT_SLASH         || tt == EL_TT_PERCENT
+     || tt == EL_TT_ASSIGN        || tt == EL_TT_LT            || tt == EL_TT_GT
+     || tt == EL_TT_LOGICAL_NOT   || tt == EL_TT_BITWISE_AND   || tt == EL_TT_BITWISE_OR
+     || tt == EL_TT_BITWISE_NOT   || tt == EL_TT_COLON         || tt == EL_TT_DOT;
+}
+
 bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb) {
     bool success = true;
 
@@ -270,9 +282,8 @@ bool el_token_to_raw_string(const ElToken* tok, ElStringBuf* sb) {
         break;
     }
 
-    if (el_token_type_is_keyword(tok->type) || tok->type == EL_TT_IDENT) {
+    if (needs_separator(tok->type)) {
         success &= el_strbuf_append_char(sb, ' ');
     }
-
     return success;
 }
