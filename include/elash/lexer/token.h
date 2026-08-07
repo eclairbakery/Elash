@@ -45,8 +45,8 @@ typedef enum ElTokenType {
     EL_TT_KW_STATIC,            // global
 
     EL_TT_KW_VOLATILE,          // volatile
-    EL_TT_KW_CONST,             // const
-    EL_TT_KW_WRITE,             // write
+    EL_TT_KW_CONST,             // ronly
+    EL_TT_KW_WONLY,             // wonly
 
     EL_TT_KW_AS,                // as
 
