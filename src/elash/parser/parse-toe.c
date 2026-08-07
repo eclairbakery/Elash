@@ -147,6 +147,10 @@ static bool is_binary_op_or_cast(ElParser* parser, usize idx) {
         return true;
     case EL_TT_BITWISE_AND: {
         ElToken next = el_parser_peek_at(parser, idx + 1);
+        if (next.type == EL_TT_LBRACKET || next.type == EL_TT_BITWISE_AND) {
+            return false;
+        }
+
         if (next.type != EL_TT_SEMICOLON &&
             next.type != EL_TT_COMMA &&
             next.type != EL_TT_RBRACKET &&
@@ -168,7 +172,7 @@ static bool is_complex_expr(ElParser* parser) {
     usize idx = 0, paren_depth = 0, bracket_depth = 0, brace_depth = 0;
     while (true) {
         ElToken tok = el_parser_peek_at(parser, idx);
-        if (tok.type == EL_TT_EOF || tok.type == EL_TT_SEMICOLON)
+        if (tok.type == EL_TT_EOF)
             break;
 
         if (tok.type == EL_TT_LPAREN)
@@ -186,6 +190,10 @@ static bool is_complex_expr(ElParser* parser) {
         else if (tok.type == EL_TT_RBRACE)
             if (brace_depth > 0) brace_depth--;
             else break;
+        else if (tok.type == EL_TT_SEMICOLON) {
+            if (paren_depth == 0 && bracket_depth == 0 && brace_depth == 0)
+                break;
+        }
         else if (paren_depth == 0 && bracket_depth == 0 && brace_depth == 0)
             if (is_binary_op_or_cast(parser, idx))
                 return true;
