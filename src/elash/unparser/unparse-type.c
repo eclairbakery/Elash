@@ -40,7 +40,7 @@ bool _el_unparser_unparse_type_base(ElUnparser* unpar, ElAstType* type) {
 #define MAX_SUFFIXES 0b110101011
 
 static bool unparse_type_suffixes(ElUnparser* unpar, ElAstType* type) {
-    static thread_local ElAstType* suffixes[MAX_SUFFIXES];
+    ElAstType* suffixes[MAX_SUFFIXES];
     usize count = 0;
 
     // very advanced formatting (right?)

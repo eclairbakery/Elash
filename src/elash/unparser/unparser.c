@@ -31,11 +31,7 @@ bool el_unparser_push(ElUnparser* unpar, ElTokenType type, ElStringView lexeme) 
 
 bool el_unparser_push_fmt(ElUnparser* unpar, ElTokenType type, const char* fmt, ...) {
     // NUCLEAR OPTIMIZATION BEGINS HERE
-    // TERMONUCLEAR OPTIMIZATION BEGINS HERE
-    //  let's NOT allocate 2KB on the stack every time
-    //  this function is called!
-    static thread_local char buf[BUFSIZE];
-    // TERMONUCLEAR OPTIMIZATION ENDS HERE
+    char buf[BUFSIZE];
 
     va_list args;
     va_start(args, fmt);
