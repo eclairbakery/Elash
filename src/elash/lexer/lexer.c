@@ -326,7 +326,7 @@ static ElLexerErrorCode lex_number(ElLexer* lexer, ElToken* out) {
 
     while (isdigit(peek(lexer))) next(lexer);
 
-    if (peek(lexer) == '.') {
+    if (peek(lexer) == '.' && isdigit(peek_next(lexer))) {
         is_float = true;
         next(lexer);
         while (isdigit(peek(lexer))) next(lexer);
