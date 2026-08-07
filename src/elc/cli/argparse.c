@@ -277,19 +277,19 @@ static ElcCliParseResult handle_pos_arg(ElcArgParseContext* p, ElStringView arg)
     return ELC_CLI_PARSE_RESULT_OK;
 }
 
-ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out_args, ElDynArena* arena) {
-    memset(out_args, 0, sizeof(ElcArgs));
-    out_args->output = el_sv_from_cstr("-");
-    out_args->opt = ELC_OPT_UNSPEC;
-    out_args->until = ELC_ART_OBJ;
-    out_args->emit = ELC_ART_OBJ;
+ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out, ElDynArena* arena) {
+    memset(out, 0, sizeof(ElcArgs));
+    out->output = el_sv_from_cstr("-");
+    out->opt = ELC_OPT_UNSPEC;
+    out->until = ELC_ART_OBJ;
+    out->emit = ELC_ART_OBJ;
 
     ElcArgParseContext p = {
         .argc = argc,
         .argv = argv,
         .i = 1,
         .stop_flags = false,
-        .out = out_args,
+        .out = out,
         .arena = arena,
         .cmd_set = false
     };
@@ -314,7 +314,7 @@ ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs*
         }
     }
 
-    if (!out_args->help && !out_args->version && out_args->input.len == 0) {
+    if (!out->help && !out->version && out->input.len == 0) {
         return (ElcCliParseResult) { .code = ELC_CLI_PARSE_MISSING_INPUT };
     }
 
