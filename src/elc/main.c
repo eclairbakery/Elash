@@ -6,8 +6,14 @@
 #include <elc/cli/argparse.h>
 
 int main(int argc, const char* argv[]) {
+    ElcDriver driver;
+    if (!elc_driver_init(&driver)) {
+        fprintf(stderr, "failed to initialize driver\n");
+        return 1;
+    }
+
     ElcArgs args;
-    ElcCliParseResult result = elc_cli_parse_args(argc, argv, &args);
+    ElcCliParseResult result = elc_cli_parse_args(argc, argv, &args, &driver.arena);
     if (result.code != ELC_CLI_PARSE_OK) {
         elc_cli_print_error(stderr, result);
         return 1;
@@ -31,12 +37,6 @@ int main(int argc, const char* argv[]) {
         // TODO: actually print the version i guess
         puts("what do you mean by 'version'?");
         return 0;
-    }
-
-    ElcDriver driver;
-    if (!elc_driver_init(&driver)) {
-        fprintf(stderr, "failed to initialize driver\n");
-        return 1;
     }
 
     elc_driver_register_stages(&driver);

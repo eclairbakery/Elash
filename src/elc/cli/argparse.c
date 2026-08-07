@@ -1,5 +1,6 @@
 #include <elc/cli/argparse.h>
 #include <elash/defs/sv.h>
+#include <string.h>
 
 static ElStringView get_value(ElcArgParseContext* p, ElStringView arg, ElStringView flag_name) {
     if (el_sv_starts_with(arg, flag_name) && arg.len > flag_name.len && arg.data[flag_name.len] == '=') {
@@ -10,6 +11,32 @@ static ElStringView get_value(ElcArgParseContext* p, ElStringView arg, ElStringV
         return el_sv_from_cstr(p->argv[p->i]);
     }
     return EL_SV_NULL;
+}
+
+static ElcCliParseResult handle_include_flag(ElcArgParseContext* p, ElStringView arg) {
+    bool is_sys = el_sv_starts_with(arg, EL_SV("-Isys"));
+    bool is_src = el_sv_starts_with(arg, EL_SV("-Isrc"));
+
+    ElStringView flag = is_sys
+        ? EL_SV("-Isys")
+        : is_src
+            ? EL_SV("-Isrc")
+            : EL_SV("-I");
+
+    ElStringView val = get_value(p, arg, flag);
+    if (val.len == 0)
+        return (ElcCliParseResult) { .code = ELC_CLI_PARSE_EXPECTED_VALUE, .ctx.str = flag };
+
+    const char* eq = memchr(val.data, '=', val.len);
+    if (!eq) return (ElcCliParseResult) { .code = ELC_CLI_PARSE_EXPECTED_VALUE, .ctx.str = flag };
+
+    ElStringView name = el_sv_from_data_and_len(val.data, eq - val.data);
+    ElStringView path = el_sv_from_data_and_len(eq + 1, val.len - (eq - val.data) - 1);
+
+    // don't ask (i'm bored)
+    return el_pp_add_ipath(&p->out->ipaths,  EL_DYNARENA_NEW_STRUCT(p->arena, ElPpIncPath, {
+        .is_system = is_sys, .name = name, .path = path,
+    })), ELC_CLI_PARSE_RESULT_OK;
 }
 
 static ElStringView get_optional_path(ElcArgParseContext* p, ElStringView arg, ElStringView flag_name) {
@@ -180,6 +207,7 @@ static ElcCliParseResult handle_short_flag(ElcArgParseContext* p, ElStringView a
         switch (c) {
         case 'h': p->out->help    = true; break;
         case 'v': p->out->version = true; break;
+        case 'I': return handle_include_flag(p, arg);
         case 'o': {
             ElStringView val = get_short_value(p, arg, j);
             if (val.len == 0) {
@@ -249,19 +277,20 @@ static ElcCliParseResult handle_pos_arg(ElcArgParseContext* p, ElStringView arg)
     return ELC_CLI_PARSE_RESULT_OK;
 }
 
-ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out) {
-    memset(out, 0, sizeof(ElcArgs));
-    out->output = el_sv_from_cstr("-");
-    out->opt = ELC_OPT_UNSPEC;
-    out->until = ELC_ART_OBJ;
-    out->emit = ELC_ART_OBJ;
+ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs* out_args, ElDynArena* arena) {
+    memset(out_args, 0, sizeof(ElcArgs));
+    out_args->output = el_sv_from_cstr("-");
+    out_args->opt = ELC_OPT_UNSPEC;
+    out_args->until = ELC_ART_OBJ;
+    out_args->emit = ELC_ART_OBJ;
 
     ElcArgParseContext p = {
         .argc = argc,
         .argv = argv,
         .i = 1,
         .stop_flags = false,
-        .out = out,
+        .out = out_args,
+        .arena = arena,
         .cmd_set = false
     };
 
@@ -285,7 +314,7 @@ ElcCliParseResult elc_cli_parse_args(int argc, const char* const* argv, ElcArgs*
         }
     }
 
-    if (!out->help && !out->version && out->input.len == 0) {
+    if (!out_args->help && !out_args->version && out_args->input.len == 0) {
         return (ElcCliParseResult) { .code = ELC_CLI_PARSE_MISSING_INPUT };
     }
 
