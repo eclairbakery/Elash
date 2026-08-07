@@ -1,8 +1,6 @@
 #include <elash/unparser/unparser.h>
 #include <elash/util/assert.h>
 
-#include <threads.h>
-
 bool _el_unparser_unparse_type_base(ElUnparser* unpar, ElAstType* type) {
     switch (type->kind) {
     case EL_AST_TYPE_NAME:
