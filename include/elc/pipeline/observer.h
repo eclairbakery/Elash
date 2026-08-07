@@ -6,7 +6,7 @@
 typedef enum ElcObserverEvent {
     ELC_OBS_STAGE_BEGIN,
     ELC_OBS_STAGE_END,
-    ELC_OBS_ARTIFACT_PRODUCED
+    ELC_OBS_ARTIFACT_PRODUCED,
 } ElcObserverEvent;
 
 typedef void ElcObserverFn(

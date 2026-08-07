@@ -23,9 +23,7 @@ void elc_dump_hir_observer_exec(
             if (out == NULL) return;
         }
 
-        fprintf(out, "hir dump:\n");
         el_hir_dump_module(artifact->as.hir, 0, out);
-        fprintf(out, "\n");
 
         if (out != stdout) fclose(out);
         break;
