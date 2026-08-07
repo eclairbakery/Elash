@@ -1,12 +1,18 @@
 #pragma once
 
 #include <elash/lexer/token.h>
+#include <elash/lexer/tokstream.h>
 
 typedef struct ElTokenBuf {
     ElToken* data;
     usize len;
     usize cap;
 } ElTokenBuf;
+
+typedef struct ElTkBufStream {
+    const ElTokenBuf* buf;
+    usize pos;
+} ElTkBufStream;
 
 bool el_tkbuf_init(ElTokenBuf* tkbuf);
 void el_tkbuf_destroy(ElTokenBuf* tkbuf);
@@ -21,3 +27,5 @@ bool el_tkbuf_reserve_exact(ElTokenBuf* tkbuf, usize new_cap);
 bool el_tkbuf_push(ElTokenBuf* tkbuf, ElToken tok);
 
 bool el_tkbuf_clear(ElTokenBuf* tkbuf);
+
+ElTokenStream el_tkbuf_as_stream(ElTkBufStream* ctx, const ElTokenBuf* buf);
