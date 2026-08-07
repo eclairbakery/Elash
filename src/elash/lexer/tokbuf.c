@@ -5,6 +5,23 @@
 
 static bool el_tkbuf_reallocate(ElTokenBuf* tkbuf, usize new_cap);
 
+static ElToken el_tkbuf_stream_next(ElTokenStream* self, ElDiagEngine* engine) {
+    (void) engine;
+    ElTkBufStream* ctx = self->ctx;
+    if (ctx->pos >= ctx->buf->len)
+        return (ElToken) { .type = EL_TT_EOF };
+    return ctx->buf->data[ctx->pos++];
+}
+
+ElTokenStream el_tkbuf_as_stream(ElTkBufStream* ctx, const ElTokenBuf* buf) {
+    ctx->buf = buf;
+    ctx->pos = 0;
+    return (ElTokenStream) {
+        .next = el_tkbuf_stream_next,
+        .ctx = ctx,
+    };
+}
+
 bool el_tkbuf_init(ElTokenBuf* tkbuf) {
     tkbuf->data = NULL;
     tkbuf->len = 0;
