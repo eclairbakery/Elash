@@ -59,3 +59,19 @@ unit-test: test-elash test-elc
 
 test: test-elash test-elc test-e2e
 	@echo "All tests passed."
+
+FUZZ_BINARY := $(TESTS_OUT_DIR)/fuzz/fuzzer$(EXE_EXT)
+
+$(FUZZ_BINARY): $(TESTS_DIR)/fuzz/fuzzer.c $(LIBELASH_STATIC) $(LIBELC_STATIC) | test-dirs
+	@$(call CMD_MKDIR_P,$(dir $@))
+	@$(ECHO) "CC $@"
+	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELASH_STATIC) $(LIBELC_STATIC) $(TESTS_LDFLAGS) -o $@
+
+.PHONY: test-fuzz-% test-fuzz
+
+test-fuzz-%: $(FUZZ_BINARY)
+	@echo "Running fuzz with count $*"
+	@$(PYTHON) $(TESTS_DIR)/fuzz/fuzz.py $(FUZZ_BINARY) $(ELC_BIN) $*
+
+test-fuzz: $(FUZZ_BINARY)
+	@$(PYTHON) $(TESTS_DIR)/fuzz/fuzz.py $(FUZZ_BINARY) $(ELC_BIN) $(or $(FUZZ_COUNT),200)
