@@ -28,7 +28,7 @@ static ElcCliParseResult handle_include_flag(ElcArgParseContext* p, ElStringView
         return (ElcCliParseResult) { .code = ELC_CLI_PARSE_EXPECTED_VALUE, .ctx.str = flag };
 
     const char* eq = memchr(val.data, '=', val.len);
-    if (!eq) return (ElcCliParseResult) { .code = ELC_CLI_PARSE_EXPECTED_VALUE, .ctx.str = flag };
+    if (eq == NULL) return (ElcCliParseResult) { .code = ELC_CLI_PARSE_EXPECTED_VALUE, .ctx.str = flag };
 
     ElStringView name = el_sv_from_data_and_len(val.data, eq - val.data);
     ElStringView path = el_sv_from_data_and_len(eq + 1, val.len - (eq - val.data) - 1);
