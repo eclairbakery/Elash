@@ -17,13 +17,13 @@ typedef enum ElTokenType {
     EL_TT_CHAR_LITERAL,         // 'x'
     EL_TT_STRING_LITERAL,       // "Hello world!"
 
-    EL_TT_TRUE_LITERAL,         // true
-    EL_TT_FALSE_LITERAL,        // false
-    EL_TT_NULL_LITERAL,         // null
-
     // Group enumerator - DO NOT USE as a token type. Marks the start of the keyword group.
     // Used internally for bounds checking or iteration over keyword tokens.
     _EL_TT_GROUP_BEGIN_KEYWORDS,
+
+    EL_TT_TRUE_LITERAL,         // true
+    EL_TT_FALSE_LITERAL,        // false
+    EL_TT_NULL_LITERAL,         // null
 
     EL_TT_KW_IF,                // if
     EL_TT_KW_ELSE,              // else
