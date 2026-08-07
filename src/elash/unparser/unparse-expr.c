@@ -123,9 +123,9 @@ static bool unparse_literal(ElUnparser* unpar, ElAstExpr* expr) {
     ElAstLiteral* lit = &expr->as.literal;
     switch (lit->type) {
     case EL_AST_LIT_INT:
-        return el_unparser_push(unpar, EL_TT_INT_LITERAL, el_source_span_to_sv(expr->span));
+        return el_unparser_push_fmt(unpar, EL_TT_INT_LITERAL, "%"PRId64, lit->of.int_.value);
     case EL_AST_LIT_FLOAT:
-        return el_unparser_push(unpar, EL_TT_FLOAT_LITERAL, el_source_span_to_sv(expr->span));
+        return el_unparser_push_fmt(unpar, EL_TT_FLOAT_LITERAL, "%lf", lit->of.float_.value);
     case EL_AST_LIT_CHAR: {
         char c = lit->of.char_.value;
         char buf[2];
@@ -234,12 +234,6 @@ static bool unparse_tmember(ElUnparser* unpar, ElAstExpr* expr) {
     if (!unparse_child(unpar, expr->as.tmember.expr, prec, false)) return false;
     if (!el_unparser_push_punct(unpar, EL_TT_DOT)) return false;
 
-    if (el_source_span_is_valid(expr->as.tmember.index_span)) {
-        return el_unparser_push(
-            unpar, EL_TT_INT_LITERAL,
-            el_source_span_to_sv(expr->as.tmember.index_span)
-        );
-    }
     return el_unparser_push_fmt(
         unpar, EL_TT_INT_LITERAL, "%zu", expr->as.tmember.index
     );
