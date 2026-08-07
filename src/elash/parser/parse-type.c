@@ -61,7 +61,9 @@ ElAstType* _el_parser_parse_type_suffixes(ElParser* parser, ElAstType* type) {
             }
 
             // T[&]
-            if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
+            if (el_parser_check(parser, EL_TT_BITWISE_AND)
+                && el_parser_peek_at(parser, 1).type == EL_TT_RBRACKET
+            ) {
                 ElToken amp_tok = el_parser_advance(parser);
                 type = el_ast_new_type_slice(parser->arena, el_source_span_merge(type->span, amp_tok.span), type, true);
                 el_parser_expect(parser, EL_TT_RBRACKET);

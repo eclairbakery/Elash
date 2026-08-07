@@ -203,7 +203,10 @@ ElAstStmt* el_parser_parse_stmt(ElParser* parser) {
     }
 
     usize lookahead_idx = 0;
-    bool is_decl = el_parser_check(parser, EL_TT_KW_EXTERN) || el_parser_check(parser, EL_TT_KW_STATIC);
+    bool is_decl = el_parser_check(parser, EL_TT_KW_EXTERN)
+                || el_parser_check(parser, EL_TT_KW_STATIC)
+                || el_parser_check(parser, EL_TT_KW_ALIAS)
+                || el_parser_check(parser, EL_TT_KW_TYPEDEF);
     if (!is_decl && _el_parser_lookahead_skip_type(parser, &lookahead_idx)) {
         is_decl = el_parser_peek_at(parser, lookahead_idx).type == EL_TT_IDENT;
     }
