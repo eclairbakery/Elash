@@ -23,9 +23,7 @@ void elc_dump_ast_observer_exec(
             if (out == NULL) return;
         }
 
-        fprintf(out, "ast dump:\n");
         el_ast_dump_module(artifact->as.ast, 0, out);
-        fprintf(out, "\n");
 
         if (out != stdout) fclose(out);
         break;

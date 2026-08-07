@@ -24,9 +24,7 @@ void elc_dump_lir_observer_exec(
             if (out == NULL) return;
         }
 
-        fprintf(out, "lir dump:\n");
         lir->dump(lir, out);
-        fprintf(out, "\n");
 
         if (out != stdout) fclose(out);
         break;

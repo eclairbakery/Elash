@@ -23,9 +23,7 @@ void elc_dump_mir_observer_exec(
             if (out == NULL) return;
         }
 
-        fprintf(out, "mir dump:\n");
         el_mir_dump_module(artifact->as.mir, out);
-        fprintf(out, "\n");
 
         if (out != stdout) fclose(out);
         break;
