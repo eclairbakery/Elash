@@ -1,5 +1,5 @@
-#include <stdio.h>  // NOLINT(misc-include-cleaner)
-#include <stdlib.h> // NOLINT(misc-include-cleaner)
+#include <stdio.h>  // IWYU pragma: export
+#include <stdlib.h> // IWYU pragma: export
 
 #if defined(__GNUC__) || defined(__clang__)
     #define EL_UNREACHABLE(STR) do { \
