@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/srcdoc/srcdoc.h>
+#include <elash/source/doc.h>
 #include <elash/lexer/tokstream.h>
 #include <elash/ast/tree/module.h>
 #include <elash/hir/tree/module.h>

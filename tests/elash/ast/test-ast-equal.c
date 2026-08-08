@@ -5,7 +5,7 @@
 #include <elash/util/dynarena.h>
 #include <elash/parser/parser.h>
 
-static ElSourceSpan span = EL_SOURCE_SPAN_NULL;
+static ElSourceSpan span = EL_SRCSPAN_NULL;
 
 static ElDynArena arena;
 void init() { el_dynarena_init(&arena); }

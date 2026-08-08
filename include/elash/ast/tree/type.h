@@ -1,7 +1,7 @@
 #pragma once
 
 #include <elash/defs/sv.h>
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 #include <elash/util/dynarena.h>
 
 #include "common/ident.h"

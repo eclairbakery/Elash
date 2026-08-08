@@ -1,7 +1,7 @@
 #include <elash/diag/printer/console.h>
 #include <elash/diag/engine.h>
 
-#include <elash/srcdoc/srcdoc.h>
+#include <elash/source/doc.h>
 #include <elash/util/ansi.h>
 
 void el_diag_console_printer_begin(ElDiagPrinter* self, FILE* out) {

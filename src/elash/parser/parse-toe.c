@@ -20,15 +20,15 @@ static ElAstExpr* continue_expr_postfixes(ElParser* parser, ElAstExpr* expr) {
     while (true) {
         if (el_parser_check(parser, EL_TT_INC)) {
             ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_INC, expr);
+            expr = el_ast_new_unary_expr(parser->arena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_INC, expr);
         } else if (el_parser_check(parser, EL_TT_DEC)) {
             ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_DEC, expr);
+            expr = el_ast_new_unary_expr(parser->arena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_DEC, expr);
         } else if (el_parser_match(parser, EL_TT_LPAREN)) {
             expr = _el_parser_parse_call(parser, expr);
         } else if (el_parser_check(parser, EL_TT_CARET)) {
             ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->arena, el_source_span_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_DEREF, expr);
+            expr = el_ast_new_unary_expr(parser->arena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_DEREF, expr);
         } else if (el_parser_match(parser, EL_TT_LBRACKET)) {
             ElAstExpr* index = el_parser_parse_expr(parser);
             if (el_parser_has_errs(parser)) {
@@ -48,7 +48,7 @@ static ElAstExpr* continue_expr_postfixes(ElParser* parser, ElAstExpr* expr) {
 
             expr = el_ast_new_bin_expr(
                 parser->arena,
-                el_source_span_merge(expr->span, rbracket.span),
+                el_srcspan_merge(expr->span, rbracket.span),
                 EL_SEMA_BIN_OP_INDEX, expr, index
             );
         } else if (el_parser_match(parser, EL_TT_DOT)) {
@@ -83,7 +83,7 @@ static ElAstToE* parse_toe_bracket_suffix(ElParser* parser, ElAstToE* toe) {
     el_parser_expect(parser, EL_TT_RBRACKET);
     if (el_parser_has_errs(parser)) return NULL;
 
-    ElSourceSpan combined_span = el_source_span_merge(toe->span, rbracket.span);
+    ElSourceSpan combined_span = el_srcspan_merge(toe->span, rbracket.span);
 
     if (toe->kind == EL_AST_TOE_TYPE) {
         ElAstExpr* size = el_ast_toe_as_expr(parser->arena, index);

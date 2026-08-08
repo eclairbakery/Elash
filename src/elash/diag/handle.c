@@ -22,7 +22,7 @@ void el_diag_handle_lexer_error(ElDiagEngine* engine, const ElLexerErrorDetails*
     case EL_LEXERR_INVALID_NUMBER:
         el_diag_report(
             engine, EL_DIAG_ERROR, "syntax.invalid-number", err->span,
-            "Invalid number literal: ${lit}", EL_DIAG_STRING("lit", el_source_span_to_sv(err->span)),
+            "Invalid number literal: ${lit}", EL_DIAG_STRING("lit", el_srcspan_to_sv(err->span)),
         ); return;
     case EL_LEXERR_INVALID_UNICODE:
         el_diag_report(
@@ -52,4 +52,3 @@ void el_diag_handle_lexer_error(ElDiagEngine* engine, const ElLexerErrorDetails*
     }
     EL_UNREACHABLE_ENUM_VAL(ElLexerErrorCode, err->code);
 }
-

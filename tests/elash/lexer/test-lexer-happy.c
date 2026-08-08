@@ -1,7 +1,7 @@
 #include <criterion/criterion.h>
 
 #include <elash/lexer/lexer.h>
-#include <elash/srcdoc/srcdoc.h>
+#include <elash/source/doc.h>
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): clang-tidy sucks.
 static void assert_token(ElLexer* lexer, ElTokenType expected_type, const char* expected_lexeme) {

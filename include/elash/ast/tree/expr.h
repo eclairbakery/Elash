@@ -13,7 +13,7 @@
 #include "type.h"
 
 #include <elash/defs/int-types.h>
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 
 typedef enum ElAstExprType {
     EL_AST_EXPR_BINARY,

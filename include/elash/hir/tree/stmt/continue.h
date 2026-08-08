@@ -1,7 +1,7 @@
 #pragma once
 
 #include <elash/util/dynarena.h>
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 
 typedef struct ElHirStmt ElHirStmt;
 typedef struct ElHirContinueStmt {

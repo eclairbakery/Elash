@@ -22,7 +22,7 @@ static ElAstType* parse_tuple_type(ElParser* parser, ElToken struct_tok) {
     }
 
     ElToken rparen_tok = el_parser_expect(parser, EL_TT_RPAREN);
-    return el_ast_new_type_tuple(parser->arena, el_source_span_merge(struct_tok.span, rparen_tok.span), head, count);
+    return el_ast_new_type_tuple(parser->arena, el_srcspan_merge(struct_tok.span, rparen_tok.span), head, count);
 }
 
 static ElAstType* parse_struct_type(ElParser* parser, ElToken struct_tok) {
@@ -41,14 +41,14 @@ static ElAstType* parse_struct_type(ElParser* parser, ElToken struct_tok) {
     }
 
     ElToken rbrace_tok = el_parser_expect(parser, EL_TT_RBRACE);
-    return el_ast_new_type_struct(parser->arena, el_source_span_merge(struct_tok.span, rbrace_tok.span), head, count);
+    return el_ast_new_type_struct(parser->arena, el_srcspan_merge(struct_tok.span, rbrace_tok.span), head, count);
 }
 
 ElAstType* _el_parser_parse_type_suffixes(ElParser* parser, ElAstType* type) {
     while (true) {
         if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
             ElToken amp_tok = el_parser_advance(parser);
-            type = el_ast_new_type_ref(parser->arena, el_source_span_merge(type->span, amp_tok.span), type);
+            type = el_ast_new_type_ref(parser->arena, el_srcspan_merge(type->span, amp_tok.span), type);
         } else if (el_parser_check(parser, EL_TT_LBRACKET)) {
             el_parser_advance(parser); // '['
 
@@ -56,7 +56,7 @@ ElAstType* _el_parser_parse_type_suffixes(ElParser* parser, ElAstType* type) {
             if (el_parser_check(parser, EL_TT_RBRACKET)) {
                 ElToken rbracket_tok = parser->current;
                 el_parser_advance(parser);
-                type = el_ast_new_type_slice(parser->arena, el_source_span_merge(type->span, rbracket_tok.span), type, false);
+                type = el_ast_new_type_slice(parser->arena, el_srcspan_merge(type->span, rbracket_tok.span), type, false);
                 continue;
             }
 
@@ -65,7 +65,7 @@ ElAstType* _el_parser_parse_type_suffixes(ElParser* parser, ElAstType* type) {
                 && el_parser_peek_at(parser, 1).type == EL_TT_RBRACKET
             ) {
                 ElToken amp_tok = el_parser_advance(parser);
-                type = el_ast_new_type_slice(parser->arena, el_source_span_merge(type->span, amp_tok.span), type, true);
+                type = el_ast_new_type_slice(parser->arena, el_srcspan_merge(type->span, amp_tok.span), type, true);
                 el_parser_expect(parser, EL_TT_RBRACKET);
                 continue;
             }
@@ -73,7 +73,7 @@ ElAstType* _el_parser_parse_type_suffixes(ElParser* parser, ElAstType* type) {
             ElAstExpr* size = el_parser_parse_expr(parser);
             ElToken rbracket = parser->current;
             el_parser_expect(parser, EL_TT_RBRACKET);
-            type = el_ast_new_type_array(parser->arena, el_source_span_merge(type->span, rbracket.span), type, size);
+            type = el_ast_new_type_array(parser->arena, el_srcspan_merge(type->span, rbracket.span), type, size);
         } else {
             break;
         }

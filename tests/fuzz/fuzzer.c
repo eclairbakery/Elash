@@ -7,12 +7,12 @@
 #include <elash/ast/tree/init.h>
 #include <elash/ast/tree/toe.h>
 
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 #include <elash/util/assert.h>
 #include <elash/defs/sv.h>
 
 #include <elash/unparser/unparser.h>
-#include <elash/srcdoc/srcdoc.h>
+#include <elash/source/doc.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -27,7 +27,7 @@ static ElAstDecl* gen_decl(ElDynArena* arena, int depth);
 static ElAstToE*  gen_toe(ElDynArena* arena, int depth);
 static ElAstExpr* gen_literal(ElDynArena* arena);
 
-#define NSPAN EL_SOURCE_SPAN_NULL
+#define NSPAN EL_SRCSPAN_NULL
 
 // NOLINTBEGIN(readability-magic-numbers)
 // NOLINTBEGIN(bugprone-switch-missing-default-case)

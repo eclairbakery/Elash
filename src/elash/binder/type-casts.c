@@ -65,7 +65,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
                 binder->hir_arena,
                 expr->span,
                 _el_binder_implicit_cast(binder, span, expr, el_hir_new_raw_slice_type(binder->type_arena, from->as.array.base)),
-                el_hir_new_int_constant(binder->hir_arena, EL_SOURCE_SPAN_NULL, binder->builtins->type_usize, (int64_t)from->as.array.size)
+                el_hir_new_int_constant(binder->hir_arena, EL_SRCSPAN_NULL, binder->builtins->type_usize, (int64_t)from->as.array.size)
             );
         } else if (to->kind == EL_HIR_TYPE_RWSLICE) {
             if (type_eql(to->as.rwslice.base, from->as.array.base)) {
@@ -76,8 +76,8 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
                         binder->hir_arena, expr->span,
                         el_hir_new_ref_type(binder->type_arena, base_type),
                         EL_SEMA_UNARY_OP_ADDROF,
-                        el_hir_new_bin_expr(binder->hir_arena, EL_SOURCE_SPAN_NULL, base_type, EL_SEMA_BIN_OP_INDEX,
-                            expr, el_hir_new_int_constant(binder->hir_arena, EL_SOURCE_SPAN_NULL, binder->builtins->type_int, 0)
+                        el_hir_new_bin_expr(binder->hir_arena, EL_SRCSPAN_NULL, base_type, EL_SEMA_BIN_OP_INDEX,
+                            expr, el_hir_new_int_constant(binder->hir_arena, EL_SRCSPAN_NULL, binder->builtins->type_int, 0)
                 )));
             }
         } else if (to->kind == EL_HIR_TYPE_REF) {

@@ -3,7 +3,7 @@
 #include <elash/lexer/token.h>
 #include <elash/util/strbuf.h>
 
-#include <elash/srcdoc/error.h>
+#include <elash/source/error.h>
 
 #include <stdio.h>
 

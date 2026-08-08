@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 #include <elash/ast/tree/decl.h>
 
 typedef struct ElAstModule {

@@ -2,7 +2,7 @@
 
 #include <elash/util/dynarena.h>
 
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 
 #include <elash/diag/severity.h>
 #include <elash/diag/printer.h>
@@ -77,4 +77,3 @@ static inline bool el_diag_engine_has_errors(const ElDiagEngine* engine) {
 
 #define el_diag_help(engine, template, ...) \
     el_diag_help_impl(engine, EL_SV(template), EL_DIAG_META(__VA_ARGS__))
-

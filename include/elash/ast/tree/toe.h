@@ -3,7 +3,7 @@
 #include <elash/ast/tree/common/ident.h>
 #include <elash/ast/tree/expr.h>
 #include <elash/ast/tree/type.h>
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 #include <elash/util/dynarena.h>
 
 typedef struct ElAstToE ElAstToE;

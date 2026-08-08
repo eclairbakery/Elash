@@ -1,7 +1,7 @@
 #include <criterion/criterion.h>
 
 #include <elash/lexer/lexer.h>
-#include <elash/srcdoc/srcdoc.h>
+#include <elash/source/doc.h>
 
 static void assert_lexer_error(const char* input, ElLexerErrorCode expected_error) {
     ElSourceDocument doc;
@@ -12,12 +12,12 @@ static void assert_lexer_error(const char* input, ElLexerErrorCode expected_erro
 
     ElToken tok;
     ElLexerErrorCode err = el_lexer_next_token(&lexer, &tok);
-    
+
     ElStringView err_sv = el_lexer_err_code_to_string(err);
     ElStringView expected_err_sv = el_lexer_err_code_to_string(expected_error);
-    
-    cr_assert_eq(err, expected_error, 
-                 "Expected error " EL_SV_FMT ", got " EL_SV_FMT " for input '%s'", 
+
+    cr_assert_eq(err, expected_error,
+                 "Expected error " EL_SV_FMT ", got " EL_SV_FMT " for input '%s'",
                  EL_SV_FARG(expected_err_sv), EL_SV_FARG(err_sv), input);
 
     el_srcdoc_destroy(&doc);
@@ -38,4 +38,3 @@ Test(lexer_unhappy, unterminated_char) {
 Test(lexer_unhappy, unterminated_comment) {
     assert_lexer_error("/* comment", EL_LEXERR_UNTERM_COMMENT);
 }
-

@@ -11,19 +11,19 @@ typedef struct ElSourceSpan {
     ElSourceLocation        end;
 } ElSourceSpan;
 
-#define EL_SOURCE_SPAN_NULL ((ElSourceSpan){ .doc = NULL, .start = EL_SOURCE_LOC_ZERO, .end = EL_SOURCE_LOC_ZERO })
+#define EL_SRCSPAN_NULL ((ElSourceSpan){ .doc = NULL, .start = EL_SOURCE_LOC_ZERO, .end = EL_SOURCE_LOC_ZERO })
 
-ElSourceSpan el_source_span_make(const ElSourceDocument* doc, ElSourceLocation start, ElSourceLocation end);
+ElSourceSpan el_srcspan_make(const ElSourceDocument* doc, ElSourceLocation start, ElSourceLocation end);
 
 /// Returns a string view of the content covered by the span.
-ElStringView el_source_span_to_sv(ElSourceSpan span);
+ElStringView el_srcspan_to_sv(ElSourceSpan span);
 
 /// Merges two spans into one that covers both.
 /// Spans must be from the same document.
-ElSourceSpan el_source_span_merge(ElSourceSpan a, ElSourceSpan b);
+ElSourceSpan el_srcspan_merge(ElSourceSpan a, ElSourceSpan b);
 
 /// Returns true if the span is not null and has a document.
-bool el_source_span_is_valid(ElSourceSpan span);
+bool el_srcspan_is_valid(ElSourceSpan span);
 
 /// Returns true if the span is empty (start == end).
-bool el_source_span_is_empty(ElSourceSpan span);
+bool el_srcspan_is_empty(ElSourceSpan span);

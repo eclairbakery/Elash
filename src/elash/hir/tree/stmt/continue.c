@@ -1,4 +1,4 @@
-#include "elash/srcdoc/span.h"
+#include "elash/source/span.h"
 #include <elash/hir/tree/stmt.h>
 
 ElHirStmt* el_hir_new_continue_stmt(ElDynArena* arena, ElSourceSpan span) {

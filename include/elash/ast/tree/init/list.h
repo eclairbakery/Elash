@@ -1,6 +1,6 @@
 #pragma once
 
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 #include <elash/util/dynarena.h>
 #include <elash/defs/int-types.h>
 

@@ -11,7 +11,7 @@
 ElAstStmt* _el_parser_parse_return(ElParser* parser, ElToken return_tok) {
     if (el_parser_check(parser, EL_TT_SEMICOLON)) {
         ElToken semi_tok = el_parser_advance(parser);
-        return el_ast_new_return_stmt(parser->arena, el_source_span_merge(return_tok.span, semi_tok.span), NULL);
+        return el_ast_new_return_stmt(parser->arena, el_srcspan_merge(return_tok.span, semi_tok.span), NULL);
     }
 
     ElAstInit* init = el_parser_parse_init(parser);
@@ -20,7 +20,7 @@ ElAstStmt* _el_parser_parse_return(ElParser* parser, ElToken return_tok) {
     ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
     if (el_parser_has_errs(parser)) return NULL;
 
-    return el_ast_new_return_stmt(parser->arena, el_source_span_merge(return_tok.span, semi_tok.span), init);
+    return el_ast_new_return_stmt(parser->arena, el_srcspan_merge(return_tok.span, semi_tok.span), init);
 }
 
 ElAstStmt* _el_parser_parse_if(ElParser* parser, ElToken if_tok) {
@@ -58,7 +58,7 @@ ElAstStmt* _el_parser_parse_if(ElParser* parser, ElToken if_tok) {
 
     return el_ast_new_if_stmt(
         parser->arena,
-        el_source_span_merge(if_tok.span, end_span),
+        el_srcspan_merge(if_tok.span, end_span),
         cond, then_stmt, else_stmt
     );
 }
@@ -87,7 +87,7 @@ static ElAstStmt* _el_parser_parse_while(ElParser* parser, ElToken while_tok) {
 
     return el_ast_new_while_stmt(
         parser->arena,
-        el_source_span_merge(while_tok.span, body_stmt->span),
+        el_srcspan_merge(while_tok.span, body_stmt->span),
         cond, body_stmt
     );
 }
@@ -103,7 +103,7 @@ ElAstStmt* _el_parser_parse_expr_stmt(ElParser* parser) {
         ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
         if (el_parser_has_errs(parser)) return NULL;
 
-        return el_ast_new_assign_stmt(parser->arena, el_source_span_merge(expr->span, semi_tok.span), expr, value);
+        return el_ast_new_assign_stmt(parser->arena, el_srcspan_merge(expr->span, semi_tok.span), expr, value);
     }
 
     ElSemaBinOp op;
@@ -132,7 +132,7 @@ ElAstStmt* _el_parser_parse_expr_stmt(ElParser* parser) {
             return NULL;
         }
 
-        return el_ast_new_compound_assign_stmt(parser->arena, el_source_span_merge(expr->span, semi_tok.span), op, expr, value);
+        return el_ast_new_compound_assign_stmt(parser->arena, el_srcspan_merge(expr->span, semi_tok.span), op, expr, value);
     }
 
     ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
@@ -140,7 +140,7 @@ ElAstStmt* _el_parser_parse_expr_stmt(ElParser* parser) {
         return NULL;
     }
 
-    return el_ast_new_expr_stmt(parser->arena, el_source_span_merge(expr->span, semi_tok.span), expr);
+    return el_ast_new_expr_stmt(parser->arena, el_srcspan_merge(expr->span, semi_tok.span), expr);
 }
 
 ElAstStmt* _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok) {
@@ -170,7 +170,7 @@ ElAstStmt* _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok) {
         }
     }
 
-    return el_ast_new_block_stmt(parser->arena, el_source_span_merge(lbrace_tok.span, rbrace_tok.span), head);
+    return el_ast_new_block_stmt(parser->arena, el_srcspan_merge(lbrace_tok.span, rbrace_tok.span), head);
 }
 
 ElAstStmt* el_parser_parse_stmt(ElParser* parser) {
@@ -194,12 +194,12 @@ ElAstStmt* el_parser_parse_stmt(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_KW_BREAK)) {
         ElToken break_tok = el_parser_advance(parser);
         ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
-        return el_ast_new_break_stmt(parser->arena, el_source_span_merge(break_tok.span, semi_tok.span));
+        return el_ast_new_break_stmt(parser->arena, el_srcspan_merge(break_tok.span, semi_tok.span));
     }
     if (el_parser_check(parser, EL_TT_KW_CONTINUE)) {
         ElToken continue_tok = el_parser_advance(parser);
         ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
-        return el_ast_new_continue_stmt(parser->arena, el_source_span_merge(continue_tok.span, semi_tok.span));
+        return el_ast_new_continue_stmt(parser->arena, el_srcspan_merge(continue_tok.span, semi_tok.span));
     }
 
     usize lookahead_idx = 0;
