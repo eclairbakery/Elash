@@ -4,6 +4,7 @@ import argparse
 import tempfile
 import typing
 import sys
+import os
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from multiprocessing import Lock
@@ -40,19 +41,25 @@ class CliArgs(argparse.Namespace):
     jobs: int | None
 
 def do_fuzzing_stuff(args: CliArgs, i: int) -> int:
-    with tempfile.NamedTemporaryFile() as tmp:
+    tmp: str
+    with tempfile.NamedTemporaryFile(delete=False) as f:
+        tmp = f.name
+
+    try:
         if args.verbose:
             print_fuzz(i)
 
-        fuzzer_exitcode = run_fuzzer(args.fuzzer, tmp.name)
+        fuzzer_exitcode = run_fuzzer(args.fuzzer, tmp)
         if fuzzer_exitcode != 0:
             sys.stderr.write(f'Fuzzer exited with non-zero status {fuzzer_exitcode} on iteration #{i+1}\n')
             return fuzzer_exitcode
 
-        elc_exitcode = run_elc(args.elc, tmp.name)
+        elc_exitcode = run_elc(args.elc, tmp)
         if elc_exitcode != 0:
             sys.stderr.write(f'Elash compiler failed with status {elc_exitcode} on iteration #{i+1}\n')
             return elc_exitcode;
+    finally:
+        os.unlink(tmp)
 
     return 0
 
