@@ -17,7 +17,7 @@ bool el_unparser_push(ElUnparser* unpar, ElTokenType type, ElStringView lexeme) 
     ElToken tok = {
         .type = type,
         .lexeme = cloned,
-        .span = EL_SOURCE_SPAN_NULL,
+        .span = EL_SRCSPAN_NULL,
     };
     return el_tkbuf_push(unpar->out, tok);
 }

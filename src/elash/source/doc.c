@@ -1,4 +1,4 @@
-#include <elash/srcdoc/srcdoc.h>
+#include <elash/source/doc.h>
 
 #include <elash/util/strbuf.h>
 #include <elash/lexer/token.h>

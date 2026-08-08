@@ -3,7 +3,7 @@
 #include <elash/hir/symbol.h>
 #include <elash/hir/tree/expr.h>
 #include <elash/util/dynarena.h>
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 #include <elash/sema/storage-cls.h>
 
 typedef struct ElHirDecl ElHirDecl;

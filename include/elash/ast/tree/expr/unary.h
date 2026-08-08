@@ -2,7 +2,7 @@
 
 #include <elash/util/dynarena.h>
 #include <elash/defs/sv.h>
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 
 #include <elash/sema/unary-op.h>
 

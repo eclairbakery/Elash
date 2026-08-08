@@ -1,7 +1,7 @@
 #pragma once
 
 #include <elash/util/dynarena.h>
-#include <elash/srcdoc/srcdoc.h>
+#include <elash/source/doc.h>
 
 typedef struct ElAstType ElAstType;
 

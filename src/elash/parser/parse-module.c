@@ -5,7 +5,7 @@
 #include <elash/ast/tree/module.h>
 
 ElAstModule* el_parser_parse_module(ElParser* parser) {
-    ElSourceSpan module_span = EL_SOURCE_SPAN_NULL;
+    ElSourceSpan module_span = EL_SRCSPAN_NULL;
     bool first = true;
 
     if (parser->current.type != EL_TT_EOF) {
@@ -25,7 +25,7 @@ ElAstModule* el_parser_parse_module(ElParser* parser) {
             module->span = node->span;
             first = false;
         } else {
-            module->span = el_source_span_merge(module->span, node->span);
+            module->span = el_srcspan_merge(module->span, node->span);
         }
     }
 

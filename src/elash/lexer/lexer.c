@@ -2,7 +2,7 @@
 #include <elash/lexer/token.h>
 #include <elash/lexer/macros.h>
 
-#include <elash/srcdoc/srcdoc.h>
+#include <elash/source/doc.h>
 #include <elash/diag/handle.h>
 #include <elash/defs/sv.h>
 
@@ -57,8 +57,8 @@ ElLexerErrorCode _el_lexer_ret_token(ElLexer* lexer, ElTokenType type, ElToken* 
     lexer->last_err_details = EL_LEXER_RESULT_SUCCESS;
 
     out_tok->type = type;
-    out_tok->span = el_source_span_make(lexer->doc, lexer->token_start_loc, lexer->current_loc);
-    out_tok->lexeme = el_source_span_to_sv(out_tok->span);
+    out_tok->span = el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc);
+    out_tok->lexeme = el_srcspan_to_sv(out_tok->span);
 
     return EL_LEXERR_SUCCESS;
 }
@@ -67,7 +67,7 @@ ElLexerErrorCode _el_lexer_ret_token_with_lexeme(ElLexer* lexer, ElTokenType typ
     lexer->last_err_details = EL_LEXER_RESULT_SUCCESS;
 
     out_tok->type = type;
-    out_tok->span = el_source_span_make(lexer->doc, lexer->token_start_loc, lexer->current_loc);
+    out_tok->span = el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc);
     out_tok->lexeme = lexeme;
 
     return EL_LEXERR_SUCCESS;
@@ -355,7 +355,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
         if (c == '\0') {
             if (lexer->current_loc.offset < content.len) {
                 next(lexer);
-                EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNEXPECTED_CHAR, el_source_span_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
+                EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNEXPECTED_CHAR, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
             }
             return _el_lexer_ret_token(lexer, EL_TT_EOF, out);
         }
@@ -424,14 +424,14 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
 
                 if (lexer->flags & EL_LF_SKIP_COMMENTS) {
                     if (!terminated && !(lexer->flags & EL_LF_ALLOW_UNTERM)) {
-                        EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_COMMENT, el_source_span_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
+                        EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_COMMENT, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
                     }
                     continue;
                 }
 
                 if (!terminated) {
                     if (!(lexer->flags & EL_LF_ALLOW_UNTERM)) {
-                        EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_COMMENT, el_source_span_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
+                        EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_COMMENT, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
                     }
                     ElStringView lexeme = {
                         .data = content.data + content_start_offset,
@@ -461,7 +461,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
             while (peek(lexer) != '\0' && peek(lexer) != '\n' && peek(lexer) != '\r') {
                 if (peek(lexer) == '\\') {
                     next(lexer);
-                    if (peek(lexer) == '\0') EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_INVALID_ESCAPE, el_source_span_make(lexer->doc, lexer->current_loc, lexer->current_loc), {});
+                    if (peek(lexer) == '\0') EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_INVALID_ESCAPE, el_srcspan_make(lexer->doc, lexer->current_loc, lexer->current_loc), {});
                     next(lexer);
                 } else {
                     if (next(lexer) == '"') {
@@ -471,7 +471,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
                 }
             }
 
-            if (!terminated && !(lexer->flags & EL_LF_ALLOW_UNTERM)) EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_STRING, el_source_span_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
+            if (!terminated && !(lexer->flags & EL_LF_ALLOW_UNTERM)) EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_STRING, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
 
             ElStringView lex = {
                 .data = content.data + lexer->token_start_loc.offset + 1,
@@ -491,7 +491,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
                 next(lexer);
             }
 
-            if (peek(lexer) != '\'') EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_CHAR, el_source_span_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
+            if (peek(lexer) != '\'') EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_CHAR, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
 
             next(lexer);
 
@@ -525,7 +525,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
 
         if (r != EL_LEXERR_UNEXPECTED_CHAR) return r;
 
-        if (!(lexer->flags & EL_LF_SKIP_UNKNOWN)) EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNEXPECTED_CHAR, el_source_span_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
+        if (!(lexer->flags & EL_LF_SKIP_UNKNOWN)) EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNEXPECTED_CHAR, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
     }
 }
 
@@ -557,7 +557,7 @@ static ElToken _el_lexer_token_stream_next(ElTokenStream* stream, ElDiagEngine* 
 
         tok.type = EL_TT_UNKNOWN;
         tok.span = lexer->last_err_details.span;
-        tok.lexeme = el_source_span_to_sv(tok.span);
+        tok.lexeme = el_srcspan_to_sv(tok.span);
     }
 
     return tok;

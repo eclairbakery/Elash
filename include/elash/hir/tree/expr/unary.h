@@ -2,7 +2,7 @@
 
 #include <elash/sema/unary-op.h>
 #include <elash/util/dynarena.h>
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 
 typedef struct ElHirExpr ElHirExpr;
 typedef struct ElHirType ElHirType;

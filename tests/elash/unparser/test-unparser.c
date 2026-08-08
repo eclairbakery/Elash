@@ -67,7 +67,7 @@ Test(unparser, null_span_int_literal) {
     el_tkbuf_init(&toks);
     el_unparser_init(&unparser, &toks, &arena);
 
-    ElAstExpr* lit = el_ast_new_int_literal(&arena, EL_SOURCE_SPAN_NULL, 42);
+    ElAstExpr* lit = el_ast_new_int_literal(&arena, EL_SRCSPAN_NULL, 42);
 
     bool success = el_unparser_unparse_expr(&unparser, lit);
     cr_assert(success);
@@ -83,7 +83,7 @@ Test(unparser, null_span_float_literal) {
     el_unparser_init(&unparser, &toks, &arena);
 
     const double expected = 3.14;
-    ElAstExpr* lit = el_ast_new_float_literal(&arena, EL_SOURCE_SPAN_NULL, expected);
+    ElAstExpr* lit = el_ast_new_float_literal(&arena, EL_SRCSPAN_NULL, expected);
 
     bool success = el_unparser_unparse_expr(&unparser, lit);
     cr_assert(success);

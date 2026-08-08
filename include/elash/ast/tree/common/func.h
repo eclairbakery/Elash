@@ -5,7 +5,7 @@
 #include <elash/ast/tree/type.h>
 
 #include <elash/util/dynarena.h>
-#include <elash/srcdoc/span.h>
+#include <elash/source/span.h>
 
 #include <elash/defs/int-types.h>
 
