@@ -39,3 +39,4 @@ typedef struct ElcArtifact {
 
 ElStringView elc_artifact_kind_to_string(ElcArtifactKind art);
 ElcArtifactKind elc_artifact_kind_from_string(ElStringView str);
+void elc_artifact_free(ElcArtifact* art);

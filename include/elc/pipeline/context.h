@@ -5,6 +5,7 @@
 
 #include <elash/lowerer/builtin.h>
 #include <elash/binder/builtin.h>
+#include <elc/codegen/backend.h>
 
 typedef struct ElcPipelineContext {
     ElDynArena*   arena;
@@ -12,4 +13,5 @@ typedef struct ElcPipelineContext {
 
     ElBinderBuiltins*  binder_builtins;
     ElLowererBuiltins* lowerer_builtins;
+    ElcCodegenBackend* backend;
 } ElcPipelineContext;
