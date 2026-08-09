@@ -34,6 +34,7 @@ bool elc_driver_init(ElcDriver* driver) {
 }
 
 void elc_driver_free(ElcDriver* driver) {
+    elc_pipeline_cleanup(&driver->pipeline);
     el_diag_engine_free(&driver->diag);
     el_dynarena_free(&driver->arena);
 }

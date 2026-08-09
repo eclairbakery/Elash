@@ -16,6 +16,19 @@ void elc_pipeline_init(
     };
 }
 
+void elc_pipeline_cleanup(ElcPipeline* pipeline) {
+    for (usize i = 0; i < ELC_ART_MAX; ++i) {
+        if (pipeline->registry[i].kind != ELC_ART_NONE) {
+            elc_artifact_free(&pipeline->registry[i]);
+        }
+    }
+
+    if (pipeline->context.backend != NULL) {
+        ElcBackendCleanupFn* cleanup = pipeline->context.backend->cleanup;
+        if (cleanup != NULL) cleanup(pipeline->context.backend);
+    }
+}
+
 void elc_pipeline_add_stage(ElcPipeline* pipeline, ElcStage stage) {
     EL_ASSERT(pipeline->stage_count < ELC_MAX_STAGES, "Too many stages");
     pipeline->stages[pipeline->stage_count++] = stage;

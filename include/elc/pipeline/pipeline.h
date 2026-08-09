@@ -26,6 +26,8 @@ void elc_pipeline_init(
     ElBinderBuiltins* binder_builtins, ElLowererBuiltins* lowerer_builtins
 );
 
+void elc_pipeline_cleanup(ElcPipeline* pipeline);
+
 void elc_pipeline_add_stage(ElcPipeline* pipeline, ElcStage stage);
 void elc_pipeline_add_observer(ElcPipeline* pipeline, ElcObserver observer);
 

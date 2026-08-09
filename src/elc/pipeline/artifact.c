@@ -1,5 +1,30 @@
 #include <elc/pipeline/artifact.h>
 #include <elash/util/assert.h>
+#include <elash/pp/preproc.h>
+#include <stdlib.h>
+
+void elc_artifact_free(ElcArtifact* art) {
+    switch (art->kind) {
+    case ELC_ART_ASM:
+    case ELC_ART_OBJ:
+        free(art->as.asm.data);
+        break;
+    case ELC_ART_LIR:
+        if (art->as.lir.free) {
+            art->as.lir.free(&art->as.lir);
+        }
+        break;
+    case ELC_ART_PP_TOKENS:
+        if (art->as.tokens != NULL) {
+            // this is ugly, but works.
+            el_pp_destroy(art->as.tokens->ctx);
+        }
+        break;
+    default:
+        break;
+    }
+    art->kind = ELC_ART_NONE;
+}
 
 ElStringView elc_artifact_kind_to_string(ElcArtifactKind art) {
     switch (art) {
