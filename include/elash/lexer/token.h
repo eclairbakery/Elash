@@ -125,48 +125,6 @@ typedef enum ElTokenType {
 
     EL_TT_HASH,                 // #
 
-    ///////////////// NOTE //////////////////////////////////////////
-    // preprocessor tokens below are contextual keywords.
-    // they are only produced by the lexer when an identifier
-    // appears immediately after a '#' token (possibly separated
-    // by whitespace).
-    //
-    // example:
-    //   #include   -> EL_PP_INCLUDE
-    //   include    -> EL_TT_IDENT
-    //
-    // outside of preprocessor context, these words are lexed
-    // as identifiers or regular keywords.
-    ///////////////////////////////////////////////////////////////
-    EL_TT_PP_INCLUDE,              // (contextual) include
-    EL_TT_PP_EMBED,                // (contextual) embed
-
-    EL_TT_PP_PRAGMA,               // (contextual) pragma
-    EL_TT_PP_ERROR,                // (contextual) error
-    EL_TT_PP_WARNING,              // (contextual) warning
-    EL_TT_PP_NOTE,                 // (contextual) note
-    EL_TT_PP_DEBUG,                // (contextual) debug
-
-    EL_TT_PP_EMIT,                 // (contextual) emit
-
-    EL_TT_PP_DEFINE,               // (contextual) define
-    EL_TT_PP_MACRO,                // (contextual) macro
-    EL_TT_PP_ASSIGN,               // (contextual) assign
-    EL_TT_PP_UNDEF,                // (contextual) undef
-    EL_TT_PP_DEC,                  // (contextual) dec
-    EL_TT_PP_INC,                  // (contextual) inc
-
-    EL_TT_PP_IF,                   // (contextual) if
-    EL_TT_PP_ELIF,                 // (contextual) elif
-    EL_TT_PP_ELSE,                 // (contextual) else
-
-    EL_TT_PP_WHILE,                // (contextual) while
-    EL_TT_PP_FOR,                  // (contextual) for
-    EL_TT_PP_FOREACH,              // (contextual) foreach
-
-    EL_TT_PP_END,                  // (contextual) end
-    /////////////////////////////////////////////////////////////////
-
     EL_TT_ELLIPSIS,             // ...
     EL_TT_LINE_COMMENT,         // //
     EL_TT_BLOCK_COMMENT,        // /* */
@@ -179,7 +137,7 @@ typedef enum ElTokenType {
 } ElTokenType;
 
 typedef struct ElToken {
-    ElTokenType type;
+    ElTokenType  type;
     ElStringView lexeme;
     ElSourceSpan span;
 } ElToken;
