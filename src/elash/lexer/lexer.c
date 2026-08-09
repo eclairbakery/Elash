@@ -79,9 +79,6 @@ ElLexerErrorCode el_lexer_init(ElLexer* lexer, const ElSourceDocument* doc, ElLe
     lexer->token_start_loc = EL_SOURCE_LOC_ZERO;
     lexer->last_err_details = EL_LEXER_RESULT_SUCCESS;
     lexer->flags = flags;
-    lexer->ctx = EL_LEXER_CTX_DEFAULT;
-    lexer->prev_ctx = EL_LEXER_CTX_DEFAULT;
-
     return EL_LEXERR_SUCCESS;
 }
 
@@ -90,9 +87,6 @@ ElLexerErrorCode el_lexer_reset(ElLexer* lexer) {
     lexer->token_start_loc = EL_SOURCE_LOC_ZERO;
     lexer->doc = NULL;
     lexer->last_err_details.code = EL_LEXERR_SUCCESS;
-    lexer->ctx = EL_LEXER_CTX_DEFAULT;
-    lexer->prev_ctx = EL_LEXER_CTX_DEFAULT;
-
     return EL_LEXERR_SUCCESS;
 }
 
@@ -104,13 +98,13 @@ ElLexerErrorCode el_lexer_set_document(ElLexer* lexer, const ElSourceDocument* d
     return err;
 }
 
-ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerContext ctx) {
+ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme) {
     typedef struct StringToKeyword {
         ElStringView str;
         ElTokenType kwtype;
     } StringToKeyword;
 
-    static StringToKeyword default_keywords[] = {
+    static StringToKeyword keywords[] = {
         { EL_SV("as"),       EL_TT_KW_AS         },
         { EL_SV("do"),       EL_TT_KW_DO         },
         { EL_SV("if"),       EL_TT_KW_IF         },
@@ -140,38 +134,9 @@ ElTokenType _el_lexer_get_keyword_or_ident_type(ElStringView lexeme, ElLexerCont
         { EL_SV("continue"), EL_TT_KW_CONTINUE   },
         { EL_SV("volatile"), EL_TT_KW_VOLATILE   },
     };
-    static usize default_keywords_size = sizeof(default_keywords) / sizeof(default_keywords[0]);
 
-    static StringToKeyword pp_keywords[] = {
-        { EL_SV("if"),       EL_TT_PP_IF       },
-        { EL_SV("for"),      EL_TT_PP_FOR      },
-        { EL_SV("end"),      EL_TT_PP_END      },
-        { EL_SV("dec"),      EL_TT_PP_DEC      },
-        { EL_SV("inc"),      EL_TT_PP_INC      },
-        { EL_SV("elif"),     EL_TT_PP_ELSE     },
-        { EL_SV("else"),     EL_TT_PP_ELSE     },
-        { EL_SV("note"),     EL_TT_PP_NOTE     },
-        { EL_SV("emit"),     EL_TT_PP_EMIT     },
-        { EL_SV("embed"),    EL_TT_PP_EMBED    },
-        { EL_SV("undef"),    EL_TT_PP_UNDEF    },
-        { EL_SV("while"),    EL_TT_PP_WHILE    },
-        { EL_SV("debug"),    EL_TT_PP_DEBUG    },
-        { EL_SV("assign"),   EL_TT_PP_ASSIGN   },
-        { EL_SV("pragma"),   EL_TT_PP_PRAGMA   },
-        { EL_SV("define"),   EL_TT_PP_DEFINE   },
-        { EL_SV("include"),  EL_TT_PP_INCLUDE  },
-        { EL_SV("foreach"),  EL_TT_PP_FOREACH  },
-    };
-    static usize pp_keywords_size = sizeof(pp_keywords) / sizeof(pp_keywords[0]);
-
-    if (ctx == EL_LEXER_CTX_PP) {
-        for (StringToKeyword* pair = pp_keywords; pair < pp_keywords+pp_keywords_size; ++pair) {
-            if (el_sv_eql(lexeme, pair->str)) {
-                return pair->kwtype;
-            }
-        }
-    }
-    for (StringToKeyword* pair = default_keywords; pair < default_keywords+default_keywords_size; ++pair) {
+    static usize keywords_count = sizeof(keywords) / sizeof(keywords[0]);
+    for (StringToKeyword* pair = keywords; pair < keywords+keywords_count; ++pair) {
         if (el_sv_eql(lexeme, pair->str)) {
             return pair->kwtype;
         }
@@ -286,6 +251,9 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
     case '}': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_RBRACE, out);
     case ';': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_SEMICOLON, out);
     case '^': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_CARET, out);
+    case '#': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_HASH, out);
+    case ',': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_COMMA, out);
+
     case '.':
         if (peek(lexer) == '.' && peek_next(lexer) == '.') {
             next(lexer);
@@ -293,12 +261,8 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
             return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_ELLIPSIS, out);
         }
         return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_DOT, out);
-    case ',': return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_COMMA, out);
-    case '~': return _el_lexer_lex_op3(lexer, '>', '=', EL_TT_BITWISE_NOT, EL_TT_BITWISE_IMP, EL_TT_BITWISE_IMP_ASSIGN, out);
 
-    case '#':
-        lexer->ctx = EL_LEXER_CTX_PP;
-        return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_HASH, out);
+    case '~': return _el_lexer_lex_op3(lexer, '>', '=', EL_TT_BITWISE_NOT, EL_TT_BITWISE_IMP, EL_TT_BITWISE_IMP_ASSIGN, out);
 
     default:
         return EL_LEXERR_UNEXPECTED_CHAR;
@@ -307,7 +271,7 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
 
 #define UTF8_MULTIBYTE_MARKER 0x80
 
-static ElLexerErrorCode lex_ident(ElLexer* lexer, ElLexerContext prev_ctx, ElToken* out) {
+static ElLexerErrorCode lex_ident(ElLexer* lexer, ElToken* out) {
     while (isalnum(peek(lexer)) || peek(lexer) == '_') next(lexer);
 
     if (lexer->flags & EL_LF_ALLOW_UTF8_IDENTS) {
@@ -316,9 +280,10 @@ static ElLexerErrorCode lex_ident(ElLexer* lexer, ElLexerContext prev_ctx, ElTok
         }
     }
 
-    ElStringView lex = el_make_lexeme_from_token_start(lexer);
-
-    return _el_lexer_ret_token_with_lexeme(lexer, _el_lexer_get_keyword_or_ident_type(lex, prev_ctx), lex, out);
+    ElStringView lexeme = el_make_lexeme_from_token_start(lexer);
+    return _el_lexer_ret_token_with_lexeme(
+        lexer, _el_lexer_get_keyword_or_ident_type(lexeme), lexeme, out
+    );
 }
 
 static ElLexerErrorCode lex_number(ElLexer* lexer, ElToken* out) {
@@ -346,8 +311,6 @@ static ElLexerErrorCode lex_number(ElLexer* lexer, ElToken* out) {
 // NOLINTNEXTLINE
 ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
     ElStringView content = el_srcdoc_content(lexer->doc);
-
-    lexer->prev_ctx = lexer->ctx;
     while (true) {
         lexer->token_start_loc = lexer->current_loc;
 
@@ -363,15 +326,6 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
         if (isspace(c)) {
             if (c == '\n' || c == '\r') {
                 next(lexer);
-
-                if (lexer->ctx == EL_LEXER_CTX_PP) {
-                    lexer->ctx = EL_LEXER_CTX_DEFAULT;
-                }
-
-                if (lexer->flags & EL_LF_SKIP_WHITESPACE) {
-                    lexer->ctx = EL_LEXER_CTX_DEFAULT;
-                    continue;
-                }
 
                 return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_NEWLINE, out);
             }
@@ -502,11 +456,9 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
             return _el_lexer_ret_token_with_lexeme(lexer, EL_TT_CHAR_LITERAL, lex, out);
         }
 
-        ElLexerContext prev_ctx = lexer->ctx;
-
         if (isalpha(c) || c == '_') {
             next(lexer);
-            return lex_ident(lexer, prev_ctx, out);
+            return lex_ident(lexer, out);
         }
 
         if (isdigit(c)) {
@@ -515,34 +467,13 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
         }
 
         char op = next(lexer);
-        bool ctx_before_op_lex = lexer->ctx;
+
         ElLexerErrorCode r = lex_operator(lexer, op, out);
-
-        if (r == EL_LEXERR_SUCCESS && out->type == EL_TT_SEMICOLON && ctx_before_op_lex) {
-            // end pp context on semicolon
-            lexer->ctx = EL_LEXER_CTX_DEFAULT;
-        }
-
         if (r != EL_LEXERR_UNEXPECTED_CHAR) return r;
 
-        if (!(lexer->flags & EL_LF_SKIP_UNKNOWN)) EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNEXPECTED_CHAR, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
+        if (!(lexer->flags & EL_LF_SKIP_UNKNOWN))
+            EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNEXPECTED_CHAR, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
     }
-}
-
-ElLexerContext el_lexer_get_current_context(const ElLexer* lexer) {
-    return lexer->ctx;
-}
-
-ElLexerContext el_lexer_get_previous_context(const ElLexer* lexer) {
-    return lexer->prev_ctx;
-}
-
-bool el_lexer_entered_context(const ElLexer* lexer, ElLexerContext context) {
-    return lexer->ctx == context && lexer->prev_ctx != context;
-}
-
-bool el_lexer_exited_context(const ElLexer* lexer, ElLexerContext context) {
-    return lexer->ctx != context && lexer->prev_ctx == context;
 }
 
 static ElToken _el_lexer_token_stream_next(ElTokenStream* stream, ElDiagEngine* engine) {

@@ -63,16 +63,22 @@ ElPpErrorCode el_pp_next(ElPreprocessor* pp, ElToken* out_tok, ElDiagEngine* eng
             // skip whitespace, new lines and comments
             continue;
 
-        case EL_TT_PP_NOTE:
-            if (!el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_INT_LITERAL, .lexeme = EL_SV("123"), .span = input_tok.span }))
-                return _el_pp_ret_error(pp, EL_PPERR_ALLOC_FAILED);
-            if (!el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_PLUS, .lexeme = EL_SV("+"), .span = input_tok.span }))
-                return _el_pp_ret_error(pp, EL_PPERR_ALLOC_FAILED);
-            if (!el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_INT_LITERAL, .lexeme = EL_SV("321"), .span = input_tok.span }))
-                return _el_pp_ret_error(pp, EL_PPERR_ALLOC_FAILED);
+        case EL_TT_HASH: {
+            // TODO: placeholder
+            ElToken dir = pp->input.next(&pp->input, engine);
+
+            if (el_sv_eql(dir.lexeme, EL_SV("test"))) {
+                if (!el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_INT_LITERAL, .lexeme = EL_SV("123"), .span = input_tok.span }))
+                    return _el_pp_ret_error(pp, EL_PPERR_ALLOC_FAILED);
+                if (!el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_PLUS, .lexeme = EL_SV("+"), .span = input_tok.span }))
+                    return _el_pp_ret_error(pp, EL_PPERR_ALLOC_FAILED);
+                if (!el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_INT_LITERAL, .lexeme = EL_SV("321"), .span = input_tok.span }))
+                    return _el_pp_ret_error(pp, EL_PPERR_ALLOC_FAILED);
+            }
 
             *out_tok = (ElToken) { .type = EL_TT_IDENT, .lexeme = EL_SV("hello"), .span = input_tok.span };
             return _el_pp_ret_success(pp);
+        }
 
         default:
             *out_tok = input_tok;

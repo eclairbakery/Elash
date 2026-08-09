@@ -27,17 +27,10 @@ typedef enum ElLexerFlags {
 /// @details By default, skips whitespace, and allows UTF-8 identifiers.
 #define EL_LEXER_FLAGS_DEFAULT (EL_LF_SKIP_WHITESPACE | EL_LF_ALLOW_UTF8_IDENTS)
 
-typedef enum ElLexerContext {
-    EL_LEXER_CTX_DEFAULT,
-    EL_LEXER_CTX_PP,
-} ElLexerContext;
-
 typedef struct ElLexer {
     const ElSourceDocument* doc;
     ElSourceLocation current_loc;
     ElSourceLocation token_start_loc;
-    ElLexerContext ctx;
-    ElLexerContext prev_ctx;
 
     ElLexerErrorDetails last_err_details;
     ElLexerFlags flags;
@@ -49,13 +42,7 @@ ElLexerErrorCode el_lexer_reset(ElLexer* lexer);
 ElLexerErrorCode el_lexer_set_document(ElLexer* lexer, const ElSourceDocument* doc);
 
 ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out_tok);
-
-ElLexerContext el_lexer_get_current_context(const ElLexer* lexer);
-ElLexerContext el_lexer_get_previous_context(const ElLexer* lexer);
-bool el_lexer_entered_context(const ElLexer* lexer, ElLexerContext context);
-bool el_lexer_exited_context(const ElLexer* lexer, ElLexerContext context);
-
-ElTokenStream el_lexer_as_token_stream(ElLexer* lexer);
+ElTokenStream    el_lexer_as_token_stream(ElLexer* lexer);
 
 ////// IMPLEMENTATION DETAILS //////////////////////
 // note: those functions are implementation

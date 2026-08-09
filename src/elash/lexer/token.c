@@ -121,33 +121,6 @@ static struct {
 
     [EL_TT_HASH] = F("HASH", "'#'"),
 
-    [EL_TT_PP_INCLUDE] = F("PP_INCLUDE", "include directive"),
-    [EL_TT_PP_EMBED]   = F("PP_EMBED", "embed directive"),
-
-    [EL_TT_PP_EMIT] = F("PP_EMIT", "emit directive"),
-    [EL_TT_PP_END]  = F("PP_END", "end directive"),
-
-    [EL_TT_PP_DEFINE] = F("PP_DEFINE", "define directive"),
-    [EL_TT_PP_UNDEF]  = F("PP_UNDEF", "undef directive"),
-
-    [EL_TT_PP_PRAGMA]  = F("PP_PRAGMA", "pragma directive"),
-    [EL_TT_PP_ERROR]   = F("PP_ERROR", "error directive"),
-    [EL_TT_PP_WARNING] = F("PP_WARNING", "warning directive"),
-    [EL_TT_PP_NOTE]    = F("PP_NOTE", "note directive"),
-    [EL_TT_PP_DEBUG]   = F("PP_DEBUG", "debug directive"),
-
-    [EL_TT_PP_ASSIGN] = F("PP_ASSIGN", "assign directive"),
-    [EL_TT_PP_INC]    = F("PP_INC", "inc directive"),
-    [EL_TT_PP_DEC]    = F("PP_DEC", "dec directive"),
-
-    [EL_TT_PP_IF]   = F("PP_IF", "if directive"),
-    [EL_TT_PP_ELIF] = F("PP_ELIF", "elif directive"),
-    [EL_TT_PP_ELSE] = F("PP_ELSE", "else directive"),
-
-    [EL_TT_PP_WHILE]   = F("PP_WHILE", "while directive"),
-    [EL_TT_PP_FOR]     = F("PP_FOR", "for directive"),
-    [EL_TT_PP_FOREACH] = F("PP_FOREACH", "foreach directive"),
-
     [EL_TT_ELLIPSIS]      = F("ELLIPSIS", "'...'"),
     [EL_TT_LINE_COMMENT]  = F("LINE_COMMENT", "line comment"),
     [EL_TT_BLOCK_COMMENT] = F("BLOCK_COMMENT", "block comment"),
