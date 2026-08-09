@@ -19,14 +19,14 @@ static ElHirExpr* bind_init_list_array(ElBinder* binder, ElAstInit* in, ElHirTyp
     }
 
     ElHirType* base_type = atype->base;
-    ElHirExpr** values = EL_DYNARENA_NEW_ARR(binder->hir_arena, ElHirExpr*, in->list.count);
+    ElHirExpr** values = EL_DYNARENA_NEW_ARR(binder->arena, ElHirExpr*, in->list.count);
     usize i = 0;
     for (ElAstInit* node = in->list.head; node != NULL; node = node->next, i++) {
         values[i] = el_binder_bind_init(binder, node, base_type, scls);
         if (values[i] == NULL) return NULL;
     }
 
-    return el_hir_new_agg_init(binder->hir_arena, in->span, expected_type, values, in->list.count, scls);
+    return el_hir_new_agg_init(binder->arena, in->span, expected_type, values, in->list.count, scls);
 }
 
 static ElHirExpr* bind_init_list_struct(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
@@ -41,7 +41,7 @@ static ElHirExpr* bind_init_list_struct(ElBinder* binder, ElAstInit* in, ElHirTy
         return NULL;
     }
 
-    ElHirExpr** values = EL_DYNARENA_NEW_ARR(binder->hir_arena, ElHirExpr*, stype->count);
+    ElHirExpr** values = EL_DYNARENA_NEW_ARR(binder->arena, ElHirExpr*, stype->count);
     usize i = 0;
     for (ElAstInit* node = in->list.head; node != NULL; node = node->next, i++) {
         ElHirType* field_type = stype->fields[i].type;
@@ -49,7 +49,7 @@ static ElHirExpr* bind_init_list_struct(ElBinder* binder, ElAstInit* in, ElHirTy
         if (values[i] == NULL) return NULL;
     }
 
-    return el_hir_new_agg_init(binder->hir_arena, in->span, expected_type, values, stype->count, scls);
+    return el_hir_new_agg_init(binder->arena, in->span, expected_type, values, stype->count, scls);
 }
 
 static ElHirExpr* bind_init_list_tuple(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
@@ -64,7 +64,7 @@ static ElHirExpr* bind_init_list_tuple(ElBinder* binder, ElAstInit* in, ElHirTyp
         return NULL;
     }
 
-    ElHirExpr** values = EL_DYNARENA_NEW_ARR(binder->hir_arena, ElHirExpr*, ttype->count);
+    ElHirExpr** values = EL_DYNARENA_NEW_ARR(binder->arena, ElHirExpr*, ttype->count);
     usize i = 0;
     for (ElAstInit* node = in->list.head; node != NULL; node = node->next, i++) {
         ElHirType* elem_type = ttype->elements[i];
@@ -72,7 +72,7 @@ static ElHirExpr* bind_init_list_tuple(ElBinder* binder, ElAstInit* in, ElHirTyp
         if (values[i] == NULL) return NULL;
     }
 
-    return el_hir_new_agg_init(binder->hir_arena, in->span, expected_type, values, ttype->count, scls);
+    return el_hir_new_agg_init(binder->arena, in->span, expected_type, values, ttype->count, scls);
 }
 
 ElHirExpr* el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
@@ -93,4 +93,3 @@ ElHirExpr* el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* 
         return NULL;
     }
 }
-

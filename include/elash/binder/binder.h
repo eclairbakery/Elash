@@ -22,15 +22,11 @@
 typedef struct ElBinderInitOpts {
     ElBinderBuiltins* builtins;
     ElDiagEngine* diag;
-    ElDynArena* hir_arena;
-    ElDynArena* sym_arena;
-    ElDynArena* type_arena;
+    ElDynArena* arena;
 } ElBinderInitOpts;
 
 typedef struct ElBinder {
-    ElDynArena* hir_arena;
-    ElDynArena* sym_arena;
-    ElDynArena* type_arena;
+    ElDynArena* arena;
 
     ElDiagEngine* diag;
     ElBinderBuiltins* builtins;

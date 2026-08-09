@@ -25,12 +25,12 @@ static ElHirType* bind_array_type(ElBinder* binder, ElAstArrayType* array) {
             "array size must be positive"
         );
 
-    return el_hir_new_array_type(binder->type_arena, base, (usize)size_val);
+    return el_hir_new_array_type(binder->arena, base, (usize)size_val);
 }
 
 static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
     ElHirStructField* fields = EL_DYNARENA_NEW_ARR(
-        binder->hir_arena, ElHirStructField, struct_->count);
+        binder->arena, ElHirStructField, struct_->count);
 
     _el_binder_push_scope(binder);
 
@@ -91,12 +91,12 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
 
     _el_binder_pop_scope(binder);
 
-    return el_hir_new_struct_type(binder->type_arena, fields, i);
+    return el_hir_new_struct_type(binder->arena, fields, i);
 }
 
 static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {
     ElHirType** elements = EL_DYNARENA_NEW_ARR(
-        binder->type_arena, ElHirType*, tuple->count);
+        binder->arena, ElHirType*, tuple->count);
 
     usize i = 0;
     for (ElAstType* type = tuple->head; type != NULL; ++i, type = type->next) {
@@ -107,7 +107,7 @@ static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {
         }
     }
 
-    return el_hir_new_tuple_type(binder->type_arena, elements, tuple->count);
+    return el_hir_new_tuple_type(binder->arena, elements, tuple->count);
 }
 
 ElHirType* _el_binder_bind_type(ElBinder* binder, ElAstType* type) {
@@ -115,12 +115,12 @@ ElHirType* _el_binder_bind_type(ElBinder* binder, ElAstType* type) {
     case EL_AST_TYPE_REF: {
         ElHirType* base = _el_binder_bind_type(binder ,type->as.ref.base);
         if (base == NULL) return NULL;
-        return el_hir_new_ref_type(binder->type_arena, base);
+        return el_hir_new_ref_type(binder->arena, base);
     }
     case EL_AST_TYPE_SLICE: {
         ElHirType* base = _el_binder_bind_type(binder, type->as.slice.base);
         if (base == NULL) return NULL;
-        return (type->as.slice.is_raw ? el_hir_new_raw_slice_type : el_hir_new_slice_type)(binder->type_arena, base);
+        return (type->as.slice.is_raw ? el_hir_new_raw_slice_type : el_hir_new_slice_type)(binder->arena, base);
     }
     case EL_AST_TYPE_NAME: {
         ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, type->as.name->name);

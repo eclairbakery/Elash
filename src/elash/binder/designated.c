@@ -18,7 +18,7 @@
 static ElHirExpr* bind_designated_elems(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElAstDesigInitElem* elems, ElStorageClass scls);
 
 static ElAstDesigInitElem* make_sub_elem(ElBinder* binder, ElAstDesigInitElem* elem) {
-    return EL_DYNARENA_NEW_STRUCT(binder->hir_arena, ElAstDesigInitElem, {
+    return EL_DYNARENA_NEW_STRUCT(binder->arena, ElAstDesigInitElem, {
         .head = elem->head->next,
         .desig_count = elem->desig_count - 1,
         .init = elem->init,
@@ -88,7 +88,7 @@ static ElHirExpr* validate(
     ElBinder* binder, ElHirType* expected_type, ElHirType* actual_type,
     usize count, InitBucket* buckets, ElAstInit* in, ElStorageClass scls
 ) {
-    ElHirExpr** values = EL_DYNARENA_NEW_ARR_ZEROED(binder->hir_arena, ElHirExpr*, count);
+    ElHirExpr** values = EL_DYNARENA_NEW_ARR_ZEROED(binder->arena, ElHirExpr*, count);
     for (usize i = 0; i < count; i++) {
         ElHirType* elem_type;
         switch (actual_type->kind) {
@@ -111,7 +111,7 @@ static ElHirExpr* validate(
         }
     }
 
-    return el_hir_new_agg_init(binder->hir_arena, in->span, expected_type, values, count, scls);
+    return el_hir_new_agg_init(binder->arena, in->span, expected_type, values, count, scls);
 }
 
 static ElHirExpr* bind_designated_elems(
@@ -137,7 +137,7 @@ static ElHirExpr* bind_designated_elems(
         return NULL;
     }
 
-    InitBucket* buckets = EL_DYNARENA_NEW_ARR_ZEROED(binder->hir_arena, InitBucket, count);
+    InitBucket* buckets = EL_DYNARENA_NEW_ARR_ZEROED(binder->arena, InitBucket, count);
     for (ElAstDesigInitElem* elem = elems; elem != NULL; elem = elem->next) {
         if (elem->head == NULL) {
             return report_invalid_designator(binder, in->span, actual_type);

@@ -2,21 +2,19 @@
 #include <elash/util/assert.h>
 
 static void register_builtin_type(ElBinder* binder, ElStringView name, ElHirType* type) {
-    ElHirSymbol* sym = el_hir_new_type_symbol(binder->sym_arena, binder->sym_id_counter++, name, type);
+    ElHirSymbol* sym = el_hir_new_type_symbol(binder->arena, binder->sym_id_counter++, name, type);
     (void) el_hir_scope_insert(binder->builtin_scope, sym);
 }
 
 static void register_builtin_func(ElBinder* binder, ElStringView name, ElBuiltinKind kind) {
-    ElHirSymbol* sym = el_hir_new_builtin_symbol(binder->sym_arena, binder->sym_id_counter++, name, kind);
+    ElHirSymbol* sym = el_hir_new_builtin_symbol(binder->arena, binder->sym_id_counter++, name, kind);
     (void) el_hir_scope_insert(binder->builtin_scope, sym);
 }
 
 void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
-    binder->hir_arena  = opts.hir_arena;
-    binder->sym_arena  = opts.sym_arena;
-    binder->type_arena = opts.type_arena;
-    binder->builtins   = opts.builtins;
-    binder->diag       = opts.diag;
+    binder->builtins = opts.builtins;
+    binder->arena    = opts.arena;
+    binder->diag     = opts.diag;
 
     binder->loop_depth = 0;
     binder->sym_id_counter = 0;

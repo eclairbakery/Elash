@@ -9,7 +9,7 @@ ElHirExpr* _el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expe
     case EL_AST_INIT_EMPTY:
         // TODO: this works for now but it's not the best solution
         return el_binder_bind_init_list(
-            binder, el_ast_new_init_list(binder->hir_arena, in->span, NULL, 0), expected_type, scls
+            binder, el_ast_new_init_list(binder->arena, in->span, NULL, 0), expected_type, scls
         );
     case EL_AST_INIT_EXPR: {
         ElHirExpr* expr = el_binder_bind_expr(binder, in->expr);

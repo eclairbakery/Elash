@@ -7,8 +7,9 @@ bool elc_binder_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const
 
     ElBinder binder;
     el_binder_init(&binder,
-        .diag = ctx->diag, .builtins = ctx->binder_builtins,
-        .hir_arena = ctx->arena, .sym_arena = ctx->arena, .type_arena = ctx->arena,
+        .builtins = ctx->binder_builtins,
+        .arena = ctx->arena,
+        .diag = ctx->diag,
     );
 
     ElHirModule* mod = el_binder_bind_module(&binder, input->as.ast);
@@ -30,4 +31,3 @@ ElcStage elc_make_binder_stage() {
         .output_kind = ELC_ART_HIR,
     };
 }
-
