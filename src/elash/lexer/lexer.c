@@ -327,6 +327,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
             if (c == '\n' || c == '\r') {
                 next(lexer);
 
+                if (lexer->flags & EL_LF_SKIP_WHITESPACE) continue;
                 return _el_lexer_ret_tok_with_lexeme_auto(lexer, EL_TT_NEWLINE, out);
             }
 
