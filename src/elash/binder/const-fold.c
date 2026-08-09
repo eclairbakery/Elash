@@ -1,14 +1,14 @@
 #include <elash/binder/binder.h>
 
-#define TYPED_INT_RET(type, val, span)    el_hir_new_int_constant(binder->hir_arena, span, type, val)
-#define TYPED_CHAR_RET(type, val, span)   el_hir_new_char_constant(binder->hir_arena, span, type, val)
-#define TYPED_BOOL_RET(type, val, span)   el_hir_new_bool_constant(binder->hir_arena, span, type, val)
-#define TYPED_FLOAT_RET(type, val, span)  el_hir_new_float_constant(binder->hir_arena, span, type, val)
+#define TYPED_INT_RET(type, val, span)    el_hir_new_int_constant(binder->arena, span, type, val)
+#define TYPED_CHAR_RET(type, val, span)   el_hir_new_char_constant(binder->arena, span, type, val)
+#define TYPED_BOOL_RET(type, val, span)   el_hir_new_bool_constant(binder->arena, span, type, val)
+#define TYPED_FLOAT_RET(type, val, span)  el_hir_new_float_constant(binder->arena, span, type, val)
 
-#define UNTYPED_INT_RET(type, val, span)   el_hir_new_int_lit(binder->hir_arena, span, val)
-#define UNTYPED_CHAR_RET(type, val, span)  el_hir_new_char_lit(binder->hir_arena, span, val)
-#define UNTYPED_BOOL_RET(type, val, span)  el_hir_new_bool_lit(binder->hir_arena, span, val)
-#define UNTYPED_FLOAT_RET(type, val, span) el_hir_new_float_lit(binder->hir_arena, span, val)
+#define UNTYPED_INT_RET(type, val, span)   el_hir_new_int_lit(binder->arena, span, val)
+#define UNTYPED_CHAR_RET(type, val, span)  el_hir_new_char_lit(binder->arena, span, val)
+#define UNTYPED_BOOL_RET(type, val, span)  el_hir_new_bool_lit(binder->arena, span, val)
+#define UNTYPED_FLOAT_RET(type, val, span) el_hir_new_float_lit(binder->arena, span, val)
 
 // TODO: we probably should report an error on division/modulo by zero instead of returning NULL
 #define ARITH_BW_BIN_OP_CASES(a, b, RET_MACRO, type, span)                                          \

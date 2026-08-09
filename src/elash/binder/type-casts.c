@@ -31,10 +31,10 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
 
     if (to->kind == EL_HIR_TYPE_DISTINCT) {
         ElHirExpr* casted = _el_binder_implicit_cast(binder, span, expr, to->as.distinct.orig);
-        if (casted != NULL) return el_hir_new_cast_expr(binder->hir_arena, expr->span, to, casted);
+        if (casted != NULL) return el_hir_new_cast_expr(binder->arena, expr->span, to, casted);
     }
     if (from->kind == EL_HIR_TYPE_DISTINCT) {
-        expr = el_hir_new_cast_expr(binder->hir_arena, expr->span, from->as.distinct.orig, expr);
+        expr = el_hir_new_cast_expr(binder->arena, expr->span, from->as.distinct.orig, expr);
         from = expr->type;
     }
 
@@ -45,7 +45,7 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
         bool is_float_conv = (from->as.prim.kind == EL_PRIMTYPE_FLOAT || from->as.prim.kind == EL_PRIMTYPE_INT || from->as.prim.kind == EL_PRIMTYPE_CHAR)
                             && (to->as.prim.kind == EL_PRIMTYPE_FLOAT || to->as.prim.kind == EL_PRIMTYPE_INT || to->as.prim.kind == EL_PRIMTYPE_CHAR);
         if (is_int_conv || is_char_int_conv || is_float_conv) {
-            return el_hir_new_cast_expr(binder->hir_arena, expr->span, to, expr);
+            return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
         }
     }
 
@@ -62,22 +62,22 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
     if (from->kind == EL_HIR_TYPE_ARRAY) {
         if (to->kind == EL_HIR_TYPE_SLICE) {
             return el_hir_new_make_slice_intr(
-                binder->hir_arena,
+                binder->arena,
                 expr->span,
-                _el_binder_implicit_cast(binder, span, expr, el_hir_new_raw_slice_type(binder->type_arena, from->as.array.base)),
-                el_hir_new_int_constant(binder->hir_arena, EL_SRCSPAN_NULL, binder->builtins->type_usize, (int64_t)from->as.array.size)
+                _el_binder_implicit_cast(binder, span, expr, el_hir_new_raw_slice_type(binder->arena, from->as.array.base)),
+                el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_usize, (int64_t)from->as.array.size)
             );
         } else if (to->kind == EL_HIR_TYPE_RWSLICE) {
             if (type_eql(to->as.rwslice.base, from->as.array.base)) {
                 // &(expr)[0] as T[*]
                 ElHirType* base_type = from->as.array.base;
-                return el_hir_new_cast_expr(binder->hir_arena, expr->span, to,
+                return el_hir_new_cast_expr(binder->arena, expr->span, to,
                     el_hir_new_unary_expr(
-                        binder->hir_arena, expr->span,
-                        el_hir_new_ref_type(binder->type_arena, base_type),
+                        binder->arena, expr->span,
+                        el_hir_new_ref_type(binder->arena, base_type),
                         EL_SEMA_UNARY_OP_ADDROF,
-                        el_hir_new_bin_expr(binder->hir_arena, EL_SRCSPAN_NULL, base_type, EL_SEMA_BIN_OP_INDEX,
-                            expr, el_hir_new_int_constant(binder->hir_arena, EL_SRCSPAN_NULL, binder->builtins->type_int, 0)
+                        el_hir_new_bin_expr(binder->arena, EL_SRCSPAN_NULL, base_type, EL_SEMA_BIN_OP_INDEX,
+                            expr, el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_int, 0)
                 )));
             }
         } else if (to->kind == EL_HIR_TYPE_REF) {
@@ -89,7 +89,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
             );
             el_diag_help(
                 binder->diag, "did you meant to use a raw slice ('${type}')?",
-                EL_DIAG_TYPE("type", el_hir_new_raw_slice_type(binder->type_arena, to->as.ref.base)),
+                EL_DIAG_TYPE("type", el_hir_new_raw_slice_type(binder->arena, to->as.ref.base)),
             );
 
             return NULL;
@@ -99,7 +99,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
         if (to->kind == EL_HIR_TYPE_RWSLICE) {
             if (type_eql(from->as.slice.base, to->as.rwslice.base)) {
                 return el_hir_new_slice_data_intr(
-                    binder->hir_arena, expr->span,
+                    binder->arena, expr->span,
                     to, expr
                 );
             }
@@ -117,7 +117,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
                         && (from_itype->width     == to_itype->width
                         || (is_fixed_width(from_itype->width) && is_fixed_width(to_itype->width)
                         &&  from_itype->width     <= to_itype->width));
-            if (is_valid) return el_hir_new_cast_expr(binder->hir_arena, expr->span, to, expr);
+            if (is_valid) return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
         } else if (from->as.prim.kind == EL_PRIMTYPE_FLOAT && to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
             // same reason as before, don't blame me plz
             #define from_fptype (&from->as.prim.as.fp)
@@ -125,7 +125,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
             bool is_valid = from_fptype->width == to_fptype->width
                         || (is_fixed_fp_width(from_fptype->width) && is_fixed_fp_width(to_fptype->width)
                         &&  from_fptype->width < to_fptype->width);
-            if (is_valid) return el_hir_new_cast_expr(binder->hir_arena, expr->span, to, expr);
+            if (is_valid) return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
         }
     }
 
@@ -154,37 +154,37 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
     if (to->kind == EL_HIR_TYPE_DISTINCT) {
         ElHirExpr* casted = _cast_untyped(binder, span, expr, to->as.distinct.orig);
         if (casted == NULL) return NULL;
-        return el_hir_new_cast_expr(binder->hir_arena, expr->span, to, casted);
+        return el_hir_new_cast_expr(binder->arena, expr->span, to, casted);
     }
 
     if (to->kind == EL_HIR_TYPE_PRIM) {
         switch (expr->as.literal.kind) {
         case EL_HIR_LITERAL_INT:
             if (to->as.prim.kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->hir_arena, expr->span, to, expr->as.literal.of.int_);
+                return el_hir_new_int_constant(binder->arena, expr->span, to, expr->as.literal.of.int_);
             } else if (to->as.prim.kind == EL_PRIMTYPE_CHAR) {
-                return el_hir_new_char_constant(binder->hir_arena, expr->span, to, (char)expr->as.literal.of.int_);
+                return el_hir_new_char_constant(binder->arena, expr->span, to, (char)expr->as.literal.of.int_);
             } else if (to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
-                return el_hir_new_float_constant(binder->hir_arena, expr->span, to, (double)expr->as.literal.of.int_);
+                return el_hir_new_float_constant(binder->arena, expr->span, to, (double)expr->as.literal.of.int_);
             }
             break;
         case EL_HIR_LITERAL_CHAR:
             if (to->as.prim.kind == EL_PRIMTYPE_CHAR) {
-                return el_hir_new_char_constant(binder->hir_arena, expr->span, to, expr->as.literal.of.char_);
+                return el_hir_new_char_constant(binder->arena, expr->span, to, expr->as.literal.of.char_);
             } else if (to->as.prim.kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->hir_arena, expr->span, to, (int64_t)expr->as.literal.of.char_);
+                return el_hir_new_int_constant(binder->arena, expr->span, to, (int64_t)expr->as.literal.of.char_);
             }
             break;
         case EL_HIR_LITERAL_BOOL:
             if (to->as.prim.kind == EL_PRIMTYPE_BOOL) {
-                return el_hir_new_bool_constant(binder->hir_arena, expr->span, to, expr->as.literal.of.bool_);
+                return el_hir_new_bool_constant(binder->arena, expr->span, to, expr->as.literal.of.bool_);
             }
             break;
         case EL_HIR_LITERAL_FLOAT:
             if (to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
-                return el_hir_new_float_constant(binder->hir_arena, expr->span, to, expr->as.literal.of.float_);
+                return el_hir_new_float_constant(binder->arena, expr->span, to, expr->as.literal.of.float_);
             } else if (to->as.prim.kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->hir_arena, expr->span, to, (int64_t)expr->as.literal.of.float_);
+                return el_hir_new_int_constant(binder->arena, expr->span, to, (int64_t)expr->as.literal.of.float_);
             }
             break;
         }
@@ -203,13 +203,13 @@ ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr) {
     if (expr->kind == EL_HIR_EXPR_LITERAL) {
         switch (expr->as.literal.kind) {
         case EL_HIR_LITERAL_INT:
-            return el_hir_new_int_constant(binder->hir_arena, expr->span, binder->builtins->type_int, expr->as.literal.of.int_);
+            return el_hir_new_int_constant(binder->arena, expr->span, binder->builtins->type_int, expr->as.literal.of.int_);
         case EL_HIR_LITERAL_CHAR:
-            return el_hir_new_char_constant(binder->hir_arena, expr->span, binder->builtins->type_char, expr->as.literal.of.char_);
+            return el_hir_new_char_constant(binder->arena, expr->span, binder->builtins->type_char, expr->as.literal.of.char_);
         case EL_HIR_LITERAL_BOOL:
-            return el_hir_new_bool_constant(binder->hir_arena, expr->span, binder->builtins->type_bool, expr->as.literal.of.bool_);
+            return el_hir_new_bool_constant(binder->arena, expr->span, binder->builtins->type_bool, expr->as.literal.of.bool_);
         case EL_HIR_LITERAL_FLOAT:
-            return el_hir_new_float_constant(binder->hir_arena, expr->span, binder->builtins->type_float, expr->as.literal.of.float_);
+            return el_hir_new_float_constant(binder->arena, expr->span, binder->builtins->type_float, expr->as.literal.of.float_);
         }
     }
     return expr;

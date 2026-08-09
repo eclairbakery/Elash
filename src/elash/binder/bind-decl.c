@@ -28,7 +28,7 @@ static bool bind_param_types(
     ElHirType*** out_param_types, usize* out_count
 ) {
     usize count = params->count;
-    ElHirType** param_types = EL_DYNARENA_NEW_ARR(binder->type_arena, ElHirType*, count);
+    ElHirType** param_types = EL_DYNARENA_NEW_ARR(binder->arena, ElHirType*, count);
     bool has_error = false;
     usize i = 0;
 
@@ -50,7 +50,7 @@ static bool _el_binder_create_param_symbols(
     ElHirType** param_types, ElHirSymbol*** out_params
 ) {
     usize count = params->count;
-    ElHirSymbol** param_syms = EL_DYNARENA_NEW_ARR(binder->sym_arena, ElHirSymbol*, count);
+    ElHirSymbol** param_syms = EL_DYNARENA_NEW_ARR(binder->arena, ElHirSymbol*, count);
 
     bool has_error = false;
     usize i = 0;
@@ -65,7 +65,7 @@ static bool _el_binder_create_param_symbols(
         }
 
         param_syms[i] = el_hir_new_var_symbol(
-            binder->sym_arena, binder->sym_id_counter++,
+            binder->arena, binder->sym_id_counter++,
             param->name->name, param_types[i]
         );
         i++;
@@ -86,7 +86,7 @@ static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
         return NULL;
 
     ElHirType* func_type = el_hir_new_func_type(
-        binder->type_arena, ret_type, param_types, param_count
+        binder->arena, ret_type, param_types, param_count
     );
 
     ElHirSymbol* existing = el_hir_scope_lookup_local(binder->global_scope, sig->name->name);
@@ -118,7 +118,7 @@ static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
         return NULL;
 
     ElHirSymbol* sym = el_hir_new_func_symbol(
-        binder->sym_arena, binder->sym_id_counter++, sig->name->name,
+        binder->arena, binder->sym_id_counter++, sig->name->name,
         ret_type, param_syms, param_count
     );
     (void) el_hir_scope_insert(binder->global_scope, sym);
@@ -137,7 +137,7 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
         );
     }
 
-    ElHirSymbol* sym = el_hir_new_var_symbol(binder->sym_arena, binder->sym_id_counter++, var->name->name, type);
+    ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, var->name->name, type);
     if (!el_hir_scope_insert(binder->current_scope, sym)) {
         return REPORT_REDEFINITION(binder, var->name->span, sym->name);
     }
@@ -152,7 +152,7 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
         if (init == NULL) return NULL;
     }
 
-    return el_hir_new_var_def(binder->hir_arena, in->span, sym, init, scls);
+    return el_hir_new_var_def(binder->arena, in->span, sym, init, scls);
 }
 
 static ElHirDecl* bind_var_decl(ElBinder* binder, ElAstDecl* in, ElAstVarDecl* var) {
@@ -167,7 +167,7 @@ static ElHirDecl* bind_var_decl(ElBinder* binder, ElAstDecl* in, ElAstVarDecl* v
         );
     }
 
-    ElHirSymbol* sym = el_hir_new_var_symbol(binder->sym_arena, binder->sym_id_counter++, var->name->name, type);
+    ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, var->name->name, type);
     if (!el_hir_scope_insert(binder->current_scope, sym)) {
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
@@ -177,7 +177,7 @@ static ElHirDecl* bind_var_decl(ElBinder* binder, ElAstDecl* in, ElAstVarDecl* v
         );
     }
 
-    return el_hir_new_var_decl(binder->hir_arena, in->span, sym);
+    return el_hir_new_var_decl(binder->arena, in->span, sym);
 }
 
 static ElHirDecl* bind_func_def(ElBinder* binder, ElAstDecl* in, ElAstFuncDef* def) {
@@ -218,13 +218,13 @@ static ElHirDecl* bind_func_def(ElBinder* binder, ElAstDecl* in, ElAstFuncDef* d
         }
     }
 
-    return el_hir_new_func_def(binder->hir_arena, in->span, sym, block);
+    return el_hir_new_func_def(binder->arena, in->span, sym, block);
 }
 
 static ElHirDecl* bind_func_decl(ElBinder* binder, ElAstDecl* in, ElAstFuncDecl* decl) {
     ElHirSymbol* sym = bind_func_sig(binder, &decl->sig);
     if (sym == NULL) return NULL;
-    return el_hir_new_func_decl(binder->hir_arena, in->span, sym);
+    return el_hir_new_func_decl(binder->arena, in->span, sym);
 }
 
 static ElHirDecl* bind_alias(ElBinder* binder, ElAstDecl* in, ElAstAlias* alias) {
@@ -233,7 +233,7 @@ static ElHirDecl* bind_alias(ElBinder* binder, ElAstDecl* in, ElAstAlias* alias)
 
     if (toe->is_type) {
         ElHirSymbol* sym = el_hir_new_type_symbol(
-            binder->sym_arena, binder->sym_id_counter++, alias->name, toe->as.type);
+            binder->arena, binder->sym_id_counter++, alias->name, toe->as.type);
 
         if (!el_hir_scope_insert(binder->current_scope, sym)) {
             return REPORT_REDEFINITION(binder, in->span, sym->name);
@@ -251,7 +251,7 @@ static ElHirDecl* bind_alias(ElBinder* binder, ElAstDecl* in, ElAstAlias* alias)
             return REPORT_REDEFINITION(binder, in->span, alias->name);
         }
     }
-    return el_hir_decl_none(binder->hir_arena, in->span);
+    return el_hir_decl_none(binder->arena, in->span);
 }
 
 static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* typedef_) {
@@ -268,13 +268,13 @@ static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* ty
         );
     }
 
-    ElHirType* distinct = el_hir_new_distinct_type(binder->type_arena, target, typedef_->name);
-    ElHirSymbol* the_symbol = el_hir_new_type_symbol(binder->sym_arena, binder->sym_id_counter++, typedef_->name, distinct);
+    ElHirType* distinct = el_hir_new_distinct_type(binder->arena, target, typedef_->name);
+    ElHirSymbol* the_symbol = el_hir_new_type_symbol(binder->arena, binder->sym_id_counter++, typedef_->name, distinct);
 
     if (!el_hir_scope_insert(binder->current_scope, the_symbol))
         return REPORT_REDEFINITION(binder, in->span, typedef_->name);
 
-    return el_hir_decl_none(binder->hir_arena, in->span);
+    return el_hir_decl_none(binder->arena, in->span);
 }
 
 ElHirDecl* el_binder_bind_decl(ElBinder* binder, ElAstDecl* in) {

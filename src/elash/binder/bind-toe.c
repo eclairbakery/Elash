@@ -9,15 +9,15 @@
 
 static ElHirToE* resolve_toe_by_kind(ElBinder* binder, ElAstToE* in, bool is_type) {
     if (is_type) {
-        ElAstType* ast_type = el_ast_toe_as_type(binder->hir_arena, in);
+        ElAstType* ast_type = el_ast_toe_as_type(binder->arena, in);
         ElHirType* hir_type = _el_binder_bind_type(binder, ast_type);
         if (hir_type == NULL) return NULL;
-        return el_hir_new_toe_type(binder->hir_arena, hir_type);
+        return el_hir_new_toe_type(binder->arena, hir_type);
     } else {
-        ElAstExpr* ast_expr = el_ast_toe_as_expr(binder->hir_arena, in);
+        ElAstExpr* ast_expr = el_ast_toe_as_expr(binder->arena, in);
         ElHirExpr* hir_expr = el_binder_bind_expr(binder, ast_expr);
         if (hir_expr == NULL) return NULL;
-        return el_hir_new_toe_expr(binder->hir_arena, hir_expr);
+        return el_hir_new_toe_expr(binder->arena, hir_expr);
     }
 }
 
@@ -29,12 +29,12 @@ ElHirToE* el_binder_bind_toe(ElBinder* binder, ElAstToE* in) {
     case EL_AST_TOE_TYPE: {
         ElHirType* type = _el_binder_bind_type(binder, in->as.type);
         if (type == NULL) return NULL;
-        return el_hir_new_toe_type(binder->hir_arena, type);
+        return el_hir_new_toe_type(binder->arena, type);
     }
     case EL_AST_TOE_EXPR: {
         ElHirExpr* expr = el_binder_bind_expr(binder, in->as.expr);
         if (expr == NULL) return NULL;
-        return el_hir_new_toe_expr(binder->hir_arena, expr);
+        return el_hir_new_toe_expr(binder->arena, expr);
     }
 
     // very very advanced cases
