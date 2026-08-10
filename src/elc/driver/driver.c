@@ -11,6 +11,7 @@
 #include <elc/driver/stages/binder-stage.h>
 #include <elc/driver/stages/lowerer-stage.h>
 #include <elc/driver/stages/codegen-stage.h>
+#include <elc/driver/stages/optimize-stage.h>
 #include <elc/driver/stages/emit-obj-stage.h>
 #include <elc/driver/stages/emit-asm-stage.h>
 
@@ -27,7 +28,8 @@ bool elc_driver_init(ElcDriver* driver) {
 
     elc_pipeline_init(
         &driver->pipeline, &driver->arena, &driver->diag,
-        &driver->binder_builtins, &driver->lowerer_builtins
+        &driver->binder_builtins, &driver->lowerer_builtins,
+        ELC_OPT_O0
     );
 
     return true;
@@ -46,32 +48,54 @@ bool elc_driver_register_stages(ElcDriver* driver) {
     elc_pipeline_add_stage(&driver->pipeline, elc_make_binder_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_lowerer_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_codegen_stage());
+    elc_pipeline_add_stage(&driver->pipeline, elc_make_optimize_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_emit_obj_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_emit_asm_stage());
     return true;
 }
 
-#define REGISTER_DUMP_OBSERVER(KIND, FIELD, MAKER) \
-    do { \
-        bool is_target = (args->emit == (KIND) || args->until == (KIND)); \
-        if (args->FIELD.is_enabled || is_target) { \
-            const char* path = NULL; \
-            if (args->FIELD.is_enabled && !el_sv_is_null(args->FIELD.output)) { \
-                path = el_dynarena_make_cstr(&driver->arena, args->FIELD.output); \
-            } else if (is_target) { \
-                path = el_dynarena_make_cstr(&driver->arena, args->output); \
-            } \
-            elc_pipeline_add_observer(&driver->pipeline, (MAKER)(path)); \
-        } \
+#define REGISTER_LIR_OBSERVER(KIND, FIELD)                                                               \
+    do {                                                                                                 \
+        bool is_target = (args->emit == (KIND) || args->until == (KIND));                                \
+        if (args->FIELD.is_enabled || is_target) {                                                       \
+            const char* path = NULL;                                                                     \
+            if (args->FIELD.is_enabled && !el_sv_is_null(args->FIELD.output)) {                          \
+                path = el_dynarena_make_cstr(&driver->arena, args->FIELD.output);                        \
+            } else if (is_target) {                                                                      \
+                path = el_dynarena_make_cstr(&driver->arena, args->output);                              \
+            }                                                                                            \
+            elc_pipeline_add_observer(&driver->pipeline,                                                 \
+                elc_make_dump_lir_observer(EL_DYNARENA_NEW_STRUCT(&driver->arena, DumpLirObserverData, { \
+                    .path = path, .kind = (KIND)                                                         \
+                }))                                                                                      \
+            );                                                                                           \
+        }                                                                                                \
     } while (0)
 
-// clang-tidy is stupid and dont understand macros
+#define REGISTER_GENERIC_OBSERVER(KIND, FIELD, MAKER)                             \
+    do {                                                                          \
+        bool is_target = (args->emit == (KIND) || args->until == (KIND));         \
+        if (args->FIELD.is_enabled || is_target) {                                \
+            const char* path = NULL;                                              \
+            if (args->FIELD.is_enabled && !el_sv_is_null(args->FIELD.output)) {   \
+                path = el_dynarena_make_cstr(&driver->arena, args->FIELD.output); \
+            } else if (is_target) {                                               \
+                path = el_dynarena_make_cstr(&driver->arena, args->output);       \
+            }                                                                     \
+            elc_pipeline_add_observer(&driver->pipeline, (MAKER)(path));          \
+        }                                                                         \
+    } while (0)
+
+// clang-tidy is stupid and doesn't understand macros
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 bool elc_driver_register_observers(ElcDriver* driver, const ElcArgs* args) {
-    REGISTER_DUMP_OBSERVER(ELC_ART_AST, dump_ast, elc_make_dump_ast_observer);
-    REGISTER_DUMP_OBSERVER(ELC_ART_HIR, dump_hir, elc_make_dump_hir_observer);
-    REGISTER_DUMP_OBSERVER(ELC_ART_MIR, dump_mir, elc_make_dump_mir_observer);
-    REGISTER_DUMP_OBSERVER(ELC_ART_LIR, dump_lir, elc_make_dump_lir_observer);
+    REGISTER_GENERIC_OBSERVER(ELC_ART_AST,  dump_ast, elc_make_dump_ast_observer);
+    REGISTER_GENERIC_OBSERVER(ELC_ART_HIR,  dump_hir, elc_make_dump_hir_observer);
+    REGISTER_GENERIC_OBSERVER(ELC_ART_MIR,  dump_mir, elc_make_dump_mir_observer);
+
+    REGISTER_LIR_OBSERVER(ELC_ART_LIR,  dump_lir);
+    REGISTER_LIR_OBSERVER(ELC_ART_OLIR, dump_lir);
+
     return true;
 }
 
@@ -96,23 +120,21 @@ static bool init_source_document(ElcDriver* driver, const ElcArgs* args, ElSourc
     if (err != EL_SRCDOC_ERR_SUCCESS) return false;
 
     elc_pipeline_provide(&driver->pipeline, (ElcArtifact) {
-        .kind = ELC_ART_SOURCE_TEXT,
-        .as.source = src
+        .kind = ELC_ART_SRC,
+        .as.src = src
     });
 
     return true;
 }
 
 static ElcArtifactKind determine_target(const ElcArgs* args) {
-    if (args->emit != ELC_ART_NONE)  return args->emit;
+    if (args->emit  != ELC_ART_NONE) return args->emit;
     if (args->until != ELC_ART_NONE) return args->until;
     return ELC_ART_OBJ;
 }
 
 bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
-    if (args->opt != ELC_OPT_UNSPEC) {
-        EL_TODO("implement optimization levels");
-    }
+    driver->pipeline.context.optlevel = args->opt;
 
     ElSourceDocument src;
     if (!init_source_document(driver, args, &src)) {

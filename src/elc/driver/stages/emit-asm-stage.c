@@ -15,7 +15,7 @@ ElcStage elc_make_emit_asm_stage() {
         .name = EL_SV("Emit Assembly"),
         .execute = elc_emit_asm_stage_exec,
 
-        .input_kind = ELC_ART_LIR,
+        .input_kind = ELC_ART_OLIR,
         .output_kind = ELC_ART_ASM,
     };
 }

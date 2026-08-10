@@ -110,12 +110,12 @@ def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negat
     latest_compile_input_mtime = max(input_file.stat().st_mtime, elc_bin.stat().st_mtime)
 
     if is_negative or not obj.is_file() or obj.stat().st_mtime < latest_compile_input_mtime:
-        res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj), '-O2'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if is_negative or res.returncode != 0:
             return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='compilation')
 
     if not exe.is_file() or exe.stat().st_mtime < obj.stat().st_mtime:
-        cc_cmd = ['cc', str(obj), '-o', str(exe)]
+        cc_cmd = ['cc', '-no-pie', str(obj), '-o', str(exe)]
         if sys.platform == 'win32':
             cc_cmd.append('-mconsole')
 

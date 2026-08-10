@@ -5,8 +5,15 @@
 #include <elash/util/todo.h>
 
 #include <llvm-c/Core.h>
+#include <llvm-c/Error.h>
 #include <llvm-c/Target.h>
+
+#ifdef EL_DEBUG
+#include <llvm-c/Analysis.h>
+#endif
+
 #include <llvm-c/TargetMachine.h>
+#include <llvm-c/Transforms/PassBuilder.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -120,6 +127,44 @@ ElcLirHandle elc_llvm_make_lir_handle(ElcLLVMLir* data) {
     };
 }
 
+void elc_llvm_optimize(ElcCodegenBackend* self, ElcLirHandle* lir, ElcOptLevel level) {
+    // just in case
+    if (level == ELC_OPT_UNSPEC || level == ELC_OPT_O0) return;
+    (void) self;
+
+    ElcLLVMLir* data = lir->data;
+    LLVMModuleRef module = data->module;
+    LLVMPassBuilderOptionsRef pbo = LLVMCreatePassBuilderOptions();
+
+    const char* pass_str = NULL;
+    switch (level) {
+    case ELC_OPT_O1: pass_str = "default<O1>"; break;
+    case ELC_OPT_O2: pass_str = "default<O2>"; break;
+    case ELC_OPT_O3: pass_str = "default<O3>"; break;
+    case ELC_OPT_Og: pass_str = "default<Og>"; break;
+    case ELC_OPT_Os: pass_str = "default<Os>"; break;
+    case ELC_OPT_Oz: pass_str = "default<Oz>"; break;
+    case ELC_OPT_Of: pass_str = "default<O3>"; break;
+    default: EL_UNREACHABLE("shouldn't get here");
+    }
+
+    LLVMErrorRef err = LLVMRunPasses(module, pass_str, NULL, pbo);
+    if (err != LLVMErrorSuccess) {
+        char* msg = LLVMGetErrorMessage(err);
+        // TODO: better error handling
+        fprintf(stderr, "LLVMRunPasses failed: %s\n", msg);
+        LLVMDisposeErrorMessage(msg);
+        LLVMDisposePassBuilderOptions(pbo);
+        return;
+    }
+
+#ifdef EL_DEBUG
+    LLVMVerifyModule(data->module, LLVMPrintMessageAction, NULL);
+#endif
+
+    LLVMDisposePassBuilderOptions(pbo);
+}
+
 ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
     ElcLLVMBackendCtx* ctx = EL_DYNARENA_NEW(arena, ElcLLVMBackendCtx);
     ctx->context = LLVMContextCreate();
@@ -135,7 +180,8 @@ ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
         .name = EL_SV("llvm"),
         .version = EL_SEM_VER(0, 1, 0),
         .ctx = ctx,
-        .compile = elc_llvm_compile,
-        .cleanup = elc_llvm_cleanup,
+        .compile  = elc_llvm_compile,
+        .optimize = elc_llvm_optimize,
+        .cleanup  = elc_llvm_cleanup,
     };
 }

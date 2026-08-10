@@ -6,6 +6,7 @@
 #include <elash/mir/module.h>
 
 #include <elc/codegen/lir.h>
+#include <elc/optlevel.h>
 
 typedef struct ElcCodegenBackend ElcCodegenBackend;
 
@@ -20,6 +21,11 @@ typedef ElcCodegenResult ElcBackendCompileFn(
     const ElMirModule* input,
     ElcLirHandle* output
 );
+typedef void ElcBackendOptimizeFn(
+    ElcCodegenBackend* self,
+    ElcLirHandle* inout,
+    ElcOptLevel level
+);
 typedef void ElcBackendCleanupFn(ElcCodegenBackend* self);
 
 struct ElcCodegenBackend {
@@ -27,6 +33,7 @@ struct ElcCodegenBackend {
     ElSemVersion version;
 
     void* ctx;
-    ElcBackendCompileFn* compile; // always non-null
-    ElcBackendCleanupFn* cleanup; // NULL if no cleanup is needed
+    ElcBackendCompileFn*  compile;  // always non-null
+    ElcBackendOptimizeFn* optimize; // NULL if optimizations are unsupported
+    ElcBackendCleanupFn*  cleanup;  // NULL if no cleanup is needed
 };

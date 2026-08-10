@@ -14,4 +14,6 @@ typedef struct ElcPipelineContext {
     ElBinderBuiltins*  binder_builtins;
     ElLowererBuiltins* lowerer_builtins;
     ElcCodegenBackend* backend;
+
+    ElcOptLevel optlevel;
 } ElcPipelineContext;

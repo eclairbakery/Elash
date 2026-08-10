@@ -63,10 +63,11 @@
 
 ### Optimizations
 #### LLVM passes
-- [ ] Configure pass manager
-- [ ] Define optimization levels (O0, O1, O2)
-- [ ] Run optimization pipeline
-- [ ] Verify module after passes
+- [x] Setup optimizations infrastructure
+- [x] Configure pass manager
+- [x] Define optimization levels (O0, O1, O2)
+- [x] Run optimization pipeline
+- [x] Verify module after passes
 
 #### Frontend
 - [ ] Lower `T&?` and `T[&]?` to just `T*` in MIR
