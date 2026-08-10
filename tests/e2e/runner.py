@@ -63,6 +63,9 @@ def error(*args):
     sys.exit(1)
 
 def get_expectation(path: Path, name: str) -> TestExpectation:
+    if path.is_file():
+        return TestExpectation(exitcode=0, stdout='', stderr='')
+
     exitcode: int = 0
     if (f := path.joinpath('exitcode.txt')).is_file():
         try:
@@ -95,11 +98,14 @@ def print_diff(expected: str, actual: str, stream_name: str):
         print_info(f'  {line.rstrip()}')
 
 def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negative: bool) -> TestResult | None:
-    input_file = path.joinpath('input.ei')
-    if not input_file.is_file():
-        error(f"ill-formed test case '{name}': no input.ei")
+    if path.is_dir():
+        input_file = path.joinpath('input.ei')
+        if not input_file.is_file():
+            error(f"ill-formed test case '{name}': no input.ei")
+    else:
+        input_file = path
 
-    skip_file = path.joinpath('skip')
+    skip_file = path.joinpath('skip') if path.is_dir() else path.parent.joinpath('skip')
     if skip_file.is_file():
         return None
 
@@ -160,8 +166,14 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
         if expected.stderr or actual.stderr:
             print_diff(expected.stderr, actual.stderr, 'stderr')
 
-def _collect_test_dirs():
-    return sorted({p.parent for p in script_dir.rglob('input.ei')})
+def _collect_test_items():
+    test_items = []
+    for p in script_dir.rglob('input.ei'):
+        test_items.append(p.parent)
+    for p in script_dir.rglob('*.ei'):
+        if p.name != 'input.ei':
+            test_items.append(p)
+    return sorted(test_items)
 
 def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
     if expected.diags is not None:
@@ -192,10 +204,10 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int]) -> bool:
     failed_count  = 0
     skipped_count = 0
 
-    test_dirs = _collect_test_dirs()
+    test_items = _collect_test_items()
 
     tasks = []
-    for path in test_dirs:
+    for path in test_items:
         name = str(path.relative_to(script_dir))
         tasks.append((path, name, get_expectation(path, name)))
 
