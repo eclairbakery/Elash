@@ -6,11 +6,11 @@
 bool elc_optimize_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const ElcArtifact* input, ElcArtifact* output) {
     (void) stage;
 
-    if (ctx->backend->optimize != NULL)
+    if (ctx->backend->optimize != NULL && ctx->optlevel != ELC_OPT_O0) {
         // ugly and theoretically unsafe but i have no idea how to do this
         // in any better way
         ctx->backend->optimize(ctx->backend, (ElcLirHandle*)&input->as.lir, ctx->optlevel);
-
+    }
     output->as.lir = input->as.lir;
     return true;
 }
