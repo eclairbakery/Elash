@@ -7,7 +7,7 @@ bool elc_parser_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const
     (void) stage;
 
     ElParser parser;
-    el_parser_init(&parser, *input->as.tokens, ctx->diag, ctx->arena);
+    el_parser_init(&parser, *input->as.tks, ctx->diag, ctx->arena);
 
     ElAstModule* mod = el_parser_parse_module(&parser);
 
@@ -27,7 +27,7 @@ ElcStage elc_make_parser_stage() {
         .name = EL_SV("Parser"),
         .execute = elc_parser_stage_exec,
 
-        .input_kind = ELC_ART_PP_TOKENS,
+        .input_kind = ELC_ART_PPTKS,
         .output_kind = ELC_ART_AST,
     };
 }

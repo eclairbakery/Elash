@@ -14,10 +14,10 @@ void elc_artifact_free(ElcArtifact* art) {
             art->as.lir.free(&art->as.lir);
         }
         break;
-    case ELC_ART_PP_TOKENS:
-        if (art->as.tokens != NULL) {
+    case ELC_ART_PPTKS:
+        if (art->as.tks != NULL) {
             // this is ugly, but works.
-            el_pp_destroy(art->as.tokens->ctx);
+            el_pp_destroy(art->as.tks->ctx);
         }
         break;
     default:
@@ -30,13 +30,14 @@ ElStringView elc_artifact_kind_to_string(ElcArtifactKind art) {
     switch (art) {
     case ELC_ART_NONE:        return EL_SV("none");
     case ELC_ART_MAX:         return EL_SV("unknown");
-    case ELC_ART_SOURCE_TEXT: return EL_SV("source document");
-    case ELC_ART_TOKENS:      return EL_SV("tokens");
-    case ELC_ART_PP_TOKENS:   return EL_SV("pp tokens");
+    case ELC_ART_SRC:         return EL_SV("source");
+    case ELC_ART_TKS:         return EL_SV("tokens");
+    case ELC_ART_PPTKS:       return EL_SV("pp tokens");
     case ELC_ART_AST:         return EL_SV("ast");
     case ELC_ART_HIR:         return EL_SV("hir");
     case ELC_ART_MIR:         return EL_SV("mir");
-    case ELC_ART_LIR:         return EL_SV("lir");
+    case ELC_ART_LIR:         return EL_SV("unoptimized lir");
+    case ELC_ART_OLIR:        return EL_SV("lir");
     case ELC_ART_ASM:         return EL_SV("asm");
     case ELC_ART_OBJ:         return EL_SV("obj");
     }
@@ -44,14 +45,19 @@ ElStringView elc_artifact_kind_to_string(ElcArtifactKind art) {
 }
 
 ElcArtifactKind elc_artifact_kind_from_string(ElStringView str) {
-    if (el_sv_eql(str, EL_SV("source")))     { return ELC_ART_SOURCE_TEXT; }
-    if (el_sv_eql(str, EL_SV("tokens")))     { return ELC_ART_TOKENS;      }
-    if (el_sv_eql(str, EL_SV("pp-tokens")))  { return ELC_ART_PP_TOKENS;   }
-    if (el_sv_eql(str, EL_SV("ast")))        { return ELC_ART_AST;         }
-    if (el_sv_eql(str, EL_SV("hir")))        { return ELC_ART_HIR;         }
-    if (el_sv_eql(str, EL_SV("mir")))        { return ELC_ART_MIR;         }
-    if (el_sv_eql(str, EL_SV("lir")))        { return ELC_ART_LIR;         }
-    if (el_sv_eql(str, EL_SV("asm")))        { return ELC_ART_ASM;         }
-    if (el_sv_eql(str, EL_SV("obj")))        { return ELC_ART_OBJ;         }
+    if (el_sv_eql(str, EL_SV("source")))     { return ELC_ART_SRC;   }
+    if (el_sv_eql(str, EL_SV("toks")))       { return ELC_ART_TKS;   }
+    if (el_sv_eql(str, EL_SV("pp-toks")))    { return ELC_ART_PPTKS; }
+    if (el_sv_eql(str, EL_SV("ast")))        { return ELC_ART_AST;   }
+    if (el_sv_eql(str, EL_SV("hir")))        { return ELC_ART_HIR;   }
+    if (el_sv_eql(str, EL_SV("mir")))        { return ELC_ART_MIR;   }
+    // ulir stands for "unoptimized lir". this is because if "lir" referred unoptimized LIR,
+    // then this would be very confusing if someone used for example --emit=lir -O3, then
+    // it would emit unoptimized LIR which is clearly not what should happen. so lir means
+    // optimized and ulir means unoptimized.
+    if (el_sv_eql(str, EL_SV("ulir")))       { return ELC_ART_LIR;   }
+    if (el_sv_eql(str, EL_SV("lir")))        { return ELC_ART_OLIR;  }
+    if (el_sv_eql(str, EL_SV("asm")))        { return ELC_ART_ASM;   }
+    if (el_sv_eql(str, EL_SV("obj")))        { return ELC_ART_OBJ;   }
     return ELC_ART_NONE;
 }

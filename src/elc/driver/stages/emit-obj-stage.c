@@ -15,7 +15,7 @@ ElcStage elc_make_emit_obj_stage() {
         .name = EL_SV("Emit Object File"),
         .execute = elc_emit_obj_stage_exec,
 
-        .input_kind = ELC_ART_LIR,
+        .input_kind = ELC_ART_OLIR,
         .output_kind = ELC_ART_OBJ,
     };
 }

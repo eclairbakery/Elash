@@ -60,7 +60,9 @@ static bool handle_dump_switch(ElcArgParseContext* p, ElStringView arg, ElString
 }
 
 static ElcCliParseResult handle_artifact_flag(
-    ElcArgParseContext *p, ElStringView arg, ElStringView flag, ElcArtifactKind *out
+    ElcArgParseContext* p, ElStringView arg,
+    ElStringView flag, ElcArtifactKind* out,
+    ElcArtifactKind* fallback
 ) {
     ElStringView val = get_value(p, arg, flag);
     if (val.len == 0) {
@@ -74,6 +76,10 @@ static ElcCliParseResult handle_artifact_flag(
             .code = ELC_CLI_PARSE_UNKNOWN_ARTIFACT, .ctx.str = val
         };
     }
+
+    if (*fallback == ELC_ART_NONE) {
+        *fallback = *out;
+    }
     return ELC_CLI_PARSE_RESULT_OK;
 }
 
@@ -86,14 +92,6 @@ static ElcCliParseResult handle_output_flag(ElcArgParseContext* p, ElStringView 
         };
     }
     return ELC_CLI_PARSE_RESULT_OK;
-}
-
-static ElcCliParseResult handle_until_flag(ElcArgParseContext *p, ElStringView arg) {
-    return handle_artifact_flag(p, arg, EL_SV("--until"), &p->out->until);
-}
-
-static ElcCliParseResult handle_emit_flag(ElcArgParseContext *p, ElStringView arg) {
-    return handle_artifact_flag(p, arg, EL_SV("--emit"), &p->out->emit);
 }
 
 static ElcOptLevel elc_opt_level_from_string(ElStringView s) {
@@ -155,26 +153,18 @@ static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView ar
     if (el_sv_eql(arg, EL_SV("--help")))    { p->out->help = true;    return ELC_CLI_PARSE_RESULT_OK; }
     if (el_sv_eql(arg, EL_SV("--version"))) { p->out->version = true; return ELC_CLI_PARSE_RESULT_OK; }
 
-    if (el_sv_starts_with(arg, EL_SV("--output"))) {
-        ElcCliParseResult err = handle_output_flag(p, arg);
-        return err;
-    }
-    if (el_sv_starts_with(arg, EL_SV("--until"))) {
-        ElcCliParseResult err = handle_until_flag(p, arg);
-        return err;
-    }
-    if (el_sv_starts_with(arg, EL_SV("--emit"))) {
-        ElcCliParseResult err = handle_emit_flag(p, arg);
-        return err;
-    }
-    if (el_sv_starts_with(arg, EL_SV("--opt"))) {
-        ElcCliParseResult err = handle_opt_flag(p, arg);
-        return err;
-    }
-    if (el_sv_starts_with(arg, EL_SV("--color"))) {
-        ElcCliParseResult err = parse_preference_flag(p, arg, EL_SV("--color"), &p->out->color);
-        return err;
-    }
+    if (el_sv_starts_with(arg, EL_SV("--output")))
+        return handle_output_flag(p, arg);
+
+    if (el_sv_starts_with(arg, EL_SV("--until")))
+        return handle_artifact_flag(p, arg, EL_SV("--until"), &p->out->until, &p->out->emit);
+    if (el_sv_starts_with(arg, EL_SV("--emit")))
+        return handle_artifact_flag(p, arg, EL_SV("--emit"), &p->out->emit, &p->out->until);
+
+    if (el_sv_starts_with(arg, EL_SV("--opt")))
+        return handle_opt_flag(p, arg);
+    if (el_sv_starts_with(arg, EL_SV("--color")))
+        return parse_preference_flag(p, arg, EL_SV("--color"), &p->out->color);
 
     if (handle_dump_switch(p, arg, EL_SV("--dump-toks"),    &p->out->dump_toks))    return ELC_CLI_PARSE_RESULT_OK;
     if (handle_dump_switch(p, arg, EL_SV("--dump-pp-toks"), &p->out->dump_pp_toks)) return ELC_CLI_PARSE_RESULT_OK;
@@ -251,12 +241,13 @@ static ElcCliParseResult handle_pos_arg(ElcArgParseContext* p, ElStringView arg)
             ElcArtifactKind until;
             ElcArtifactKind emit;
         } aliases[] = {
-            { EL_SV("build"),      ELC_ART_OBJ,       ELC_ART_OBJ },
-            { EL_SV("compile"),    ELC_ART_OBJ,       ELC_ART_OBJ },
-            { EL_SV("check"),      ELC_ART_HIR,       ELC_ART_NONE },
-            { EL_SV("preprocess"), ELC_ART_PP_TOKENS, ELC_ART_PP_TOKENS },
-            { EL_SV("lower"),      ELC_ART_MIR,       ELC_ART_MIR },
-            { EL_SV("inspect"),    ELC_ART_OBJ,       ELC_ART_NONE },
+            { EL_SV("build"),      ELC_ART_OBJ,       ELC_ART_OBJ   },
+            { EL_SV("compile"),    ELC_ART_OBJ,       ELC_ART_OBJ   },
+            { EL_SV("check"),      ELC_ART_HIR,       ELC_ART_NONE  },
+            { EL_SV("preprocess"), ELC_ART_PPTKS,     ELC_ART_PPTKS },
+            { EL_SV("lower"),      ELC_ART_MIR,       ELC_ART_MIR   },
+            { EL_SV("codegen"),    ELC_ART_OLIR,      ELC_ART_OLIR  },
+            { EL_SV("inspect"),    ELC_ART_NONE,      ELC_ART_NONE  },
         };
         static const usize aliases_count = sizeof(aliases) / sizeof(aliases[0]);
 

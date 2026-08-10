@@ -3,24 +3,13 @@
 #include <elash/defs/sv.h>
 #include <elash/pp/ipath.h>
 
+#include <elc/optlevel.h>
 #include <elc/pipeline/artifact.h>
 
 typedef struct ElcCliDumpSwitch {
     bool is_enabled;
     ElStringView output;
 } ElcCliDumpSwitch;
-
-typedef enum ElcOptLevel {
-    ELC_OPT_UNSPEC,
-    ELC_OPT_O0,
-    ELC_OPT_O1,
-    ELC_OPT_O2,
-    ELC_OPT_O3,
-    ELC_OPT_Og,
-    ELC_OPT_Os,
-    ELC_OPT_Oz,
-    ELC_OPT_Of,
-} ElcOptLevel;
 
 typedef enum ElcPreference {
     ELC_PREF_AUTO,

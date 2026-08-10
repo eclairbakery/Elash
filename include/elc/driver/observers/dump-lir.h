@@ -2,6 +2,11 @@
 
 #include <elc/pipeline/observer.h>
 
+typedef struct {
+    const char* path;
+    ElcArtifactKind kind;
+} DumpLirObserverData;
+
 void elc_dump_lir_observer_exec(
     void* user_data,
     const ElcPipelineContext* ctx,
@@ -9,5 +14,5 @@ void elc_dump_lir_observer_exec(
     ElStringView stage_name,
     const ElcArtifact* artifact
 );
-ElcObserver elc_make_dump_lir_observer(const char* output_path);
+ElcObserver elc_make_dump_lir_observer(DumpLirObserverData* data);
 
