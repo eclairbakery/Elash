@@ -28,7 +28,7 @@ static void assert_token(ElLexer* lexer, ElTokenType expected_type, const char* 
 
 Test(elash_lexer_happy, basic_tokens) {
     ElSourceDocument doc;
-    el_srcdoc_init_from_str(&doc, EL_SV("foo bar 123 3.14 'a' \"hello\""), EL_SV("test.ei"));
+    el_srcdoc_init_from_str(&doc, EL_SV("foo bar 123 3.14 'a' \"hello\""), EL_SV("test.em"));
 
     ElLexer lexer;
     el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT);
@@ -46,7 +46,7 @@ Test(elash_lexer_happy, basic_tokens) {
 
 Test(elash_lexer_happy, keywords) {
     ElSourceDocument doc;
-    el_srcdoc_init_from_str(&doc, EL_SV("if else while for return break continue"), EL_SV("test.ei"));
+    el_srcdoc_init_from_str(&doc, EL_SV("if else while for return break continue"), EL_SV("test.em"));
 
     ElLexer lexer;
     el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT);
@@ -72,7 +72,7 @@ Test(elash_lexer_happy, operators) {
             "&& || ! => &&= ||= =>="
             "& | ^ ~ ~> &= |= <> <>= ~>="
             "<< >> <<= >>="
-        ), EL_SV("test.ei")
+        ), EL_SV("test.em")
     );
 
     ElLexer lexer;
@@ -130,7 +130,7 @@ Test(elash_lexer_happy, operators) {
 
 Test(elash_lexer_happy, delimiters) {
     ElSourceDocument doc;
-    el_srcdoc_init_from_str(&doc, EL_SV("( ) [ ] { } ; : :: , . # ..."), EL_SV("test.ei"));
+    el_srcdoc_init_from_str(&doc, EL_SV("( ) [ ] { } ; : :: , . # ..."), EL_SV("test.em"));
 
     ElLexer lexer;
     el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT);
@@ -155,7 +155,7 @@ Test(elash_lexer_happy, delimiters) {
 
 Test(elash_lexer_happy, comments_skipped) {
     ElSourceDocument doc;
-    el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /* block\ncomment */ baz"), EL_SV("test.ei"));
+    el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /* block\ncomment */ baz"), EL_SV("test.em"));
 
     ElLexer lexer;
     el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT | EL_LF_SKIP_COMMENTS);
@@ -170,7 +170,7 @@ Test(elash_lexer_happy, comments_skipped) {
 
 Test(elash_lexer_happy, comments_kept) {
     ElSourceDocument doc;
-    el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /* block comment */ baz"), EL_SV("test.ei"));
+    el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /* block comment */ baz"), EL_SV("test.em"));
 
     ElLexer lexer;
     el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT & ~EL_LF_SKIP_COMMENTS);
