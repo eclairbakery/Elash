@@ -10,8 +10,7 @@ Tuple& getStaticTuple() {
 }
 
 Point swap(Point p) {
-    // TODO: support initializers in return
-    return Point { p.y, p.x };
+    return { p.y, p.x };
 }
 
 int main() {

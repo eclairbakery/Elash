@@ -24,6 +24,7 @@ Test(unparser, integration_test) {
     // this kinda sucks but i guess will work for now
     glob_t g;
     cr_assert_eq(glob("tests/e2e/positive/*/*.ei", 0, NULL, &g), 0);
+    cr_assert_eq(glob("tests/e2e/positive/*/*/*.ei", GLOB_APPEND, NULL, &g), 0);
 
     ElDiagEngine diag = {0};
     ElTkBufStream stream;
