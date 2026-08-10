@@ -8,7 +8,7 @@
 
 ### Type system
 - [ ] Enum types
-- [ ] Union types
+- [ ] ~~Union types~~ *(moved to 0.3.0)*
 - [ ] Optional types
 - [ ] Read-only types
 - [ ] Write-only types
