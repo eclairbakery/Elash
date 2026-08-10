@@ -155,6 +155,7 @@ void elc_llvm_optimize(ElcCodegenBackend* self, ElcLirHandle* lir, ElcOptLevel l
         fprintf(stderr, "LLVMRunPasses failed: %s\n", msg);
         LLVMDisposeErrorMessage(msg);
         LLVMDisposePassBuilderOptions(pbo);
+        return;
     }
 
 #ifdef EL_DEBUG
