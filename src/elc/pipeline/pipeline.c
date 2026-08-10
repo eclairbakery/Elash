@@ -5,11 +5,14 @@
 
 void elc_pipeline_init(
     ElcPipeline* pipeline, ElDynArena* arena, ElDiagEngine* diag,
-    ElBinderBuiltins* binder_builtins, ElLowererBuiltins* lowerer_builtins
+    ElBinderBuiltins* binder_builtins,
+    ElLowererBuiltins* lowerer_builtins,
+    ElcOptLevel optlvl
 ) {
     *pipeline = (ElcPipeline) {
-        .context.arena = arena,
-        .context.diag = diag,
+        .context.arena    = arena,
+        .context.diag     = diag,
+        .context.optlevel = optlvl,
 
         .context.binder_builtins = binder_builtins,
         .context.lowerer_builtins = lowerer_builtins,

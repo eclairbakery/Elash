@@ -120,6 +120,12 @@ ElcLirHandle elc_llvm_make_lir_handle(ElcLLVMLir* data) {
     };
 }
 
+void elc_llvm_optimize(ElcCodegenBackend* self, ElcLirHandle* lir, ElcOptLevel level) {
+    ElcLLVMBackendCtx* ctx = self->ctx;
+    (void)ctx, (void)lir, (void)level;
+    puts("optimizing, i guess");
+}
+
 ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
     ElcLLVMBackendCtx* ctx = EL_DYNARENA_NEW(arena, ElcLLVMBackendCtx);
     ctx->context = LLVMContextCreate();
@@ -135,7 +141,8 @@ ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
         .name = EL_SV("llvm"),
         .version = EL_SEM_VER(0, 1, 0),
         .ctx = ctx,
-        .compile = elc_llvm_compile,
-        .cleanup = elc_llvm_cleanup,
+        .compile  = elc_llvm_compile,
+        .optimize = elc_llvm_optimize,
+        .cleanup  = elc_llvm_cleanup,
     };
 }

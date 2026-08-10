@@ -63,8 +63,9 @@
 
 ### Optimizations
 #### LLVM passes
+- [x] Setup optimizations infrastructure
 - [ ] Configure pass manager
-- [ ] Define optimization levels (O0, O1, O2)
+- [x] Define optimization levels (O0, O1, O2)
 - [ ] Run optimization pipeline
 - [ ] Verify module after passes
 

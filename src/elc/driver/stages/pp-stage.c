@@ -6,15 +6,15 @@ bool elc_pp_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const Elc
     (void) stage;
 
     ElPreprocessor* pp = EL_DYNARENA_NEW(ctx->arena, ElPreprocessor);
-    if (el_pp_init(pp, *input->as.tokens) != EL_PPERR_SUCCESS) {
+    if (el_pp_init(pp, *input->as.tks) != EL_PPERR_SUCCESS) {
         // TODO: error handling
         return false;
     }
 
     ElTokenStream* stream = EL_DYNARENA_NEW(ctx->arena, ElTokenStream);
     *stream = el_pp_as_token_stream(pp);
-    
-    output->as.tokens = stream;
+
+    output->as.tks = stream;
     return true;
 }
 
@@ -23,7 +23,7 @@ ElcStage elc_make_pp_stage() {
         .name = EL_SV("Preprocessor"),
         .execute = elc_pp_stage_exec,
 
-        .input_kind = ELC_ART_TOKENS,
-        .output_kind = ELC_ART_PP_TOKENS,
+        .input_kind = ELC_ART_TKS,
+        .output_kind = ELC_ART_PPTKS,
     };
 }
