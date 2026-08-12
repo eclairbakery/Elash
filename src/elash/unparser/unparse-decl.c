@@ -4,7 +4,7 @@
 
 static bool unparse_var_def(ElUnparser* unpar, ElAstDecl* decl) {
     ElAstVarDef* def = &decl->as.var_def;
-    if (def->is_global) {
+    if (def->is_static) {
         if (!el_unparser_push_kw(unpar, EL_TT_KW_STATIC)) return false;
     }
 
