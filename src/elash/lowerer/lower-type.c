@@ -4,8 +4,6 @@
 #include <elash/util/todo.h>
 #include <elash/mir/type.h>
 
-#define CHAR_BITS 8 // one byte
-
 static ElMirType* make_slice_type(ElLowerer* lw, const ElHirSliceType* slice) {
     ElMirType** items = EL_DYNARENA_NEW_ARR(lw->arena, ElMirType*, 2);
     items[EL_MIR_SLICE_FIELD_DATA] = el_mir_new_ptr_type(lw->arena, el_lowerer_map_type(lw, slice->base));
@@ -22,8 +20,6 @@ ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
             return el_mir_new_void_type(lw->arena);
         case EL_PRIMTYPE_BOOL:
             return el_mir_new_int_type(lw->arena, 1, false);
-        case EL_PRIMTYPE_CHAR:
-            return el_mir_new_int_type(lw->arena, CHAR_BITS, false);
         case EL_PRIMTYPE_INT: {
             uint32_t width = 0;
             // TODO: actually map native and efficient ints to correct width

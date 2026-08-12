@@ -3,17 +3,17 @@
 #include <elash/util/assert.h>
 
 ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr) {
-    EL_ASSERT(expr->kind == EL_HIR_EXPR_CONST || expr->kind == EL_HIR_EXPR_AGGINIT, "Expression must be a constant or aggregate literal");
+    EL_ASSERT(expr->kind == EL_HIR_EXPR_CONST || expr->kind == EL_HIR_EXPR_AGGINIT, "expression must be a constant or aggregate literal");
+    ElHirType* type = el_hir_type_unwrap_distinct(expr->type);
 
     ElMirConstant* mirconst = EL_DYNARENA_NEW(lw->arena, ElMirConstant);
     if (expr->kind == EL_HIR_EXPR_CONST) {
         ElHirConstant hir = expr->as.constant;
-        switch (expr->type->as.prim.kind) {
+        switch (type->as.prim.kind) {
         case EL_PRIMTYPE_INT:   mirconst->kind = EL_MIR_CONST_INT;   mirconst->as.int_   = hir.as.int_;           break;
-        case EL_PRIMTYPE_CHAR:  mirconst->kind = EL_MIR_CONST_INT;   mirconst->as.int_   = (int64_t)hir.as.char_; break;
         case EL_PRIMTYPE_BOOL:  mirconst->kind = EL_MIR_CONST_INT;   mirconst->as.int_   = hir.as.bool_ ? 1 : 0;  break;
         case EL_PRIMTYPE_FLOAT: mirconst->kind = EL_MIR_CONST_FLOAT; mirconst->as.float_ = hir.as.float_;         break;
-        default: EL_UNREACHABLE("invalid hir constant primitive type");      break;
+        default: EL_UNREACHABLE("invalid hir constant primitive type");                                           break;
         }
     } else /* EL_HIR_EXPR_AGGINIT */ {
         mirconst->kind = EL_MIR_CONST_AGG;

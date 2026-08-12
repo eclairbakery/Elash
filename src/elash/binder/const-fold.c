@@ -1,4 +1,5 @@
 #include <elash/binder/binder.h>
+#include <elash/util/assert.h>
 
 #define TYPED_INT_RET(type, val, span)    el_hir_new_int_constant(binder->arena, span, type, val)
 #define TYPED_CHAR_RET(type, val, span)   el_hir_new_char_constant(binder->arena, span, type, val)
@@ -140,9 +141,8 @@
     }
 
 // i love X-macros
-#define EL_FOR_EACH_INTEGRAL_TYPE(X)                           \
-    X(INT,  int64_t, int_,  TYPED_INT_RET,  UNTYPED_INT_RET)   \
-    X(CHAR, char,    char_, TYPED_CHAR_RET, UNTYPED_CHAR_RET)
+#define EL_FOR_EACH_INTEGRAL_TYPE(X) \
+    X(INT,  int64_t, int_,  TYPED_INT_RET,  UNTYPED_INT_RET)
 
 #define EL_FOR_EACH_FLOAT_TYPE(X) \
     X(FLOAT, double, float_, TYPED_FLOAT_RET, UNTYPED_FLOAT_RET)
@@ -209,9 +209,16 @@ static ElHirExpr* apply_unary_operator_untyped(ElBinder* binder, ElSemaUnaryOp o
     return NULL;
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): it's all good
 ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr) {
     if (expr == NULL) return NULL;
-    if (expr->type != NULL && expr->type->kind != EL_HIR_TYPE_PRIM) return expr;
+
+    ElHirType* type = expr->type;
+    if (type != NULL && type->kind == EL_HIR_TYPE_DISTINCT) {
+        type = el_hir_type_unwrap_distinct(type);
+    }
+
+    if (type != NULL && type->kind != EL_HIR_TYPE_PRIM) return expr;
 
     switch (expr->kind) {
     case EL_HIR_EXPR_BINARY: {
@@ -245,6 +252,18 @@ ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr) {
         for (usize i = 0; i < arr->count; ++i) {
             arr->values[i] = _el_binder_simplify_expr(binder, arr->values[i]);
         }
+        return expr;
+    }
+    case EL_HIR_EXPR_CAST: {
+        ElHirCastExpr* cast = &expr->as.cast;
+        cast->expr = _el_binder_simplify_expr(binder, cast->expr);
+
+        EL_ASSERT(cast->expr != NULL, "simplify expr returned null");
+        if (cast->expr->kind == EL_HIR_EXPR_CONST || cast->expr->kind == EL_HIR_EXPR_LITERAL) {
+            ElHirExpr* folded = _el_binder_eval_const_cast(binder, expr->span, cast->expr, expr->type);
+            if (folded != NULL) return folded;
+        }
+
         return expr;
     }
     case EL_HIR_EXPR_CALL: {

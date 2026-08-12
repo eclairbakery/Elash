@@ -23,7 +23,9 @@ ElHirExpr* _el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expe
         //    );
         //    return NULL;
         //}
-        return _el_binder_implicit_cast(binder, in->span, expr, expected_type);
+        ElHirExpr* casted = _el_binder_implicit_cast(binder, in->span, expr, expected_type);
+        if (casted == NULL) return NULL;
+        return _el_binder_simplify_expr(binder, casted);
     }
     case EL_AST_INIT_LIST:
         return el_binder_bind_init_list(binder, in, expected_type, scls);

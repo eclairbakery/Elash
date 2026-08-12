@@ -11,6 +11,33 @@
 #include <inttypes.h>
 #include <elash/defs/sv.h>
 
+void dump_constant(ElHirExpr* node, ElHirType* type, FILE* out) {
+    if (type->kind == EL_HIR_TYPE_PRIM) {
+        switch (type->as.prim.kind) {
+        case EL_PRIMTYPE_INT:   fprintf(out, "%"PRId64, node->as.constant.as.int_);        return;
+        case EL_PRIMTYPE_FLOAT: fprintf(out, "%lf", node->as.constant.as.float_);          return;
+        case EL_PRIMTYPE_BOOL:  fputs(node->as.constant.as.bool_ ? "true" : "false", out); return;
+        case EL_PRIMTYPE_VOID:  EL_UNREACHABLE("void literal");                            return;
+        }
+        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, type->as.prim.kind);
+    } else if (type->kind == EL_HIR_TYPE_DISTINCT) {
+        ElHirType* orig = el_hir_type_unwrap_distinct(type);
+        bool is_char = el_sv_eql(type->as.distinct.name, EL_SV("char"))
+            && orig->kind == EL_HIR_TYPE_PRIM
+            && orig->as.prim.as.integral.width == EL_HIR_IWIDTH_8
+            && orig->as.prim.as.integral.is_signed == false;
+
+        if (is_char) {
+            fprintf(out, "%c", (char)node->as.constant.as.int_);
+            return;
+        } else {
+            return dump_constant(node, orig, out);
+        }
+    }
+
+    EL_UNREACHABLE("unexpected literal type");
+}
+
 // TODO: split this shit into smaller helper functions
 //       clang-tidy: Function 'el_hir_dump_expr' has cognitive complexity of 33 (threshold 25)
 void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
@@ -35,17 +62,7 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
     }
 
     case EL_HIR_EXPR_CONST:
-        if (node->type->kind == EL_HIR_TYPE_PRIM) {
-            switch (node->type->as.prim.kind) {
-            case EL_PRIMTYPE_INT:   fprintf(out, "%"PRId64, node->as.constant.as.int_);        break;
-            case EL_PRIMTYPE_FLOAT: fprintf(out, "%lf", node->as.constant.as.float_);          break;
-            case EL_PRIMTYPE_CHAR:  fprintf(out, "'%c'", node->as.constant.as.char_);          break;
-            case EL_PRIMTYPE_BOOL:  fputs(node->as.constant.as.bool_ ? "true" : "false", out); break;
-            case EL_PRIMTYPE_VOID:  EL_UNREACHABLE("void literal");                            break;
-            }
-        } else {
-            fputs("<unhandled>", out);
-        }
+        dump_constant(node, node->type, out);
         break;
 
     case EL_HIR_EXPR_STRCONST:

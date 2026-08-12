@@ -2,6 +2,7 @@
 #include <elash/hir/type/ref.h>
 #include <elash/hir/tree/expr.h>
 
+#include <elash/util/assert.h>
 #include <elash/util/todo.h>
 #include <elash/diag/meta.h>
 
@@ -22,6 +23,65 @@ static inline bool is_distinct_conv(ElHirType* from, ElHirType* to) {
 
 ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): it's all good
+ElHirExpr* _el_binder_eval_const_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to_orig) {
+    if (expr == NULL || to_orig == NULL) return NULL;
+    if (expr->kind == EL_HIR_EXPR_LITERAL)
+        return _cast_untyped(binder, span, expr, to_orig);
+
+    EL_ASSERT(expr->kind == EL_HIR_EXPR_CONST, "eval const cast requires a constant operand");
+
+    ElHirType* to = to_orig;
+    if (to->kind == EL_HIR_TYPE_DISTINCT)
+        to = el_hir_type_unwrap_distinct(to);
+
+    ElHirType* from = expr->type;
+    if (from == NULL) return NULL;
+    if (from->kind == EL_HIR_TYPE_DISTINCT)
+        from = el_hir_type_unwrap_distinct(from);
+
+    if (to->kind != EL_HIR_TYPE_PRIM || from->kind != EL_HIR_TYPE_PRIM)
+        return NULL;
+
+    switch (to->as.prim.kind) {
+    case EL_PRIMTYPE_INT:
+        switch (from->as.prim.kind) {
+        case EL_PRIMTYPE_INT:
+            return el_hir_new_int_constant(binder->arena, span, to, expr->as.constant.as.int_);
+        case EL_PRIMTYPE_FLOAT:
+            return el_hir_new_int_constant(binder->arena, span, to, (int64_t)expr->as.constant.as.float_);
+        case EL_PRIMTYPE_BOOL:
+        case EL_PRIMTYPE_VOID:
+            EL_UNREACHABLE("invalid cast");
+        }
+        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from->as.prim.kind);
+    case EL_PRIMTYPE_BOOL:
+        switch (from->as.prim.kind) {
+        case EL_PRIMTYPE_BOOL:
+            return el_hir_new_bool_constant(binder->arena, span, to, expr->as.constant.as.bool_);
+        case EL_PRIMTYPE_FLOAT:
+        case EL_PRIMTYPE_INT:
+        case EL_PRIMTYPE_VOID:
+            EL_UNREACHABLE("invalid cast");
+        }
+        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from->as.prim.kind);
+    case EL_PRIMTYPE_FLOAT:
+        switch (from->as.prim.kind) {
+        case EL_PRIMTYPE_INT:
+            return el_hir_new_float_constant(binder->arena, span, to, (double)expr->as.constant.as.int_);
+        case EL_PRIMTYPE_FLOAT:
+            return el_hir_new_float_constant(binder->arena, span, to, expr->as.constant.as.float_);
+        case EL_PRIMTYPE_BOOL:
+        case EL_PRIMTYPE_VOID:
+            EL_UNREACHABLE("invalid cast");
+        }
+        EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, from->as.prim.kind);
+    case EL_PRIMTYPE_VOID:
+        EL_UNREACHABLE("invalid cast");
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElHirPrimTypeKind, to->as.prim.kind);
+}
+
 ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
     ElHirType* from = expr->type;
     if (from == NULL)
@@ -40,11 +100,9 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
 
     if (from->kind == EL_HIR_TYPE_PRIM && to->kind == EL_HIR_TYPE_PRIM) {
         bool is_int_conv = from->as.prim.kind == EL_PRIMTYPE_INT && to->as.prim.kind == EL_PRIMTYPE_INT;
-        bool is_char_int_conv = (from->as.prim.kind == EL_PRIMTYPE_INT || from->as.prim.kind == EL_PRIMTYPE_CHAR)
-                                && (to->as.prim.kind == EL_PRIMTYPE_INT || to->as.prim.kind == EL_PRIMTYPE_CHAR);
-        bool is_float_conv = (from->as.prim.kind == EL_PRIMTYPE_FLOAT || from->as.prim.kind == EL_PRIMTYPE_INT || from->as.prim.kind == EL_PRIMTYPE_CHAR)
-                            && (to->as.prim.kind == EL_PRIMTYPE_FLOAT || to->as.prim.kind == EL_PRIMTYPE_INT || to->as.prim.kind == EL_PRIMTYPE_CHAR);
-        if (is_int_conv || is_char_int_conv || is_float_conv) {
+        bool is_float_conv = (from->as.prim.kind == EL_PRIMTYPE_FLOAT || from->as.prim.kind == EL_PRIMTYPE_INT)
+                            && (to->as.prim.kind == EL_PRIMTYPE_FLOAT || to->as.prim.kind == EL_PRIMTYPE_INT);
+        if (is_int_conv || is_float_conv) {
             return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
         }
     }
@@ -162,16 +220,12 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
         case EL_HIR_LITERAL_INT:
             if (to->as.prim.kind == EL_PRIMTYPE_INT) {
                 return el_hir_new_int_constant(binder->arena, expr->span, to, expr->as.literal.of.int_);
-            } else if (to->as.prim.kind == EL_PRIMTYPE_CHAR) {
-                return el_hir_new_char_constant(binder->arena, expr->span, to, (char)expr->as.literal.of.int_);
             } else if (to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
                 return el_hir_new_float_constant(binder->arena, expr->span, to, (double)expr->as.literal.of.int_);
             }
             break;
         case EL_HIR_LITERAL_CHAR:
-            if (to->as.prim.kind == EL_PRIMTYPE_CHAR) {
-                return el_hir_new_char_constant(binder->arena, expr->span, to, expr->as.literal.of.char_);
-            } else if (to->as.prim.kind == EL_PRIMTYPE_INT) {
+            if (to->as.prim.kind == EL_PRIMTYPE_INT) {
                 return el_hir_new_int_constant(binder->arena, expr->span, to, (int64_t)expr->as.literal.of.char_);
             }
             break;
