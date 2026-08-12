@@ -1,4 +1,4 @@
-#include <elash/parser/parser.h>
+#include "parser-internals.h"
 
 #include <elash/diag/engine.h>
 #include <elash/diag/meta.h>
@@ -158,7 +158,7 @@ static ElAstDecl* parse_alias_decl(ElParser* parser, ElToken alias_tok) {
     el_parser_expect(parser, EL_TT_ASSIGN);
     if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
-    ElAstToE* target = _el_parser_parse_type_or_expr(parser);
+    ElAstToE* target = el_parser_parse_toe(parser);
     if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
     ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);

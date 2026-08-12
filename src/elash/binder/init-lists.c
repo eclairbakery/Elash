@@ -1,4 +1,5 @@
-#include <elash/binder/binder.h>
+#include "binder-internals.h"
+
 #include <elash/diag/engine.h>
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>

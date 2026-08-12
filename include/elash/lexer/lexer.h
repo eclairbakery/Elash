@@ -43,14 +43,3 @@ ElLexerErrorCode el_lexer_set_document(ElLexer* lexer, const ElSourceDocument* d
 
 ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out_tok);
 ElTokenStream    el_lexer_as_token_stream(ElLexer* lexer);
-
-////// IMPLEMENTATION DETAILS //////////////////////
-// note: those functions are implementation
-// details and should not be called directly
-// outside internal el-lexer implementation.
-ElLexerErrorCode _el_lexer_ret_token(ElLexer* lexer, ElTokenType type, ElToken* out_tok);
-ElLexerErrorCode _el_lexer_ret_token_with_lexeme(ElLexer* lexer, ElTokenType type, ElStringView lexeme, ElToken* out_tok);
-
-ElLexerErrorCode _el_lexer_lex_op2(ElLexer* lexer, char expect, ElTokenType single, ElTokenType dbl, ElToken* out);
-ElLexerErrorCode _el_lexer_lex_op3(ElLexer* lexer, char expect1, char expect2, ElTokenType single, ElTokenType dbl, ElTokenType triple, ElToken* out);
-///////////////////////////////////////////////////

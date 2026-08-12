@@ -1,4 +1,5 @@
-#include <elash/binder/binder.h>
+#include "binder-internals.h"
+
 #include <elash/util/assert.h>
 
 static void register_builtin_type(ElBinder* binder, ElStringView name, ElHirType* type) {

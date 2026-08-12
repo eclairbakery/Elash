@@ -1,4 +1,4 @@
-#include <elash/pp/preproc.h>
+#include "preproc-internals.h"
 
 #include <elash/util/dynarena.h>
 

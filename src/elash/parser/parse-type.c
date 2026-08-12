@@ -1,4 +1,5 @@
-#include <elash/parser/parser.h>
+#include "parser-internals.h"
+
 #include <elash/ast/tree/type.h>
 
 static ElAstType* parse_tuple_type(ElParser* parser, ElToken struct_tok) {

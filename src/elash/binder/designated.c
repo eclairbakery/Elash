@@ -1,7 +1,9 @@
-#include <elash/binder/binder.h>
+#include "binder-internals.h"
+
 #include <elash/diag/engine.h>
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>
+
 #include <elash/hir/tree/expr/agginit.h>
 
 #define REPORT_TUPLE_OUT_OF_BOUNDS(BINDER, SPAN, COUNT) do { \

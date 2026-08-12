@@ -1,6 +1,4 @@
-#include "elash/hir/tree/expr.h"
-#include <elash/lowerer/lowerer.h>
-#include <elash/lowerer/builtin.h>
+#include "lowerer-internals.h"
 
 #include <elash/sema/bin-op.h>
 #include <elash/sema/unary-op.h>
@@ -8,11 +6,8 @@
 #include <elash/util/todo.h>
 
 #include <elash/mir/instr.h>
+#include <elash/mir/value.h>
 #include <elash/mir/type.h>
-
-#include <elash/mir/value/global.h>
-#include <elash/mir/value/const.h>
-#include <elash/mir/value/reg.h>
 
 static inline bool is_int_or_char(ElMirType* type) {
     return type->kind == EL_MIR_TYPE_INT;

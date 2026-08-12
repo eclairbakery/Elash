@@ -31,11 +31,3 @@ ElPpErrorCode el_pp_reset(ElPreprocessor* pp, ElTokenStream input);
 ElPpErrorCode el_pp_next(ElPreprocessor* pp, ElToken* out_tok, ElDiagEngine* engine);
 
 ElTokenStream el_pp_as_token_stream(ElPreprocessor* pp);
-
-////// IMPLEMENTATION DETAILS //////////////////////
-// note: those functions are implementation
-// details and should not be called directly
-// outside internal el-pp implementation.
-ElPpErrorCode _el_pp_ret_error(ElPreprocessor* pp, ElPpErrorCode code);
-ElPpErrorCode _el_pp_ret_success(ElPreprocessor* pp);
-////////////////////////////////////////////////////

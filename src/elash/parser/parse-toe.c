@@ -1,4 +1,4 @@
-#include <elash/parser/parser.h>
+#include "parser-internals.h"
 
 #include <elash/ast/tree/toe.h>
 #include <elash/ast/tree/expr/bin.h>
@@ -76,7 +76,7 @@ static ElAstToE* force_type_with_suffixes(ElParser* parser, ElAstToE* toe) {
 static ElAstToE* parse_toe_bracket_suffix(ElParser* parser, ElAstToE* toe) {
     el_parser_advance(parser); // [
 
-    ElAstToE* index = _el_parser_parse_type_or_expr(parser);
+    ElAstToE* index = el_parser_parse_toe(parser);
     if (index == NULL) return NULL;
 
     ElToken rbracket = parser->current;
@@ -202,7 +202,7 @@ static bool is_complex_expr(ElParser* parser) {
     return false;
 }
 
-ElAstToE* _el_parser_parse_type_or_expr(ElParser* parser) {
+ElAstToE* el_parser_parse_toe(ElParser* parser) {
     if (is_complex_expr(parser)) {
         ElAstExpr* expr = el_parser_parse_expr(parser);
         if (expr == NULL) return NULL;
