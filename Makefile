@@ -31,7 +31,7 @@ DEPS := $(patsubst %.c,$(DEP_ROOT_DIR)/%.d,$(ALL_C_SRCS)) \
 .PHONY: libelc libelc-shared libelc-static
 .PHONY: elc archive
 
-all: dirs elc libelash libelc
+all: dirs compile-commands elc libelash libelc
 
 archive: $(DIST_FILE)
 $(DIST_FILE): all
@@ -118,6 +118,7 @@ $(OBJ_ROOT_DIR)/shared/%.o: %.c
 -include $(DEPS)
 include tests/build.mk
 
+include make/compcmds.mk
 include make/utilities.mk
 include make/install.mk
 

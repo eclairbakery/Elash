@@ -4,6 +4,7 @@ ELASH_CONFIG :=
 ########## the toolchain ###########
 CC ?= cc
 AR ?= ar
+PY ?= python3
 BUILD ?= release
 
 ###### platform & shell detection #######

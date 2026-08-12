@@ -1,5 +1,3 @@
-PYTHON ?= python3
-
 TESTS_DIR     := tests
 TESTS_OUT_DIR := $(OUT_DIR)/tests
 
@@ -52,7 +50,7 @@ test-elc: $(ELC_TESTS_BINS)
 test-e2e: $(ELC_BIN)
 	@$(call CMD_MKDIR_P,$(TESTS_OUT_DIR)/e2e)
 	@echo "Running End-To-End tests"
-	@$(PYTHON) $(E2E_TEST_RUNNER) $(ELC_BIN) $(TESTS_OUT_DIR)/e2e $(TEST_PARALLEL_FLAG)
+	@$(PY) $(E2E_TEST_RUNNER) $(ELC_BIN) $(TESTS_OUT_DIR)/e2e $(TEST_PARALLEL_FLAG)
 
 unit-test: test-elash test-elc
 	@echo "All tests passed."
@@ -60,9 +58,10 @@ unit-test: test-elash test-elc
 test: test-elash test-elc test-e2e
 	@echo "All tests passed."
 
+FUZZ_SRC := $(TESTS_DIR)/fuzz/fuzzer.c
 FUZZ_BINARY := $(TESTS_OUT_DIR)/fuzz/fuzzer$(EXE_EXT)
 
-$(FUZZ_BINARY): $(TESTS_DIR)/fuzz/fuzzer.c $(LIBELASH_STATIC) $(LIBELC_STATIC) | test-dirs
+$(FUZZ_BINARY): $(FUZZ_SRC) $(LIBELASH_STATIC) $(LIBELC_STATIC) | test-dirs
 	@$(call CMD_MKDIR_P,$(dir $@))
 	@$(ECHO) "CC $@"
 	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELASH_STATIC) $(LIBELC_STATIC) $(LDFLAGS) -o $@
@@ -71,7 +70,7 @@ $(FUZZ_BINARY): $(TESTS_DIR)/fuzz/fuzzer.c $(LIBELASH_STATIC) $(LIBELC_STATIC) |
 
 test-fuzz-%: $(FUZZ_BINARY)
 	@echo "Running fuzz with count $*"
-	@$(PYTHON) $(TESTS_DIR)/fuzz/fuzz.py $(FUZZ_BINARY) $(ELC_BIN) $*
+	@$(PY) $(TESTS_DIR)/fuzz/fuzz.py $(FUZZ_BINARY) $(ELC_BIN) $*
 
 test-fuzz: $(FUZZ_BINARY)
-	@$(PYTHON) $(TESTS_DIR)/fuzz/fuzz.py $(FUZZ_BINARY) $(ELC_BIN) $(or $(FUZZ_COUNT),200)
+	@$(PY) $(TESTS_DIR)/fuzz/fuzz.py $(FUZZ_BINARY) $(ELC_BIN) $(or $(FUZZ_COUNT),200)
