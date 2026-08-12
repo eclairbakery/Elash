@@ -1,4 +1,5 @@
-#include <elash/parser/parser.h>
+#include "parser-internals.h"
+
 #include <elash/ast/tree/init.h>
 #include <elash/util/strconv.h>
 

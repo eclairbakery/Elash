@@ -1,4 +1,4 @@
-#include <elash/lowerer/lowerer.h>
+#include "lowerer-internals.h"
 
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>

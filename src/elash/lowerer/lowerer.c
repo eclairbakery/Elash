@@ -1,4 +1,4 @@
-#include <elash/lowerer/lowerer.h>
+#include "lowerer-internals.h"
 
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>
@@ -8,12 +8,6 @@
 #include <elash/mir/block.h>
 #include <elash/mir/instr.h>
 #include <elash/mir/value.h>
-#include <elash/mir/instr-buf.h>
-#include <elash/mir/value/const.h>
-#include <elash/mir/value/reg.h>
-#include <elash/mir/instr/binary.h>
-#include <elash/mir/instr/return.h>
-#include <elash/mir/instr/gep.h>
 
 #include <elash/sema/bin-op.h>
 

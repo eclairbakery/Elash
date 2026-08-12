@@ -1,8 +1,7 @@
-#include <elash/parser/parser.h>
-
-#include <elash/diag/engine.h>
+#include "parser-internals.h"
 
 #include <elash/ast/tree/module.h>
+#include <elash/diag/engine.h>
 
 ElAstModule* el_parser_parse_module(ElParser* parser) {
     ElSourceSpan module_span = EL_SRCSPAN_NULL;

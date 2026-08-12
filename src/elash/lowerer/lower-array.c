@@ -1,11 +1,8 @@
-#include <elash/lowerer/lowerer.h>
-#include <elash/lowerer/builtin.h>
+#include "lowerer-internals.h"
 
 #include <elash/util/assert.h>
 
-#include <elash/mir/value/const.h>
-#include <elash/mir/value/reg.h>
-#include <elash/mir/instr/gep.h>
+#include <elash/mir/value.h>
 #include <elash/mir/instr.h>
 #include <elash/mir/type.h>
 

@@ -1,4 +1,5 @@
-#include <elash/lowerer/lowerer.h>
+#include "lowerer-internals.h"
+
 #include <elash/mir/instr.h>
 #include <elash/mir/type.h>
 
@@ -51,4 +52,3 @@ ElMirValue* _el_lowerer_make_tuple(ElLowerer* lw, ElMirType* tuple_type, ElMirVa
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, result, tmp));
     return result;
 }
-

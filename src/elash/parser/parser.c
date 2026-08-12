@@ -1,4 +1,4 @@
-#include <elash/parser/parser.h>
+#include "parser-internals.h"
 
 #include <elash/diag/meta.h>
 #include <elash/lexer/token.h>

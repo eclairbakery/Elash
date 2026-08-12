@@ -1,15 +1,14 @@
-#include <elash/lowerer/lowerer.h>
+#include "lowerer-internals.h"
 
 #include <elash/mir/instr.h>
 #include <elash/mir/func.h>
 #include <elash/mir/module.h>
-#include <elash/mir/value/global.h>
-#include <elash/mir/value/reg.h>
+#include <elash/mir/value.h>
 
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>
 
-static void _el_lowerer_lower_func_def(ElLowerer* lw, ElHirFuncDef* hir_func) {
+static void lower_func_def(ElLowerer* lw, ElHirFuncDef* hir_func) {
     ElMirSymbol* mir_func_sym = el_lowerer_map_symbol(lw, hir_func->symbol);
     ElMirFunc* func = el_mir_new_func(lw->arena, mir_func_sym);
 
@@ -54,7 +53,7 @@ static void _el_lowerer_lower_func_def(ElLowerer* lw, ElHirFuncDef* hir_func) {
     lw->current_block_id = prev_block_id;
 }
 
-static void _el_lowerer_lower_func_decl(ElLowerer* lw, ElHirFuncDecl* hir_func) {
+static void lower_func_decl(ElLowerer* lw, ElHirFuncDecl* hir_func) {
     if (hir_func->symbol->as.func.is_defined) {
         return;
     }
@@ -70,7 +69,7 @@ static void _el_lowerer_lower_func_decl(ElLowerer* lw, ElHirFuncDecl* hir_func) 
     el_mir_module_add_func(lw->current_mod, func);
 }
 
-void _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
+void el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
     switch (decl->kind) {
     case EL_HIR_DECL_VAR_DEF: {
         ElHirSymbol* sym = decl->as.var_def.var;
@@ -99,23 +98,23 @@ void _el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
         lw->symbol_map[decl->as.func_def.symbol->id] = el_mir_new_global(
             lw->arena, mir_func_sym->as.func.type, mir_func_sym, NULL, true
         );
-        _el_lowerer_lower_func_def(lw, &decl->as.func_def);
+        lower_func_def(lw, &decl->as.func_def);
         break;
     }
     case EL_HIR_DECL_FUNC_DECL:
-        _el_lowerer_lower_func_decl(lw, &decl->as.func_decl);
+        lower_func_decl(lw, &decl->as.func_decl);
         break;
     case EL_HIR_DECL_NONE:
         break;
     }
 }
 
-void _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
+void el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
     switch (decl->kind) {
     case EL_HIR_DECL_VAR_DEF: {
         // ugly but (i guess) works
         if (decl->as.var_def.scls == EL_STORAGECLS_STATIC) {
-            return _el_lowerer_lower_global_decl(lw, decl);
+            return el_lowerer_lower_global_decl(lw, decl);
         }
 
         ElHirSymbol* sym = decl->as.var_def.var;
@@ -148,7 +147,7 @@ void _el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
         EL_TODO("local function definitions not supported yet");
         break;
     case EL_HIR_DECL_FUNC_DECL:
-        _el_lowerer_lower_func_decl(lw, &decl->as.func_decl);
+        lower_func_decl(lw, &decl->as.func_decl);
         break;
     case EL_HIR_DECL_NONE:
         break;
