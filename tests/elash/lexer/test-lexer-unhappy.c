@@ -23,18 +23,18 @@ static void assert_lexer_error(const char* input, ElLexerErrorCode expected_erro
     el_srcdoc_destroy(&doc);
 }
 
-Test(lexer_unhappy, unexpected_char) {
+Test(el_lexer_unhappy, unexpected_char) {
     assert_lexer_error("@", EL_LEXERR_UNEXPECTED_CHAR);
 }
 
-Test(lexer_unhappy, unterminated_string) {
+Test(el_lexer_unhappy, unterminated_string) {
     assert_lexer_error("\"hello", EL_LEXERR_UNTERM_STRING);
 }
 
-Test(lexer_unhappy, unterminated_char) {
+Test(el_lexer_unhappy, unterminated_char) {
     assert_lexer_error("'a", EL_LEXERR_UNTERM_CHAR);
 }
 
-Test(lexer_unhappy, unterminated_comment) {
+Test(el_lexer_unhappy, unterminated_comment) {
     assert_lexer_error("/* comment", EL_LEXERR_UNTERM_COMMENT);
 }

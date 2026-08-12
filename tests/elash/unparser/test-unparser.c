@@ -17,10 +17,10 @@ static ElDynArena arena;
 void init() { el_dynarena_init(&arena); }
 void fini() { el_dynarena_free(&arena); }
 
-TestSuite(unparser, .init = init, .fini = fini);
+TestSuite(el_unparser, .init = init, .fini = fini);
 
 // --- integration test ---
-Test(unparser, integration_test) {
+Test(el_unparser, integration_test) {
     // this kinda sucks but i guess will work for now
     glob_t g;
     cr_assert_eq(glob("tests/e2e/positive/*/*.eu", 0, NULL, &g), 0);
@@ -62,7 +62,7 @@ Test(unparser, integration_test) {
 
 // --- normal cases ---
 // NOLINTBEGIN(readability-magic-numbers)
-Test(unparser, null_span_int_literal) {
+Test(el_unparser, null_span_int_literal) {
     ElUnparser unparser;
     ElTokenBuf toks;
     el_tkbuf_init(&toks);
@@ -77,7 +77,7 @@ Test(unparser, null_span_int_literal) {
     cr_assert_str_eq(toks.data[0].lexeme.data, "42");
 }
 
-Test(unparser, null_span_float_literal) {
+Test(el_unparser, null_span_float_literal) {
     ElUnparser unparser;
     ElTokenBuf toks;
     el_tkbuf_init(&toks);

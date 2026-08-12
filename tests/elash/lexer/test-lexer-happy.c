@@ -26,7 +26,7 @@ static void assert_token(ElLexer* lexer, ElTokenType expected_type, const char* 
     }
 }
 
-Test(elash_lexer_happy, basic_tokens) {
+Test(el_lexer_happy, basic_tokens) {
     ElSourceDocument doc;
     el_srcdoc_init_from_str(&doc, EL_SV("foo bar 123 3.14 'a' \"hello\""), EL_SV("test.eu"));
 
@@ -44,7 +44,7 @@ Test(elash_lexer_happy, basic_tokens) {
     el_srcdoc_destroy(&doc);
 }
 
-Test(elash_lexer_happy, keywords) {
+Test(el_lexer_happy, keywords) {
     ElSourceDocument doc;
     el_srcdoc_init_from_str(&doc, EL_SV("if else while for return break continue"), EL_SV("test.eu"));
 
@@ -63,7 +63,7 @@ Test(elash_lexer_happy, keywords) {
     el_srcdoc_destroy(&doc);
 }
 
-Test(elash_lexer_happy, operators) {
+Test(el_lexer_happy, operators) {
     ElSourceDocument doc;
     el_srcdoc_init_from_str(&doc,
         EL_SV(
@@ -128,7 +128,7 @@ Test(elash_lexer_happy, operators) {
     el_srcdoc_destroy(&doc);
 }
 
-Test(elash_lexer_happy, delimiters) {
+Test(el_lexer_happy, delimiters) {
     ElSourceDocument doc;
     el_srcdoc_init_from_str(&doc, EL_SV("( ) [ ] { } ; : :: , . # ..."), EL_SV("test.eu"));
 
@@ -153,7 +153,7 @@ Test(elash_lexer_happy, delimiters) {
     el_srcdoc_destroy(&doc);
 }
 
-Test(elash_lexer_happy, comments_skipped) {
+Test(el_lexer_happy, comments_skipped) {
     ElSourceDocument doc;
     el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /* block\ncomment */ baz"), EL_SV("test.eu"));
 
@@ -168,7 +168,7 @@ Test(elash_lexer_happy, comments_skipped) {
     el_srcdoc_destroy(&doc);
 }
 
-Test(elash_lexer_happy, comments_kept) {
+Test(el_lexer_happy, comments_kept) {
     ElSourceDocument doc;
     el_srcdoc_init_from_str(&doc, EL_SV("foo // line comment\nbar /* block comment */ baz"), EL_SV("test.eu"));
 
