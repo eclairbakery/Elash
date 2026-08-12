@@ -56,6 +56,7 @@ ElHirType*     _el_binder_bind_type(ElBinder* binder, ElAstType* type);
 ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr);
 ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
+ElHirExpr* _el_binder_eval_const_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr);
 
 usize _el_binder_find_field(ElStringView name, const ElHirStructType* type, bool* found);

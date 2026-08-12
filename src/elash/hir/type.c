@@ -26,7 +26,6 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
     case EL_HIR_TYPE_PRIM:
         switch (type->as.prim.kind) {
         case EL_PRIMTYPE_VOID: write("void", ctx); return;
-        case EL_PRIMTYPE_CHAR: write("char", ctx); return;
         case EL_PRIMTYPE_BOOL: write("bool", ctx); return;
         case EL_PRIMTYPE_INT:
             write((const char* const [][2]) {
@@ -132,7 +131,6 @@ bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
         case EL_PRIMTYPE_FLOAT:
             return lhs->as.prim.as.fp.width == rhs->as.prim.as.fp.width;
         case EL_PRIMTYPE_VOID:
-        case EL_PRIMTYPE_CHAR:
         case EL_PRIMTYPE_BOOL:
             return true;
         }

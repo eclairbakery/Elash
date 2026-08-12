@@ -323,17 +323,17 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
         }
     }
     case EL_HIR_EXPR_CONST: {
-        ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+        ElHirType* type = el_hir_type_unwrap_distinct(hir->type);
+
+        ElMirType* mir_type = el_lowerer_map_type(lw, type);
         ElMirConstant mir_const;
 
-        EL_ASSERT(hir->type->kind == EL_HIR_TYPE_PRIM, "constant of non-primitive type");
-        if (hir->type->as.prim.kind == EL_PRIMTYPE_INT) {
+        EL_ASSERT(type->kind == EL_HIR_TYPE_PRIM, "constant of non-primitive type");
+        if (type->as.prim.kind == EL_PRIMTYPE_INT) {
             mir_const.as.int_ = hir->as.constant.as.int_;
-        } else if (hir->type->as.prim.kind == EL_PRIMTYPE_BOOL) {
+        } else if (type->as.prim.kind == EL_PRIMTYPE_BOOL) {
             mir_const.as.int_ = hir->as.constant.as.bool_ ? 1 : 0;
-        } else if (hir->type->as.prim.kind == EL_PRIMTYPE_CHAR) {
-            mir_const.as.int_ = (int64_t)hir->as.constant.as.char_;
-        } else if (hir->type->as.prim.kind == EL_PRIMTYPE_FLOAT) {
+        } else if (type->as.prim.kind == EL_PRIMTYPE_FLOAT) {
             mir_const.as.float_ = hir->as.constant.as.float_;
         } else {
             EL_UNREACHABLE("invalid hir constant");

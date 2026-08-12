@@ -2,7 +2,6 @@
 
 void el_binder_init_builtins(ElBinderBuiltins* builtins, ElDynArena* arena) {
     builtins->type_void = el_hir_new_prim_type(arena, EL_PRIMTYPE_VOID);
-    builtins->type_char = el_hir_new_prim_type(arena, EL_PRIMTYPE_CHAR);
     builtins->type_bool = el_hir_new_prim_type(arena, EL_PRIMTYPE_BOOL);
 
 #define INIT_INT_PAIR(SNAME, UNAME, WIDTH) \
@@ -24,4 +23,6 @@ void el_binder_init_builtins(ElBinderBuiltins* builtins, ElDynArena* arena) {
     builtins->type_float32  = el_hir_new_float_type(arena, EL_HIR_FPWIDTH_32);
     builtins->type_float64  = el_hir_new_float_type(arena, EL_HIR_FPWIDTH_64);
     builtins->type_float128 = el_hir_new_float_type(arena, EL_HIR_FPWIDTH_128);
+
+    builtins->type_char = el_hir_new_distinct_type(arena, builtins->type_uint8, EL_SV("char"));
 }

@@ -26,7 +26,6 @@ typedef enum ElHirFpWidth {
 typedef enum ElHirPrimTypeKind {
     EL_PRIMTYPE_VOID,
     EL_PRIMTYPE_INT,
-    EL_PRIMTYPE_CHAR,
     EL_PRIMTYPE_BOOL,
     EL_PRIMTYPE_FLOAT,
 } ElHirPrimTypeKind;

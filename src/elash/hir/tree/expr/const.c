@@ -15,7 +15,7 @@ ElHirExpr* el_hir_new_char_constant(ElDynArena* arena, ElSourceSpan span, ElHirT
         .kind = EL_HIR_EXPR_CONST,
         .type = type,
         .span = span,
-        .as.constant.as.char_ = value,
+        .as.constant.as.int_ = value,
     });
 }
 
