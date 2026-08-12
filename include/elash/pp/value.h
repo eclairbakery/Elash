@@ -1,10 +1,10 @@
 #pragma once
 
 #include <elash/defs/sv.h>
+#include <elash/util/strbuf.h>
+#include <elash/lexer/tokbuf.h>
 
 #include <elash/pp/valarr.h>
-
-#include <elash/lexer/tokbuf.h>
 
 typedef enum ElPpValueType {
     EL_PP_VAR_INT,
@@ -13,7 +13,7 @@ typedef enum ElPpValueType {
     EL_PP_VAR_CHAR,
     EL_PP_VAR_STRING,
     EL_PP_VAR_ARRAY,
-    EL_PP_VAR_TOKENS,
+    EL_PP_VAR_TOKEN,
 } ElPpValueType;
 
 /// @brief Checks if a given ElPpVarType is a trivial type.
@@ -23,14 +23,14 @@ bool el_pp_value_type_is_trivial(ElPpValueType type);
 
 typedef struct ElPpValue {
     union {
-        int as_int;          // EL_PP_VAR_INT
-        float as_float;      // EL_PP_VAR_FLOAT
-        bool as_bool;        // EL_PP_VAR_BOOL
-        char as_char;        // EL_PP_VAR_CHAR
-        ElStringView as_str; // EL_PP_VAR_STRING
-        ElPpValueArr as_arr; // EL_PP_VAR_ARRAY
-        ElTokenBuf as_toks;  // EL_PP_VAR_TOKENS
-    };
+        int          int_;   // EL_PP_VAR_INT
+        float        float_; // EL_PP_VAR_FLOAT
+        bool         bool_;  // EL_PP_VAR_BOOL
+        char         char_;  // EL_PP_VAR_CHAR
+        ElStringBuf  str_;   // EL_PP_VAR_STRING
+        ElPpValueArr arr_;   // EL_PP_VAR_ARRAY
+        ElToken      tok_;   // EL_PP_VAR_TOKENS
+    } as;
     ElPpValueType type;
 } ElPpValue;
 
@@ -49,7 +49,7 @@ bool el_pp_value_copy(const ElPpValue* src, ElPpValue* dst);
 
 typedef struct ElPpVar {
     ElStringView name;
-    ElPpValue value;
+    ElPpValue    value;
 } ElPpVar;
 
 /// @brief Frees any dynamically allocated resources held by an ElPpVar.
