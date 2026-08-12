@@ -3,7 +3,9 @@ import os
 import sys
 import json
 
-CC          = os.environ.get('CC', 'CC')
+# sloppy but works
+CC = os.environ.get('CC', 'CC').removeprefix("ccache ")
+
 CFLAGS      = os.environ.get('CFLAGS', '')
 LLVM_CFLAGS = os.environ.get('LLVM_CFLAGS', '')
 BUILD       = os.environ.get('BUILD', 'release')
@@ -16,7 +18,6 @@ FUZZ_SRC        = os.environ.get('FUZZ_SRC', '')
 MAIN_SRC        = os.environ.get('MAIN_C_SRC', '')
 
 def main():
-
     base_args = [CC] + CFLAGS.split()
     llvm_args = LLVM_CFLAGS.split()
 
@@ -37,14 +38,11 @@ def main():
             "file": file_norm
         })
 
-
     seen: set[str] = set()
-
     for f in (*LIBELASH_SRCS, *ELASH_TEST_SRCS, FUZZ_SRC):
         if f not in seen:
             seen.add(f)
             add_entry(f, [])
-
     for f in (*LIBELC_SRCS, *ELC_TEST_SRCS, MAIN_SRC):
         if f not in seen:
             seen.add(f)
