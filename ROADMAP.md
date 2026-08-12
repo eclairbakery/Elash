@@ -29,8 +29,8 @@
 - [x] `-I[src/sys] <name>=<path>` flag
 - [x] `--no-corelib` and `--no-stdlib` flags
 - [ ] Predefined modes (`release`, `debug`)
-- [ ] Invoke system linker
-- [ ] Produce final executable
+- [ ] ~~Invoke system linker~~ *(moved to 0.3.0)*
+- [ ] ~~Produce final executable~~ *(moved to 0.3.0)*
 - [ ] Don't report warnings from system headers
 
 ## Preprocessor
