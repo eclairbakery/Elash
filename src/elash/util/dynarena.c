@@ -16,7 +16,7 @@ bool el_dynarena_init(ElDynArena* arena) {
 
 void el_dynarena_free(ElDynArena* arena) {
     Chunk* chunk = arena->head;
-    while (chunk) {
+    while (chunk != NULL) {
         Chunk* next = chunk->next;
         free(chunk);
         chunk = next;
@@ -43,7 +43,7 @@ static Chunk* _el_dynarena_alloc_chunk(usize size) {
 void* el_dynarena_alloc(ElDynArena* arena, usize size, usize align) {
     if (size == 0) return NULL;
 
-    while (arena->current) {
+    while (arena->current != NULL) {
         uintptr_t addr = (uintptr_t) (arena->current->data + arena->offset);
         uintptr_t aligned_addr = (addr + align - 1) & ~((uintptr_t) (align - 1));
         usize new_offset = (usize) (aligned_addr - (uintptr_t) arena->current->data) + size;

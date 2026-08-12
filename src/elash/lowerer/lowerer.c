@@ -66,7 +66,7 @@ void el_lowerer_emit_block(ElLowerer* lw, uint32_t id) {
 
 ElMirValue* get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, ElHirType* type) {
     if (sym->kind == EL_SYM_VAR) {
-        if (lw->symbol_map && lw->symbol_map[sym->id]) {
+        if (lw->symbol_map != NULL && lw->symbol_map[sym->id] != NULL) {
             return lw->symbol_map[sym->id];
         }
 
@@ -171,7 +171,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
 
 ElMirSymbol* el_lowerer_map_symbol(ElLowerer* lw, ElHirSymbol* sym) {
     if (sym == NULL) return NULL;
-    if (lw->mir_symbol_map && lw->mir_symbol_map[sym->id]) {
+    if (lw->mir_symbol_map != NULL && lw->mir_symbol_map[sym->id] != NULL) {
         return lw->mir_symbol_map[sym->id];
     }
 

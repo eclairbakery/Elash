@@ -18,7 +18,7 @@ void elc_dump_hir_observer_exec(
     switch (event) {
     case ELC_OBS_ARTIFACT_PRODUCED: {
         FILE* out = stdout;
-        if (path && strcmp(path, "-") != 0) {
+        if (path != NULL && strcmp(path, "-") != 0) {
             out = fopen(path, "w");
             if (out == NULL) return;
         }

@@ -16,8 +16,8 @@ typedef struct ElStringView {
 
 #define EL_SV_FMT "%.*s"
 #define EL_SV_FARG(SV) \
-    ((int)((SV).data ? (SV).len : 5)), \
-    ((SV).data ? (SV).data : "(nil)")
+    ((int)((SV).data != NULL ? (SV).len : 5)), \
+    ((SV).data != NULL ? (SV).data : "(nil)")
 
 static inline ulong el_sv_print(ElStringView sv, FILE* out) {
     return fwrite(sv.data, 1, sv.len, out);

@@ -487,7 +487,7 @@ void elc_llvm_compile_func(Context* ctx, LLVMModuleRef module, ElMirFunc* mir_fu
 
     FunctionContext func;
     func.llvm_fn = LLVMGetNamedFunction(module, name);
-    if (!func.llvm_fn) {
+    if (func.llvm_fn == NULL) {
         func.llvm_fn = LLVMAddFunction(module, name, func_type);
     }
     func.regs    = EL_DYNARENA_NEW_ARR_ZEROED(ctx->arena, LLVMValueRef, mir_func->reg_count);
