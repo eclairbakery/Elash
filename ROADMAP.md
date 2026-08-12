@@ -76,7 +76,7 @@
 ## Documentation
 ### Compiler internals
 - [x] Lexer docs
-- [-] Preproc docs
+- [ ] Preproc docs
 - [ ] Parser docs
 - [ ] Binder docs
 - [ ] Lowerer docs
