@@ -208,7 +208,7 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int]) -> bool:
 
     tasks = []
     for path in test_items:
-        name = str(path.relative_to(script_dir))
+        name = str(path.relative_to(script_dir)).removesuffix(".eu")
         tasks.append((path, name, get_expectation(path, name)))
 
     # Process results as they finish
