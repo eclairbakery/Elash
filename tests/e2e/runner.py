@@ -99,9 +99,9 @@ def print_diff(expected: str, actual: str, stream_name: str):
 
 def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negative: bool) -> TestResult | None:
     if path.is_dir():
-        input_file = path.joinpath('input.em')
+        input_file = path.joinpath('input.eu')
         if not input_file.is_file():
-            error(f"ill-formed test case '{name}': no input.em")
+            error(f"ill-formed test case '{name}': no input.eu")
     else:
         input_file = path
 
@@ -168,10 +168,10 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
 
 def _collect_test_items():
     test_items = []
-    for p in script_dir.rglob('input.em'):
+    for p in script_dir.rglob('input.eu'):
         test_items.append(p.parent)
-    for p in script_dir.rglob('*.em'):
-        if p.name != 'input.em':
+    for p in script_dir.rglob('*.eu'):
+        if p.name != 'input.eu':
             test_items.append(p)
     return sorted(test_items)
 
