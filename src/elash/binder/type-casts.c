@@ -127,7 +127,7 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
             );
         } else if (to->kind == EL_HIR_TYPE_RWSLICE) {
             if (type_eql(to->as.rwslice.base, from->as.array.base)) {
-                // &(expr)[0] as T[*]
+                // &(expr)[0] as T[&]
                 ElHirType* base_type = from->as.array.base;
                 return el_hir_new_cast_expr(binder->arena, expr->span, to,
                     el_hir_new_unary_expr(
