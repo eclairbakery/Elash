@@ -87,7 +87,7 @@
 
 ## Stability & Hardening
 - [ ] Preproc test suite
-- [ ] Parser test suite
+- [x] Parser test suite
 - [x] Unparser test suite
 - [ ] Binder test suite
 - [ ] Lowerer test suite
