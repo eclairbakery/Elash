@@ -1,4 +1,5 @@
-#include <elash/lowerer/lowerer.h>
+#include "lowerer-internals.h"
+
 #include <elash/mir/module.h>
 
 ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir) {
@@ -8,7 +9,7 @@ ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir) {
     lw->next_sym_id = hir->sym_count;
 
     for (ElHirDecl* decl = hir->head; decl != NULL; decl = decl->next) {
-        _el_lowerer_lower_global_decl(lw, decl);
+        el_lowerer_lower_global_decl(lw, decl);
     }
 
     lw->current_mod->sym_count = lw->next_sym_id;

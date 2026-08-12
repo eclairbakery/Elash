@@ -1,4 +1,4 @@
-#include <elash/binder/binder.h>
+#include "binder-internals.h"
 
 bool _el_binder_stmt_always_returns(ElBinder* binder, ElHirStmt* stmt) {
     (void) binder;

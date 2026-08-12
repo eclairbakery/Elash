@@ -1,4 +1,4 @@
-#include <elash/binder/binder.h>
+#include "binder-internals.h"
 
 bool _el_binder_is_const(ElBinder* binder, ElHirExpr* expr) {
     if (expr == NULL) return false;

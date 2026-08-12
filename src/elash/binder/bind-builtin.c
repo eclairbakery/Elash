@@ -1,10 +1,8 @@
-#include <elash/binder/binder.h>
-
-#include <elash/util/assert.h>
-#include <elash/util/todo.h>
+#include "binder-internals.h"
 
 #include <elash/diag/engine.h>
-#include <elash/diag/meta.h>
+#include <elash/util/assert.h>
+#include <elash/util/todo.h>
 
 ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
     if (call->arg_count != 1) {

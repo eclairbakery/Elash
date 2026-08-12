@@ -1,4 +1,4 @@
-#include <elash/binder/binder.h>
+#include "binder-internals.h"
 #include <elash/util/assert.h>
 
 ElHirModule* el_binder_bind_module(ElBinder* binder, ElAstModule* in) {

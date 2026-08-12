@@ -1,10 +1,11 @@
-#include <elash/binder/binder.h>
-#include <elash/hir/type/ref.h>
-#include <elash/hir/tree/expr.h>
+#include "binder-internals.h"
 
+#include <elash/diag/engine.h>
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>
-#include <elash/diag/meta.h>
+
+#include <elash/hir/type/ref.h>
+#include <elash/hir/tree/expr.h>
 
 // to reduce boilerplate.
 #define type_eql el_hir_type_eql

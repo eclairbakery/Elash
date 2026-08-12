@@ -1,9 +1,8 @@
-#include <elash/binder/binder.h>
-#include <elash/util/assert.h>
-#include <elash/util/todo.h>
+#include "binder-internals.h"
 
 #include <elash/diag/engine.h>
-#include <elash/diag/meta.h>
+#include <elash/util/assert.h>
+#include <elash/util/todo.h>
 
 #include <elash/hir/tree/stmt/block.h>
 #include <elash/hir/tree/stmt/return.h>

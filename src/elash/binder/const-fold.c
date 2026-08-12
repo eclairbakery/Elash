@@ -1,4 +1,5 @@
-#include <elash/binder/binder.h>
+#include "binder-internals.h"
+
 #include <elash/util/assert.h>
 
 #define TYPED_INT_RET(type, val, span)    el_hir_new_int_constant(binder->arena, span, type, val)

@@ -1,4 +1,5 @@
-#include <elash/parser/parser.h>
+#include "parser-internals.h"
+
 #include <elash/ast/tree/type.h>
 
 static bool lookahead_skip_balanced(ElParser* parser, usize* idx, ElTokenType open, ElTokenType close) {
