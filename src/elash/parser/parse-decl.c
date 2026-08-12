@@ -79,7 +79,7 @@ static ElAstDecl* parse_func_internal_decl(ElParser* parser, ElAstFuncSignature 
 }
 
 static ElAstDecl* parse_var_internal_decl(ElParser* parser) {
-    bool is_global = el_parser_match(parser, EL_TT_KW_STATIC);
+    bool is_static = el_parser_match(parser, EL_TT_KW_STATIC);
 
     ElAstType* type = _el_parser_parse_type(parser);
     if (type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
@@ -97,7 +97,7 @@ static ElAstDecl* parse_var_internal_decl(ElParser* parser) {
     el_parser_expect(parser, EL_TT_SEMICOLON);
 
     ElSourceSpan span = el_srcspan_merge(type->span, semi_tok.span);
-    return el_ast_new_var_def(parser->arena, span, type, name, init, is_global);
+    return el_ast_new_var_def(parser->arena, span, type, name, init, is_static);
 }
 
 static ElAstDecl* parse_extern_decl(ElParser* parser, ElToken extern_tok) {

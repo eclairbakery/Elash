@@ -134,7 +134,7 @@ bool el_ast_equal_decl(const ElAstDecl* a, const ElAstDecl* b) {
         return el_ast_equal_type(a->as.var_def.type, b->as.var_def.type) &&
                el_sv_eql(a->as.var_def.name->name, b->as.var_def.name->name) &&
                el_ast_equal_init(a->as.var_def.init, b->as.var_def.init) &&
-               a->as.var_def.is_global == b->as.var_def.is_global;
+               a->as.var_def.is_static == b->as.var_def.is_static;
     case EL_AST_DECL_VAR_DECL:
         return el_ast_equal_type(a->as.var_decl.type, b->as.var_decl.type) &&
                el_sv_eql(a->as.var_decl.name->name, b->as.var_decl.name->name);

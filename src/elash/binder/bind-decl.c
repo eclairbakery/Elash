@@ -142,7 +142,7 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
         return REPORT_REDEFINITION(binder, var->name->span, sym->name);
     }
 
-    ElStorageClass scls = (var->is_global || binder->current_func == NULL)
+    ElStorageClass scls = (var->is_static || binder->current_func == NULL)
         ? EL_STORAGECLS_STATIC
         : EL_STORAGECLS_LOCAL;
 

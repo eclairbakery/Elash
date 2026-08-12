@@ -10,10 +10,10 @@
 typedef struct ElAstDecl ElAstDecl;
 
 typedef struct ElAstVarDef {
+    bool is_static;
     ElAstType*  type;
     ElAstIdent* name;
     ElAstInit*  init; // nullable
-    bool        is_global;
 } ElAstVarDef;
 
-ElAstDecl* el_ast_new_var_def(ElDynArena* arena, ElSourceSpan span, ElAstType* type, ElAstIdent* name, ElAstInit* init, bool is_global);
+ElAstDecl* el_ast_new_var_def(ElDynArena* arena, ElSourceSpan span, ElAstType* type, ElAstIdent* name, ElAstInit* init, bool is_static);
