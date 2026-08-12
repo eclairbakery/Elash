@@ -20,7 +20,7 @@
 
 void elc_llvm_lir_free(ElcLirHandle* handle) {
     ElcLLVMLir* data = handle->data;
-    if (data->module) {
+    if (data->module != NULL) {
         LLVMDisposeModule(data->module);
     }
 }

@@ -63,7 +63,7 @@ ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
 
 ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElHirSymbol* sym, const ElHirType* hir_type) {
     ElMirType* type = el_lowerer_map_type(lw, hir_type);
-    if (lw->symbol_map && lw->symbol_map[sym->id]) {
+    if (lw->symbol_map != NULL && lw->symbol_map[sym->id] != NULL) {
         ElMirValue* val = lw->symbol_map[sym->id];
         if (sym->kind == EL_SYM_VAR) {
             ElMirValue* reg = el_mir_new_reg(lw->arena, type, lw->current_func->reg_count++);

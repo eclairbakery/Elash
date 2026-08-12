@@ -10,7 +10,7 @@ void elc_artifact_free(ElcArtifact* art) {
         free(art->as.asm.data);
         break;
     case ELC_ART_LIR:
-        if (art->as.lir.free) {
+        if (art->as.lir.free != NULL) {
             art->as.lir.free(&art->as.lir);
         }
         break;

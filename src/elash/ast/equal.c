@@ -12,7 +12,7 @@ bool el_ast_equal_type(const ElAstType* a, const ElAstType* b) {
         if (a->as.struct_.count != b->as.struct_.count) return false;
         ElAstDecl* fa = a->as.struct_.fields;
         ElAstDecl* fb = b->as.struct_.fields;
-        while (fa && fb) {
+        while (fa != NULL && fb != NULL) {
             if (!el_ast_equal_decl(fa, fb)) return false;
             fa = fa->next;
             fb = fb->next;
@@ -23,7 +23,7 @@ bool el_ast_equal_type(const ElAstType* a, const ElAstType* b) {
         if (a->as.tuple.count != b->as.tuple.count) return false;
         ElAstType* ta = a->as.tuple.head;
         ElAstType* tb = b->as.tuple.head;
-        while (ta && tb) {
+        while (ta != NULL && tb != NULL) {
             if (!el_ast_equal_type(ta, tb)) return false;
             ta = ta->next;
             tb = tb->next;
@@ -79,7 +79,7 @@ bool el_ast_equal_expr(const ElAstExpr* a, const ElAstExpr* b) {
         if (!el_ast_equal_expr(a->as.call.callee, b->as.call.callee)) return false;
         ElAstInit* aa = a->as.call.args;
         ElAstInit* ab = b->as.call.args;
-        while (aa && ab) {
+        while (aa != NULL && ab != NULL) {
             if (!el_ast_equal_init(aa, ab)) return false;
             aa = aa->next;
             ab = ab->next;
@@ -111,7 +111,7 @@ bool el_ast_equal_func_signature(const ElAstFuncSignature* a, const ElAstFuncSig
     if (a->params.count != b->params.count) return false;
     ElAstFuncParam* pa = a->params.head;
     ElAstFuncParam* pb = b->params.head;
-    while (pa && pb) {
+    while (pa != NULL && pb != NULL) {
         if (!el_ast_equal_func_param(pa, pb)) return false;
         pa = pa->next;
         pb = pb->next;
@@ -142,7 +142,7 @@ bool el_ast_equal_decl(const ElAstDecl* a, const ElAstDecl* b) {
         if (!el_ast_equal_func_signature(&a->as.func_def.sig, &b->as.func_def.sig)) return false;
         ElAstStmt* sa = a->as.func_def.block->stmts;
         ElAstStmt* sb = b->as.func_def.block->stmts;
-        while (sa && sb) {
+        while (sa != NULL && sb != NULL) {
             if (!el_ast_equal_stmt(sa, sb)) return false;
             sa = sa->next;
             sb = sb->next;
@@ -173,7 +173,7 @@ bool el_ast_equal_stmt(const ElAstStmt* a, const ElAstStmt* b) {
         case EL_AST_STMT_BLOCK: {
             ElAstStmt* sa = a->as.block.stmts;
             ElAstStmt* sb = b->as.block.stmts;
-            while (sa && sb) {
+            while (sa != NULL && sb != NULL) {
                 if (!el_ast_equal_stmt(sa, sb)) return false;
                 sa = sa->next;
                 sb = sb->next;
@@ -225,7 +225,7 @@ bool el_ast_equal_init(const ElAstInit* a, const ElAstInit* b) {
         if (a->list.count != b->list.count) return false;
         ElAstInit* ia = a->list.head;
         ElAstInit* ib = b->list.head;
-        while (ia && ib) {
+        while (ia != NULL && ib != NULL) {
             if (!el_ast_equal_init(ia, ib)) return false;
             ia = ia->next;
             ib = ib->next;
@@ -235,11 +235,11 @@ bool el_ast_equal_init(const ElAstInit* a, const ElAstInit* b) {
         if (a->desig.count != b->desig.count) return false;
         ElAstDesigInitElem* ea = a->desig.head;
         ElAstDesigInitElem* eb = b->desig.head;
-        while (ea && eb) {
+        while (ea != NULL && eb != NULL) {
             if (ea->desig_count != eb->desig_count) return false;
             ElAstDesignator* da = ea->head;
             ElAstDesignator* db = eb->head;
-            while (da && db) {
+            while (da != NULL && db != NULL) {
                 if (!el_ast_equal_designator(da, db)) return false;
                 da = da->next;
                 db = db->next;
@@ -264,7 +264,7 @@ bool el_ast_equal_module(const ElAstModule* a, const ElAstModule* b) {
 
     ElAstDecl* da = a->head;
     ElAstDecl* db = b->head;
-    while (da && db) {
+    while (da != NULL && db != NULL) {
         if (!el_ast_equal_decl(da, db)) return false;
         da = da->next;
         db = db->next;

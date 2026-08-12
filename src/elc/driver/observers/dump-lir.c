@@ -21,7 +21,7 @@ void elc_dump_lir_observer_exec(
     switch (event) {
     case ELC_OBS_ARTIFACT_PRODUCED: {
         FILE* out = stdout;
-        if (data->path && strcmp(data->path, "-") != 0) {
+        if (data->path != NULL && strcmp(data->path, "-") != 0) {
             out = fopen(data->path, "w");
             if (out == NULL) return;
         }

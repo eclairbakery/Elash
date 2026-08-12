@@ -69,7 +69,7 @@ Entry* _el_pp_vars_find_slot(ElPpVars* vars, ElStringView key, bool* found) {
 
         if (entry->state == _EL_PP_VARS_EMPTY) {
             *found = false;
-            return first_tombstone ? first_tombstone : entry;
+            return first_tombstone != NULL ? first_tombstone : entry;
         }
 
         if (entry->state == _EL_PP_VARS_TOMBSTONE) {
@@ -104,7 +104,7 @@ bool el_pp_vars_init(ElPpVars* vars, usize initial_capacity) {
 }
 
 void el_pp_vars_destroy(ElPpVars* vars) {
-    if (!vars || !vars->entries)
+    if (vars == NULL || vars->entries == NULL)
         return;
 
     for (usize i = 0; i < vars->capacity; ++i) {

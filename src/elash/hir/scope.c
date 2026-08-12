@@ -60,7 +60,7 @@ bool el_hir_scope_insert_ex(ElScope* scope, ElStringView name, ElHirSymbol* symb
     ulong hash = el_hash_string(name);
     usize index = hash % scope->capacity;
 
-    while (scope->entries[index].symbol) {
+    while (scope->entries[index].symbol != NULL) {
         if (el_sv_eql(scope->entries[index].name, name)) {
             return false; // already exists
         }
@@ -83,7 +83,7 @@ ElHirSymbol* el_hir_scope_lookup_local(ElScope* scope, ElStringView name) {
     ulong hash = el_hash_string(name);
     usize index = hash % scope->capacity;
 
-    while (scope->entries[index].symbol) {
+    while (scope->entries[index].symbol != NULL) {
         if (el_sv_eql(scope->entries[index].name, name)) {
             return scope->entries[index].symbol;
         }
@@ -94,7 +94,7 @@ ElHirSymbol* el_hir_scope_lookup_local(ElScope* scope, ElStringView name) {
 }
 
 ElHirSymbol* el_hir_scope_lookup(ElScope* scope, ElStringView name) {
-    while (scope) {
+    while (scope != NULL) {
         ElHirSymbol* symbol = el_hir_scope_lookup_local(scope, name);
         if (symbol != NULL) return symbol;
         scope = scope->parent;
