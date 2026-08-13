@@ -14,6 +14,11 @@ import typing
 import sys
 import os
 
+ELC_FLAGS = (
+    '-O2',
+    '-I', 'utils=utils/'
+)
+
 # very advanced lock mechanism
 PRINT_LOCK = threading.Lock()
 def very_advanced_thread_safe_print_function_to_fix_issues_with_parallelism_version_1_0_0(*a, **k):
@@ -116,7 +121,7 @@ def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negat
     latest_compile_input_mtime = max(input_file.stat().st_mtime, elc_bin.stat().st_mtime)
 
     if is_negative or not obj.is_file() or obj.stat().st_mtime < latest_compile_input_mtime:
-        res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj), '-O2'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj), *ELC_FLAGS], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if is_negative or res.returncode != 0:
             return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='compilation')
 
