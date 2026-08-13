@@ -1,7 +1,11 @@
 #include "binder-internals.h"
 
+#include <elash/util/assert.h>
+
 bool _el_binder_stmt_always_returns(ElBinder* binder, ElHirStmt* stmt) {
     (void) binder;
+
+    EL_ASSERT(stmt != NULL, "null statement passed to stmt-always-returns");
     switch (stmt->kind) {
     case EL_HIR_STMT_RETURN:
         return true;
