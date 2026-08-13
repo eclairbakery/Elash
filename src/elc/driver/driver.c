@@ -15,6 +15,7 @@
 #include <elc/driver/stages/emit-obj-stage.h>
 #include <elc/driver/stages/emit-asm-stage.h>
 
+#include <elc/driver/observers/dump-tks.h>
 #include <elc/driver/observers/dump-ast.h>
 #include <elc/driver/observers/dump-hir.h>
 #include <elc/driver/observers/dump-mir.h>
@@ -54,22 +55,22 @@ bool elc_driver_register_stages(ElcDriver* driver) {
     return true;
 }
 
-#define REGISTER_LIR_OBSERVER(KIND, FIELD)                                                               \
-    do {                                                                                                 \
-        bool is_target = (args->emit == (KIND) || args->until == (KIND));                                \
-        if (args->FIELD.is_enabled || is_target) {                                                       \
-            const char* path = NULL;                                                                     \
-            if (args->FIELD.is_enabled && !el_sv_is_null(args->FIELD.output)) {                          \
-                path = el_dynarena_make_cstr(&driver->arena, args->FIELD.output);                        \
-            } else if (is_target) {                                                                      \
-                path = el_dynarena_make_cstr(&driver->arena, args->output);                              \
-            }                                                                                            \
-            elc_pipeline_add_observer(&driver->pipeline,                                                 \
-                elc_make_dump_lir_observer(EL_DYNARENA_NEW_STRUCT(&driver->arena, DumpLirObserverData, { \
-                    .path = path, .kind = (KIND)                                                         \
-                }))                                                                                      \
-            );                                                                                           \
-        }                                                                                                \
+#define REGISTER_LIR_OBSERVER(KIND, FIELD)                                                          \
+    do {                                                                                            \
+        bool is_target = (args->emit == (KIND) || args->until == (KIND));                           \
+        if (args->FIELD.is_enabled || is_target) {                                                  \
+            const char* path = NULL;                                                                \
+            if (args->FIELD.is_enabled && !el_sv_is_null(args->FIELD.output)) {                     \
+                path = el_dynarena_make_cstr(&driver->arena, args->FIELD.output);                   \
+            } else if (is_target) {                                                                 \
+                path = el_dynarena_make_cstr(&driver->arena, args->output);                         \
+            }                                                                                       \
+            elc_pipeline_add_observer(&driver->pipeline,                                            \
+                elc_make_dump_lir_observer(EL_DYNARENA_NEW_STRUCT(&driver->arena, ElcDumpLirData, { \
+                    .path = path, .kind = (KIND)                                                    \
+                }))                                                                                 \
+            );                                                                                      \
+        }                                                                                           \
     } while (0)
 
 #define REGISTER_GENERIC_OBSERVER(KIND, FIELD, MAKER)                             \
@@ -86,12 +87,30 @@ bool elc_driver_register_stages(ElcDriver* driver) {
         }                                                                         \
     } while (0)
 
+#define REGISTER_TKS_OBSERVER(KIND, FIELD)                                              \
+    do {                                                                                \
+        if (args->FIELD.is_enabled) {                                                   \
+            ElTokenBuf* buf = EL_DYNARENA_NEW(&driver->arena, ElTokenBuf);              \
+            el_tkbuf_init(buf);                                                         \
+            driver->pipeline.context.token_dump_bufs[(KIND)] = buf;                     \
+            elc_pipeline_add_observer(&driver->pipeline, elc_make_dump_tokens_observer( \
+                EL_DYNARENA_NEW_STRUCT(&driver->arena, ElcDumpTksData, {                \
+                    .path = el_dynarena_make_cstr(&driver->arena, args->FIELD.output),  \
+                    .buffer = buf, .kind = (KIND),                                      \
+                })                                                                      \
+            ));                                                                         \
+        }                                                                               \
+    } while (0)
+
 // clang-tidy is stupid and doesn't understand macros
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 bool elc_driver_register_observers(ElcDriver* driver, const ElcArgs* args) {
     REGISTER_GENERIC_OBSERVER(ELC_ART_AST,  dump_ast, elc_make_dump_ast_observer);
     REGISTER_GENERIC_OBSERVER(ELC_ART_HIR,  dump_hir, elc_make_dump_hir_observer);
     REGISTER_GENERIC_OBSERVER(ELC_ART_MIR,  dump_mir, elc_make_dump_mir_observer);
+
+    REGISTER_TKS_OBSERVER(ELC_ART_TKS, dump_toks);
+    REGISTER_TKS_OBSERVER(ELC_ART_PPTKS, dump_pp_toks);
 
     REGISTER_LIR_OBSERVER(ELC_ART_LIR,  dump_lir);
     REGISTER_LIR_OBSERVER(ELC_ART_OLIR, dump_lir);

@@ -28,4 +28,5 @@ bool el_tkbuf_push(ElTokenBuf* tkbuf, ElToken tok);
 
 bool el_tkbuf_clear(ElTokenBuf* tkbuf);
 
+void el_tkbuf_capture_stream(ElTokenStream* stream, ElTokenBuf* buf, ElDiagEngine* diag);
 ElTokenStream el_tkbuf_as_stream(ElTkBufStream* ctx, const ElTokenBuf* buf);

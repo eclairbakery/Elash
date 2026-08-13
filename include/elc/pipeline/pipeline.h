@@ -6,6 +6,8 @@
 #include <elash/binder/builtin.h>
 #include <elash/lowerer/builtin.h>
 
+#include <elash/lexer/tokbuf.h>
+
 #define ELC_MAX_STAGES 32
 #define ELC_MAX_OBSERVERS 16
 

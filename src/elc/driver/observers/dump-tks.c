@@ -1,9 +1,9 @@
-#include <elc/driver/observers/dump-lir.h>
-#include <elc/codegen/lir.h>
+#include <elc/driver/observers/dump-tks.h>
+#include <elash/lexer/token.h>
 #include <stdio.h>
 #include <string.h>
 
-void elc_dump_lir_observer_exec(
+void elc_dump_tokens_observer_exec(
     void* user_data,
     const ElcPipelineContext* ctx,
     ElcObserverEvent event,
@@ -11,13 +11,12 @@ void elc_dump_lir_observer_exec(
     const ElcArtifact* artifact
 ) {
     (void) ctx, (void) stage_name;
-    ElcDumpLirData* data = user_data;
+    ElcDumpTksData* data = user_data;
 
     if (artifact == NULL || artifact->kind != data->kind) {
         return;
     }
 
-    const ElcLirHandle* lir = &artifact->as.lir;
     switch (event) {
     case ELC_OBS_ARTIFACT_PRODUCED: {
         FILE* out = stdout;
@@ -26,7 +25,12 @@ void elc_dump_lir_observer_exec(
             if (out == NULL) return;
         }
 
-        lir->dump(lir, out);
+        if (data->buffer != NULL) {
+            for (usize i = 0; i < data->buffer->len; ++i) {
+                el_token_print(&data->buffer->data[i], out);
+                fprintf(out, "\n");
+            }
+        }
 
         if (out != stdout) fclose(out);
         break;
@@ -36,9 +40,9 @@ void elc_dump_lir_observer_exec(
     }
 }
 
-ElcObserver elc_make_dump_lir_observer(ElcDumpLirData* data) {
+ElcObserver elc_make_dump_tokens_observer(ElcDumpTksData* data) {
     return (ElcObserver) {
-        .callback = elc_dump_lir_observer_exec,
+        .callback = elc_dump_tokens_observer_exec,
         .user_data = data
     };
 }
