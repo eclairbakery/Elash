@@ -248,7 +248,7 @@ static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElH
     }
     default:
         return el_diag_report(
-            binder->diag, EL_DIAG_ERROR, "invalid-cast",
+            binder->diag, EL_DIAG_ERROR, "sema.invalid-cast",
             span, "untyped expression cannot be converted to type ${to}",
             EL_DIAG_TYPE("to", to),
         );
@@ -298,7 +298,7 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
     }
 
     return el_diag_report(
-        binder->diag, EL_DIAG_ERROR, "invalid-cast",
+        binder->diag, EL_DIAG_ERROR, "sema.invalid-cast",
         span, "untyped ${of} literal cannot be converted to type ${to}",
         EL_DIAG_STRING("of", el_hir_literal_kind_to_string(expr->as.literal.kind)),
         EL_DIAG_TYPE("to", to),
