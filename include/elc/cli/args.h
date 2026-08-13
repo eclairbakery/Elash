@@ -1,7 +1,7 @@
 #pragma once
 
 #include <elash/defs/sv.h>
-#include <elash/pp/ipath.h>
+#include <elash/pp/include.h>
 
 #include <elc/optlevel.h>
 #include <elc/pipeline/artifact.h>
@@ -21,7 +21,7 @@ typedef struct ElcArgs {
     ElStringView input;  // filename or - for stdin
     ElStringView output; // filename or - for stdout
 
-    ElPpIncPaths ipaths;
+    ElPpIncMap imap;
 
     ElcCliDumpSwitch dump_toks;
     ElcCliDumpSwitch dump_pp_toks;

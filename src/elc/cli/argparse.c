@@ -34,7 +34,7 @@ static ElcCliParseResult handle_include_flag(ElcArgParseContext* p, ElStringView
     ElStringView path = el_sv_from_data_and_len(eq + 1, val.len - (eq - val.data) - 1);
 
     // don't ask (i'm bored)
-    return el_pp_add_ipath(&p->out->ipaths,  EL_DYNARENA_NEW_STRUCT(p->arena, ElPpIncPath, {
+    return el_pp_imap_add(&p->out->imap,  EL_DYNARENA_NEW_STRUCT(p->arena, ElPpIncMapping, {
         .is_system = is_sys, .name = name, .path = path,
     })), ELC_CLI_PARSE_RESULT_OK;
 }
