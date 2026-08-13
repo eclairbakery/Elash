@@ -14,12 +14,14 @@ void elc_artifact_free(ElcArtifact* art) {
             art->as.lir.free(&art->as.lir);
         }
         break;
-    case ELC_ART_PPTKS:
-        if (art->as.tks != NULL) {
-            // this is ugly, but works.
-            el_pp_destroy(art->as.tks->ctx);
-        }
-        break;
+    //case ELC_ART_PPTKS:
+        // segfaults with --dump-pp-toks
+        // TODO: fix
+        //if (art->as.tks != NULL) {
+        //    // this is ugly, but works.
+        //    el_pp_destroy(art->as.tks->ctx);
+        //}
+        //break;
     default:
         break;
     }

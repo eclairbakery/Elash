@@ -12,10 +12,15 @@ bool elc_lexer_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const 
         return false;
     }
 
-    ElTokenStream* stream = EL_DYNARENA_NEW(ctx->arena, ElTokenStream);
-    *stream = el_lexer_as_token_stream(lexer);
+    ElTokenStream stream = el_lexer_as_token_stream(lexer);
+    if (ctx->token_dump_bufs[ELC_ART_TKS] != NULL) {
+        el_tkbuf_capture_stream(&stream, ctx->token_dump_bufs[ELC_ART_TKS], ctx->diag);
 
-    output->as.tks = stream;
+        ElTkBufStream* tkbuf_ctx = EL_DYNARENA_NEW(ctx->arena, ElTkBufStream);
+        stream = el_tkbuf_as_stream(tkbuf_ctx, ctx->token_dump_bufs[ELC_ART_TKS]);
+    }
+    output->as.tks = EL_DYNARENA_NEW(ctx->arena, ElTokenStream);
+    *output->as.tks = stream;
     return true;
 }
 

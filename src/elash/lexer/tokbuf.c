@@ -126,6 +126,16 @@ bool el_tkbuf_push(ElTokenBuf* tkbuf, ElToken tok) {
     return true;
 }
 
+void el_tkbuf_capture_stream(ElTokenStream* stream, ElTokenBuf* buf, ElDiagEngine* diag) {
+    ElToken tok;
+    do {
+        tok = stream->next(stream, diag);
+        if (tok.type != EL_TT_EOF) {
+            el_tkbuf_push(buf, tok);
+        }
+    } while (tok.type != EL_TT_EOF);
+}
+
 bool el_tkbuf_clear(ElTokenBuf* tkbuf) {
     tkbuf->len = 0;
     return true;
