@@ -55,7 +55,11 @@ CSTD     := -std=c11
 PIC_CFLAGS := -fPIC
 
 ifneq ($(CCKIND),unknown)
-	WARNINGS := -Wall -Wextra -Werror=implicit-fallthrough -Werror=switch -Werror=uninitialized -Werror=return-type
+	WARNINGS := \
+		-Wall -Wextra \
+		-Werror=implicit-fallthrough -Werror=switch \
+		-Werror=uninitialized -Werror=return-type \
+		-Werror=write-strings -Werror=undef
 else
 	WARNINGS :=
 endif
@@ -81,6 +85,9 @@ else ifeq ($(BUILD),rel-debug)
 else ifeq ($(BUILD),rel-debug-san)
 	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG -fsanitize=address,undefined
 	DEFAULT_LDFLAGS := -fsanitize=address,undefined
+else ifeq ($(BUILD),manual)
+	DEFAULT_CFLAGS  := $(COMMON_CFLAGS)
+	DEFAULT_LDFLAGS :=
 else
 	$(error Unknown BUILD=$(BUILD))
 endif
@@ -98,9 +105,9 @@ HAS_LLVM    := $(shell $(LLVM_CONFIG) --version > /dev/null 2>&1 && echo yes || 
 ifeq ($(HAS_LLVM),yes)
 	LLVM_CFLAGS  := $(shell $(LLVM_CONFIG) --cflags)
 	LLVM_LDFLAGS := $(shell $(LLVM_CONFIG) --ldflags --libs --system-libs)
-	ifeq ($(PLATFORM),posix)
-		LLVM_LDFLAGS += -lstdc++
-	endif
+ifeq ($(PLATFORM),posix)
+	LLVM_LDFLAGS += -lstdc++
+endif
 else
 	LLVM_CFLAGS  :=
 	LLVM_LDFLAGS :=
