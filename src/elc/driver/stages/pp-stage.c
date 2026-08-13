@@ -5,8 +5,8 @@
 bool elc_pp_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const ElcArtifact* input, ElcArtifact* output) {
     (void) stage;
 
-    ElPreprocessor* pp = EL_DYNARENA_NEW(ctx->arena, ElPreprocessor);
-    if (el_pp_init(pp, *input->as.tks) != EL_PPERR_SUCCESS) {
+    ElPreproc* pp = EL_DYNARENA_NEW(ctx->arena, ElPreproc);
+    if (!el_pp_init(pp, *input->as.tks, ctx->arena)) {
         // TODO: error handling
         return false;
     }
