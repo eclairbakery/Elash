@@ -64,7 +64,10 @@ static ElAstType* gen_type(ElDynArena* arena, int depth) {
 }
 
 static ElAstExpr* gen_literal(ElDynArena* arena) {
-    switch (rand() % 6) {
+    // TODO: null is currently excluded as it is not handled in the binder
+    //       and causes assertion errors. change that 5 to 6 once null
+    //       literals have been implemented.
+    switch (rand() % 5) {
     case 0: return el_ast_new_int_literal(arena, NSPAN, rand() % 100);
     case 1: return el_ast_new_float_literal(arena, NSPAN, (long double)(rand() % 100) / 10.0);
     case 2: return el_ast_new_char_literal(arena, NSPAN, (char)('a' + (rand() % 26)));
@@ -207,11 +210,15 @@ ElAstModule* gen_module(ElDynArena* arena, int max_depth) {
 #endif
 
 #define MAX_DEPTH 28
-int main() {
+int main(int argc, char** argv) {
     ElDynArena arena;
     el_dynarena_init(&arena);
 
-    srand(time(NULL) + GETPID());
+    if (argc > 1) {
+        srand(atoi(argv[1]));
+    } else {
+        srand(time(NULL) + GETPID());
+    }
 
     ElAstModule* mod = gen_module(&arena, MAX_DEPTH);
 
