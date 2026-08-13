@@ -129,6 +129,12 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
                 in->span, "cannot perform address-of or dereference on an untyped literal"
             );
+        if (unary->op == EL_SEMA_UNARY_OP_PRE_INC || unary->op == EL_SEMA_UNARY_OP_PRE_DEC
+            || unary->op == EL_SEMA_UNARY_OP_POST_INC || unary->op == EL_SEMA_UNARY_OP_POST_DEC)
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.invalid-op",
+                in->span, "cannot increment or decrement an untyped literal"
+            );
     } else {
         if (unary->op == EL_SEMA_UNARY_OP_ADDROF) {
             type = el_hir_new_ref_type(binder->arena, operand->type);
