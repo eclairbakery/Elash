@@ -2,6 +2,7 @@
 #include <elash/parser/parser.h> // IWYU pragma: export
 
 void _el_parser_report_expected(ElParser* parser, ElTokenType expected);
+void _el_parser_report_expected_at(ElParser* parser, ElTokenType expected, usize idx);
 void _el_parser_report_unexpected(ElParser* parser, ElToken tok);
 
 bool _el_parser_lookahead_skip_type(ElParser* parser, usize* idx);

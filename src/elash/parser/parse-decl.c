@@ -100,16 +100,28 @@ static ElAstDecl* parse_var_internal_decl(ElParser* parser) {
     return el_ast_new_var_def(parser->arena, span, type, name, init, is_static);
 }
 
+static ElAstDecl* _el_parser_report_incomplete_decl(ElParser* parser, usize idx) {
+    if (el_parser_peek_at(parser, idx).type != EL_TT_IDENT) {
+        _el_parser_report_expected_at(parser, EL_TT_IDENT, idx);
+        (void)_el_parser_parse_type(parser);
+    } else {
+        el_parser_expect(parser, EL_TT_IDENT);
+    }
+    return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+}
+
 static ElAstDecl* parse_extern_decl(ElParser* parser, ElToken extern_tok) {
     usize idx = 0;
-    if (!_el_parser_lookahead_skip_type(parser, &idx) || el_parser_peek_at(parser, idx).type != EL_TT_IDENT) {
-        el_parser_expect(parser, EL_TT_IDENT);
-        return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+    if (!_el_parser_lookahead_skip_type(parser, &idx)) {
+        return _el_parser_report_incomplete_decl(parser, idx);
+    }
+    if (el_parser_peek_at(parser, idx).type != EL_TT_IDENT) {
+        return _el_parser_report_incomplete_decl(parser, idx);
     }
 
     if (el_parser_peek_at(parser, idx + 1).type == EL_TT_LPAREN) {
         ElAstFuncSignature sig = parse_func_sig(parser);
-        if (sig.ret_type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+        if (sig.ret_type == NULL || sig.name == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
         if (el_parser_check(parser, EL_TT_LBRACE)) {
             el_diag_report(
@@ -198,14 +210,16 @@ static ElAstDecl* el_parser_parse_internal_decl(ElParser* parser) {
     usize idx = 0;
     if (el_parser_peek_at(parser, idx).type == EL_TT_KW_STATIC) idx++;
 
-    if (!_el_parser_lookahead_skip_type(parser, &idx) || el_parser_peek_at(parser, idx).type != EL_TT_IDENT) {
-        el_parser_expect(parser, EL_TT_IDENT);
-        return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+    if (!_el_parser_lookahead_skip_type(parser, &idx)) {
+        return _el_parser_report_incomplete_decl(parser, idx);
+    }
+    if (el_parser_peek_at(parser, idx).type != EL_TT_IDENT) {
+        return _el_parser_report_incomplete_decl(parser, idx);
     }
 
     if (el_parser_peek_at(parser, idx + 1).type == EL_TT_LPAREN) {
         ElAstFuncSignature sig = parse_func_sig(parser);
-        if (sig.ret_type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+        if (sig.ret_type == NULL || sig.name == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
         return parse_func_internal_decl(parser, sig);
     }
 

@@ -23,3 +23,10 @@ Test(el_parser_unhappy, parse_invalid_decl) {
     (void)el_parser_parse_decl(&parser);
     cr_assert_gt(diag.summary.total_errors, 0);
 }
+
+Test(el_parser_unhappy, parse_type_without_name) {
+    ElDiagEngine diag;
+    ElParser parser = p("int; float;\nchar 123 + 3551;", &diag);
+    (void)el_parser_parse_module(&parser);
+    cr_assert_gt(diag.summary.total_errors, 0);
+}

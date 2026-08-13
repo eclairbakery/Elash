@@ -13,6 +13,16 @@ void _el_parser_report_expected(ElParser* parser, ElTokenType expected) {
     );
 }
 
+void _el_parser_report_expected_at(ElParser* parser, ElTokenType expected, usize idx) {
+    ElToken found = el_parser_peek_at(parser, idx);
+    el_diag_report(
+        parser->diag, EL_DIAG_ERROR, "syntax.expected-token",
+        found.span, "expected ${expected}, found ${found}",
+        EL_DIAG_STRING("expected", el_token_type_format(expected)),
+        EL_DIAG_STRING("found", el_token_type_format(found.type))
+    );
+}
+
 void _el_parser_report_unexpected(ElParser* parser, ElToken tok) {
     el_diag_report(
         parser->diag, EL_DIAG_ERROR, "syntax.unexpected-token",
