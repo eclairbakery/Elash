@@ -13,7 +13,10 @@
 
 typedef struct ElPreproc {
     ElTokenStream input;
+
+    bool currently_streaming;
     ElTokenQueue pending;
+    ElTokenStream stream;
 
     ElDynArena* arena;
     ElDiagEngine* diag;
