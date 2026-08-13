@@ -17,20 +17,6 @@ void el_pp_destroy(ElPreproc* pp) {
     el_tkque_destroy(&pp->pending);
 }
 
-static bool preprocess_directive(ElPreproc* pp, ElToken* out_tok) {
-    // TODO: placeholder
-    ElToken dir = pp->input.next(&pp->input, pp->diag);
-
-    if (el_sv_eql(dir.lexeme, EL_SV("test"))) {
-        el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_INT_LITERAL, .lexeme = EL_SV("123"), .span = dir.span });
-        el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_PLUS,        .lexeme = EL_SV("+"),   .span = dir.span });
-        el_tkque_push(&pp->pending, (ElToken) { .type = EL_TT_INT_LITERAL, .lexeme = EL_SV("321"), .span = dir.span });
-    }
-
-    *out_tok = (ElToken) { .type = EL_TT_IDENT, .lexeme = EL_SV("hello"), .span = dir.span };
-    return true;
-}
-
 static bool yield_pending_tokens(ElPreproc* pp, ElToken* out_tok) {
     if (pp->currently_streaming) {
         *out_tok = pp->stream.next(&pp->stream, pp->diag);
@@ -64,7 +50,7 @@ bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
             continue;
 
         case EL_TT_HASH:
-            return preprocess_directive(pp, out_tok);
+            return _el_pp_preprocess_directive(pp, out_tok);
 
         default:
             *out_tok = input_tok;

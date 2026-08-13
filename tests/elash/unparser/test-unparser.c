@@ -17,6 +17,20 @@ static ElDynArena arena;
 void init() { el_dynarena_init(&arena); }
 void fini() { el_dynarena_free(&arena); }
 
+// very sloppy approach but works
+void glob_exclude_pattern(glob_t* g, const char* exclude_str) {
+    usize write_idx = 0;
+    for (usize read_idx = 0; read_idx < g->gl_pathc; read_idx++) {
+        if (strstr(g->gl_pathv[read_idx], exclude_str) == NULL) {
+            g->gl_pathv[write_idx++] = g->gl_pathv[read_idx];
+        } else {
+            free(g->gl_pathv[read_idx]);
+        }
+    }
+    g->gl_pathc = write_idx;
+    g->gl_pathv[write_idx] = NULL;
+}
+
 TestSuite(el_unparser, .init = init, .fini = fini);
 
 // --- integration test ---
@@ -25,6 +39,8 @@ Test(el_unparser, integration_test) {
     glob_t g;
     cr_assert_eq(glob("tests/e2e/positive/*/*.eu", 0, NULL, &g), 0);
     cr_assert_eq(glob("tests/e2e/positive/*/*/*.eu", GLOB_APPEND, NULL, &g), 0);
+
+    glob_exclude_pattern(&g, "/preproc/");
 
     ElDiagEngine diag = {0};
     ElTkBufStream stream;
