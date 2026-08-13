@@ -84,6 +84,8 @@ ElHirExpr* _el_binder_eval_const_cast(ElBinder* binder, ElSourceSpan span, ElHir
 }
 
 ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
+    EL_ASSERT(expr != NULL, "shouldn't be null here");
+
     ElHirType* from = expr->type;
     if (from == NULL)
         return _cast_untyped(binder, span, expr, to);

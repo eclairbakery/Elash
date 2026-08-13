@@ -234,6 +234,7 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
     ElHirExpr* expr = el_binder_bind_expr(binder, cast->expr);
     ElHirType* type = _el_binder_bind_type(binder, cast->type);
 
+    if (expr == NULL || type == NULL) return NULL;
     return _el_binder_explicit_cast(binder, in->span, expr, type);
 }
 
