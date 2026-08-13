@@ -6,9 +6,8 @@ import typing
 import sys
 import os
 
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from multiprocessing import Lock
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
 from pathlib import Path
 
 CLR_BLUE   = '\033[0;34m'
@@ -72,7 +71,7 @@ def main() -> int:
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
     args = typing.cast(CliArgs, parser.parse_args());
 
-    with ProcessPoolExecutor(max_workers=args.jobs) as executor:
+    with ThreadPoolExecutor(max_workers=args.jobs) as executor:
         futures = {
             executor.submit(do_fuzzing_stuff, args, i): i
             for i in range(args.count)
