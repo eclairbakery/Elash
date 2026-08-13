@@ -16,6 +16,14 @@ static ElHirType* bind_array_type(ElBinder* binder, ElAstArrayType* array) {
     ElHirExpr* actual_size_hir = _el_binder_implicit_cast(binder, array->size->span, size_hir, binder->builtins->type_usize);
     if (actual_size_hir == NULL) return NULL;
 
+    if (actual_size_hir->kind != EL_HIR_EXPR_CONST) {
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.invalid-array-size",
+            array->size->span,
+            "array size must be a compile-time constant"
+        );
+    }
+
     int64_t size_val = actual_size_hir->as.constant.as.int_;
     if (size_val < 0)
         return el_diag_report(
