@@ -78,6 +78,7 @@ static bool _el_binder_create_param_symbols(
 
 static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
     ElHirType* ret_type = _el_binder_bind_type(binder, sig->ret_type);
+    if (ret_type == NULL) return NULL;
 
     ElHirType** param_types = NULL;
     usize param_count = 0;

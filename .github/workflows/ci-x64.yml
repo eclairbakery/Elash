@@ -51,7 +51,7 @@ jobs:
         run: make test-e2e
 
       - name: Fuzz tests
-        run: make test-fuzz
+        run: make test-fuzz-500
 
       - name: Archive
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')

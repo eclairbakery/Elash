@@ -139,13 +139,19 @@ ElHirStmt* el_binder_bind_stmt(ElBinder* binder, ElAstStmt* in) {
         if (cond == NULL) return NULL;
         cond = _el_binder_implicit_cast(binder, in->as.if_.cond->span, cond, binder->builtins->type_bool);
         if (cond == NULL) return NULL;
+
+        ElHirStmt* then = el_binder_bind_stmt(binder, in->as.if_.then);
+        if (then == NULL) return NULL;
+
+        ElHirStmt* else_ = NULL;
+        if (in->as.if_.else_ != NULL) {
+            else_ = el_binder_bind_stmt(binder, in->as.if_.else_);
+            if (else_ == NULL) return NULL;
+        }
+
         return el_hir_new_if_stmt(
             binder->arena, in->span,
-            cond,
-            el_binder_bind_stmt(binder, in->as.if_.then),
-            in->as.if_.else_ != NULL
-                ? el_binder_bind_stmt(binder, in->as.if_.else_)
-                : NULL
+            cond, then, else_
         );
     }
     case EL_AST_STMT_WHILE: {
@@ -159,6 +165,9 @@ ElHirStmt* el_binder_bind_stmt(ElBinder* binder, ElAstStmt* in) {
             return binder->loop_depth--, NULL;
 
         ElHirStmt* body = el_binder_bind_stmt(binder, in->as.while_.body);
+        if (body == NULL)
+            return binder->loop_depth--, NULL;
+
         binder->loop_depth--;
 
         return el_hir_new_while_stmt(

@@ -84,6 +84,8 @@ ElHirExpr* _el_binder_eval_const_cast(ElBinder* binder, ElSourceSpan span, ElHir
 }
 
 ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
+    EL_ASSERT(expr != NULL, "shouldn't be null here");
+
     ElHirType* from = expr->type;
     if (from == NULL)
         return _cast_untyped(binder, span, expr, to);
@@ -208,6 +210,51 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
     return NULL;
 }
 
+static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
+    switch (expr->kind) {
+    case EL_HIR_EXPR_BINARY: {
+        ElHirBinExpr* bin = &expr->as.binary;
+        ElHirExpr* left = _el_binder_implicit_cast(binder, bin->left->span, bin->left, to);
+        ElHirExpr* right = _el_binder_implicit_cast(binder, bin->right->span, bin->right, to);
+        if (left == NULL || right == NULL) return NULL;
+
+        ElHirType* result_ty = el_sema_bin_op_is_comparison(bin->op)
+            ? binder->builtins->type_bool
+            : to;
+        ElHirExpr* out = el_hir_new_bin_expr(binder->arena, expr->span, result_ty, bin->op, left, right);
+        out = _el_binder_simplify_expr(binder, out);
+        if (out != NULL && out->type != NULL && !type_eql(out->type, to))
+            return _el_binder_implicit_cast(binder, span, out, to);
+        return out;
+    }
+    case EL_HIR_EXPR_UNARY: {
+        ElSemaUnaryOp op = expr->as.unary.op;
+        if (op == EL_SEMA_UNARY_OP_PRE_INC || op == EL_SEMA_UNARY_OP_PRE_DEC
+            || op == EL_SEMA_UNARY_OP_POST_INC || op == EL_SEMA_UNARY_OP_POST_DEC
+            || op == EL_SEMA_UNARY_OP_ADDROF || op == EL_SEMA_UNARY_OP_DEREF) {
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
+                "operator cannot be used in this context"
+            );
+        }
+
+        ElHirExpr* operand = _el_binder_implicit_cast(
+            binder, expr->as.unary.operand->span, expr->as.unary.operand, to
+        );
+        if (operand == NULL) return NULL;
+
+        ElHirExpr* out = el_hir_new_unary_expr(binder->arena, expr->span, to, op, operand);
+        return _el_binder_simplify_expr(binder, out);
+    }
+    default:
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "invalid-cast",
+            span, "untyped expression cannot be converted to type ${to}",
+            EL_DIAG_TYPE("to", to),
+        );
+    }
+}
+
 ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
     (void) span;
     if (to->kind == EL_HIR_TYPE_DISTINCT) {
@@ -215,6 +262,11 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
         if (casted == NULL) return NULL;
         return el_hir_new_cast_expr(binder->arena, expr->span, to, casted);
     }
+
+    // Untyped compounds (e.g. 'a' + 1, 1 / 0, --1) also have type == NULL.
+    // Only literals may be cast via the literal path below.
+    if (expr->kind != EL_HIR_EXPR_LITERAL)
+        return cast_untyped_compound(binder, span, expr, to);
 
     if (to->kind == EL_HIR_TYPE_PRIM) {
         switch (expr->as.literal.kind) {
