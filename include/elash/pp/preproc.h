@@ -7,27 +7,23 @@
 #include <elash/lexer/token.h>
 #include <elash/lexer/tokstream.h>
 
-#include <elash/pp/error.h>
 #include <elash/pp/vars.h>
 
 #include <stdbool.h>
 
-typedef struct ElPreprocessor {
+typedef struct ElPreproc {
     ElTokenStream input;
     ElTokenQueue pending;
 
-    ElDynArena arena;
+    ElDynArena* arena;
+    ElDiagEngine* diag;
 
     ElPpVars vars;
+} ElPreproc;
 
-    ElPpErrorDetails last_err_details;
-} ElPreprocessor;
+bool el_pp_init(ElPreproc* pp, ElTokenStream input, ElDynArena* arena);
+void el_pp_destroy(ElPreproc* pp);
 
-ElPpErrorCode el_pp_init(ElPreprocessor* pp, ElTokenStream input);
-void          el_pp_destroy(ElPreprocessor* pp);
+bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag);
 
-ElPpErrorCode el_pp_reset(ElPreprocessor* pp, ElTokenStream input);
-
-ElPpErrorCode el_pp_next(ElPreprocessor* pp, ElToken* out_tok, ElDiagEngine* engine);
-
-ElTokenStream el_pp_as_token_stream(ElPreprocessor* pp);
+ElTokenStream el_pp_as_token_stream(ElPreproc* pp);
