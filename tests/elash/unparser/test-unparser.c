@@ -18,20 +18,6 @@ static ElDynArena arena;
 void init() { el_dynarena_init(&arena); }
 void fini() { el_dynarena_free(&arena); }
 
-// very sloppy approach but works
-void glob_exclude_pattern(glob_t* g, const char* exclude_str) {
-    usize write_idx = 0;
-    for (usize read_idx = 0; read_idx < g->gl_pathc; read_idx++) {
-        if (strstr(g->gl_pathv[read_idx], exclude_str) == NULL) {
-            g->gl_pathv[write_idx++] = g->gl_pathv[read_idx];
-        } else {
-            free(g->gl_pathv[read_idx]);
-        }
-    }
-    g->gl_pathc = write_idx;
-    g->gl_pathv[write_idx] = NULL;
-}
-
 void print_run_info(const char* path) {
     el_ansi_pref = EL_ANSI_AUTO;
 
@@ -67,8 +53,6 @@ Test(el_unparser, integration_test) {
     cr_assert_eq(glob("tests/e2e/positive/*/*.eu", 0, NULL, &g), 0);
     cr_assert_eq(glob("tests/e2e/positive/*/*/*.eu", GLOB_APPEND, NULL, &g), 0);
 
-    glob_exclude_pattern(&g, "/preproc/");
-
     ElDiagEngine diag = {0};
     ElTkBufStream stream;
     ElTokenBuf toks;
@@ -79,7 +63,11 @@ Test(el_unparser, integration_test) {
 
     el_tkbuf_init(&toks);
     for (usize i = 0; i < g.gl_pathc; ++i) {
+        // very sloppy approach but works
+        if (strstr(g.gl_pathv[i], "/preproc/") != NULL)
+            continue;
         print_run_info(g.gl_pathv[i]);
+
         el_tkbuf_clear(&toks);
 
         ElSourceDocument doc;
