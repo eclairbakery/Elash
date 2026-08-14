@@ -2,6 +2,7 @@
 #include <elash/defs/int-types.h>
 
 #include <elash/ast/equal.h>
+#include <elash/util/ansi.h>
 #include <elash/lexer/lexer.h>
 #include <elash/lexer/tokbuf.h>
 #include <elash/util/dynarena.h>
@@ -31,6 +32,32 @@ void glob_exclude_pattern(glob_t* g, const char* exclude_str) {
     g->gl_pathv[write_idx] = NULL;
 }
 
+void print_run_info(const char* path) {
+    el_ansi_pref = EL_ANSI_AUTO;
+
+    ElAnsiStyle style1 = {
+        .fg_color = EL_ANSI_CLR_MAGENTA,
+        .dec = EL_ANSI_DEC_BOLD,
+        .bg_color = EL_ANSI_CLR_DEFAULT,
+    };
+
+    ElAnsiStyle style2 = {
+        .fg_color = EL_ANSI_CLR_DEFAULT,
+        .dec = EL_ANSI_DEC_BOLD,
+        .bg_color = EL_ANSI_CLR_DEFAULT,
+    };
+
+    fputs("[", stdout);
+    el_ansi_apply_style(style1, stdout);
+    fputs("++++", stdout);
+    el_ansi_reset_style(stdout);
+    fputs("] ", stdout);
+    el_ansi_apply_style(style2, stdout);
+    fputs("Unparsing: ", stdout);
+    el_ansi_reset_style(stdout);
+    puts(path);
+}
+
 TestSuite(el_unparser, .init = init, .fini = fini);
 
 // --- integration test ---
@@ -52,6 +79,7 @@ Test(el_unparser, integration_test) {
 
     el_tkbuf_init(&toks);
     for (usize i = 0; i < g.gl_pathc; ++i) {
+        print_run_info(g.gl_pathv[i]);
         el_tkbuf_clear(&toks);
 
         ElSourceDocument doc;
