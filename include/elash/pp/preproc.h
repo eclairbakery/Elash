@@ -7,7 +7,7 @@
 #include <elash/lexer/token.h>
 #include <elash/lexer/tokstream.h>
 
-#include <elash/pp/vars.h>
+#include <elash/pp/scope.h>
 
 #include <stdbool.h>
 
@@ -21,7 +21,8 @@ typedef struct ElPreproc {
     ElDynArena* arena;
     ElDiagEngine* diag;
 
-    ElPpVars vars;
+    //ElPpScope builtin_scope;
+    //ElPpScope global_scope;
 } ElPreproc;
 
 bool el_pp_init(ElPreproc* pp, ElTokenStream input, ElDynArena* arena);
