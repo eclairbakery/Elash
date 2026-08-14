@@ -1,12 +1,12 @@
+#include <elash/pp/scope.h>
 #include <elash/pp/valarr.h>
-#include <elash/pp/vars.h>
 
 #include <elash/defs/int-types.h>
 #include <elash/util/strhash.h>
 
 #include <stdlib.h>
 
-typedef struct _ElPpVarsEntry Entry;
+typedef struct _ElPpScopeEntry Entry;
 
 #define LOAD_FACTOR_GROW   0.7
 #define LOAD_FACTOR_SHRINK 0.2
@@ -18,7 +18,7 @@ static usize next_power_of_two(usize x) {
     return power;
 }
 
-bool _el_pp_vars_resize(ElPpVars* vars, usize new_capacity) {
+bool resize(ElPpScope* vars, usize new_capacity) {
     new_capacity = next_power_of_two(new_capacity);
     if (new_capacity < MIN_CAPACITY)
         new_capacity = MIN_CAPACITY;
@@ -27,7 +27,7 @@ bool _el_pp_vars_resize(ElPpVars* vars, usize new_capacity) {
     usize old_capacity = vars->capacity;
 
     Entry* new_entries = calloc(new_capacity, sizeof(Entry));
-    if (!new_entries)
+    if (new_entries == NULL)
         return false;
 
     vars->entries = new_entries;
@@ -37,7 +37,7 @@ bool _el_pp_vars_resize(ElPpVars* vars, usize new_capacity) {
 
     for (usize i = 0; i < old_capacity; ++i) {
         if (old_entries[i].state == _EL_PP_VARS_OCCUPIED) {
-            el_pp_vars_assign_move(vars, old_entries[i].key, &old_entries[i].value);
+           el_pp_scope_assign(vars, old_entries[i].key, old_entries[i].value);
         }
     }
 
@@ -45,22 +45,22 @@ bool _el_pp_vars_resize(ElPpVars* vars, usize new_capacity) {
     return true;
 }
 
-bool _el_pp_vars_ensure_capacity_for_new_var(ElPpVars* vars) {
+static bool ensure_capacity_for_new_var(ElPpScope* vars) {
     double load = (double)(vars->num_entries + vars->num_tombstones) / (double)vars->capacity;
     if (load >= LOAD_FACTOR_GROW) {
-        return _el_pp_vars_resize(vars, vars->capacity * 2);
+        return resize(vars, vars->capacity * 2);
     }
     return true;
 }
 
-void _el_pp_vars_maybe_shrink(ElPpVars* vars) {
+static void maybe_shrink(ElPpScope* vars) {
     double load = (double)vars->num_entries / (double)vars->capacity;
     if (vars->capacity > MIN_CAPACITY && load <= LOAD_FACTOR_SHRINK) {
-        _el_pp_vars_resize(vars, vars->capacity / 2);
+        resize(vars, vars->capacity / 2);
     }
 }
 
-Entry* _el_pp_vars_find_slot(ElPpVars* vars, ElStringView key, bool* found) {
+static Entry* find_slot(ElPpScope* vars, ElStringView key, bool* found) {
     usize index = el_hash_string(key) & (vars->capacity - 1);
     Entry* first_tombstone = NULL;
 
@@ -85,7 +85,7 @@ Entry* _el_pp_vars_find_slot(ElPpVars* vars, ElStringView key, bool* found) {
 }
 
 
-bool el_pp_vars_init(ElPpVars* vars, usize initial_capacity) {
+bool el_pp_scope_init(ElPpScope* vars, ElPpScope* parent, usize initial_capacity) {
     if (!vars) return false;
 
     initial_capacity = next_power_of_two(initial_capacity);
@@ -99,19 +99,14 @@ bool el_pp_vars_init(ElPpVars* vars, usize initial_capacity) {
     vars->capacity = initial_capacity;
     vars->num_entries = 0;
     vars->num_tombstones = 0;
+    vars->parent = parent;
 
     return true;
 }
 
-void el_pp_vars_destroy(ElPpVars* vars) {
+void el_pp_scope_destroy(ElPpScope* vars) {
     if (vars == NULL || vars->entries == NULL)
         return;
-
-    for (usize i = 0; i < vars->capacity; ++i) {
-        if (vars->entries[i].state == _EL_PP_VARS_OCCUPIED) {
-            el_pp_var_free(&vars->entries[i].value);
-        }
-    }
 
     free(vars->entries);
     vars->entries = NULL;
@@ -120,40 +115,15 @@ void el_pp_vars_destroy(ElPpVars* vars) {
     vars->num_tombstones = 0;
 }
 
-bool el_pp_vars_assign(ElPpVars* vars, ElStringView key, const ElPpVar* value) {
-    if (!_el_pp_vars_ensure_capacity_for_new_var(vars))
+bool el_pp_scope_assign(ElPpScope* vars, ElStringView key, ElPpVar* value) {
+    if (!ensure_capacity_for_new_var(vars))
         return false;
 
     bool found;
-    Entry* slot = _el_pp_vars_find_slot(vars, key, &found);
+    Entry* slot = find_slot(vars, key, &found);
 
     if (found) {
-        el_pp_var_free(&slot->value);
-        return el_pp_var_copy(value, &slot->value);
-    }
-
-    if (slot->state == _EL_PP_VARS_TOMBSTONE)
-        vars->num_tombstones--;
-
-    slot->key = key;
-    if (!el_pp_var_copy(value, &slot->value))
-        return false;
-    slot->state = _EL_PP_VARS_OCCUPIED;
-    vars->num_entries++;
-
-    return true;
-}
-
-bool el_pp_vars_assign_move(ElPpVars* vars, ElStringView key, ElPpVar* value) {
-    if (!_el_pp_vars_ensure_capacity_for_new_var(vars))
-        return false;
-
-    bool found;
-    Entry* slot = _el_pp_vars_find_slot(vars, key, &found);
-
-    if (found) {
-        el_pp_var_free(&slot->value);
-        el_pp_var_move(value, &slot->value);
+        slot->value = value;
         return true;
     }
 
@@ -161,41 +131,48 @@ bool el_pp_vars_assign_move(ElPpVars* vars, ElStringView key, ElPpVar* value) {
         vars->num_tombstones--;
 
     slot->key = key;
-    el_pp_var_move(value, &slot->value);
+    slot->value = value;
     slot->state = _EL_PP_VARS_OCCUPIED;
     vars->num_entries++;
 
     return true;
 }
 
-bool el_pp_vars_deassign(ElPpVars* vars, ElStringView key) {
+bool el_pp_scope_deassign(ElPpScope* vars, ElStringView key) {
     bool found;
-    Entry* slot = _el_pp_vars_find_slot(vars, key, &found);
+    Entry* slot = find_slot(vars, key, &found);
 
     if (!found)
         return false;
 
-    el_pp_var_free(&slot->value);
     slot->state = _EL_PP_VARS_TOMBSTONE;
     vars->num_entries--;
     vars->num_tombstones++;
 
-    _el_pp_vars_maybe_shrink(vars);
+    maybe_shrink(vars);
     return true;
 }
 
-bool el_pp_vars_get(ElPpVars* vars, ElStringView key, ElPpVar* out) {
+ElPpVar* el_pp_scope_lookup_local(ElPpScope* vars, ElStringView key) {
     bool found;
-    Entry* slot = _el_pp_vars_find_slot(vars, key, &found);
+    Entry* slot = find_slot(vars, key, &found);
     if (!found)
-        return false;
+        return NULL;
 
-    el_pp_var_copy(&slot->value, out);
-    return true;
+    return slot->value;
 }
 
-bool el_pp_vars_has(ElPpVars* vars, ElStringView key) {
+ElPpVar* el_pp_scope_lookup(ElPpScope* vars, ElStringView key) {
+    ElPpVar* var = el_pp_scope_lookup_local(vars, key);
+    if (var != NULL)
+        return var;
+    if (vars->parent != NULL)
+        return el_pp_scope_lookup(vars->parent, key);
+    return NULL;
+}
+
+bool el_pp_scope_has(ElPpScope* vars, ElStringView key) {
     bool found;
-    _el_pp_vars_find_slot(vars, key, &found);
+    find_slot(vars, key, &found);
     return found;
 }
