@@ -1,7 +1,7 @@
 #include <criterion/criterion.h>
 #include <elash/util/pathbuf.h>
 
-Test(pathbuf, sanitize) {
+Test(el_pathbuf, sanitize) {
     ElPathBuf pb;
     el_pathbuf_init(&pb);
 
@@ -36,7 +36,7 @@ Test(pathbuf, sanitize) {
     el_pathbuf_destroy(&pb);
 }
 
-Test(pathbuf, pop) {
+Test(el_pathbuf, pop) {
     ElPathBuf pb;
     el_pathbuf_init_from(&pb, EL_PV("a/b/c"));
 
