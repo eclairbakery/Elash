@@ -7,16 +7,24 @@
 #include <elash/lexer/token.h>
 #include <elash/lexer/tokstream.h>
 
+#include <elash/pp/include.h>
 #include <elash/pp/scope.h>
+
+#include <elash/source/doc.h>
 
 #include <stdbool.h>
 
-typedef struct ElPreproc {
-    ElTokenStream input;
+typedef struct ElPpFrame ElPpFrame;
 
-    bool currently_streaming;
+typedef struct ElPreproc {
+    ElPpFrame* frame;
+
     ElTokenQueue pending;
-    ElTokenStream stream;
+
+    ElToken lookahead;
+    bool has_lookahead;
+
+    const ElPpIncMap* imap;
 
     ElDynArena* arena;
     ElDiagEngine* diag;
@@ -25,7 +33,10 @@ typedef struct ElPreproc {
     //ElPpScope global_scope;
 } ElPreproc;
 
-bool el_pp_init(ElPreproc* pp, ElTokenStream input, ElDynArena* arena);
+bool el_pp_init(
+    ElPreproc* pp, ElTokenStream input, const ElSourceDocument* root_doc,
+    ElDynArena* arena, const ElPpIncMap* imap
+);
 void el_pp_destroy(ElPreproc* pp);
 
 bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag);
