@@ -2,14 +2,58 @@
 
 #include <elash/util/dynarena.h>
 
-bool el_pp_init(ElPreproc* pp, ElTokenStream input, ElDynArena* arena) {
-    pp->currently_streaming = false;
+void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc) {
+    ElPpFrame* frame = EL_DYNARENA_NEW(pp->arena, ElPpFrame);
+    *frame = (ElPpFrame) {
+        .stream = stream,
+        .doc    = doc,
+        .parent = pp->frame,
+    };
+    pp->frame = frame;
+}
+
+static void el_pp_pop_frame(ElPreproc* pp) {
+    pp->frame = pp->frame->parent;
+}
+
+static void frame_unread(ElPreproc* pp, ElToken tok) {
+    pp->frame->pushback = tok;
+    pp->frame->has_pushback = true;
+}
+
+static bool read_from_active_frame(ElPreproc* pp, ElToken* out_tok) {
+    while (pp->frame != NULL) {
+        if (pp->frame->has_pushback) {
+            *out_tok = pp->frame->pushback;
+            pp->frame->has_pushback = false;
+            return true;
+        }
+
+        *out_tok = pp->frame->stream.next(&pp->frame->stream, pp->diag);
+        if (out_tok->type != EL_TT_EOF) {
+            return true;
+        }
+
+        el_pp_pop_frame(pp);
+    }
+
+    return false;
+}
+
+bool el_pp_init(
+    ElPreproc* pp, ElTokenStream input, const ElSourceDocument* root_doc,
+    ElDynArena* arena, const ElPpIncMap* imap
+) {
+    pp->frame = NULL;
+    pp->has_lookahead = false;
+
     if (!el_tkque_init(&pp->pending)) {
         return false;
     }
 
+    pp->imap  = imap;
     pp->arena = arena;
-    pp->input = input;
+    _el_pp_push_frame(pp, input, root_doc);
     return true;
 }
 
@@ -17,30 +61,50 @@ void el_pp_destroy(ElPreproc* pp) {
     el_tkque_destroy(&pp->pending);
 }
 
-static bool yield_pending_tokens(ElPreproc* pp, ElToken* out_tok) {
-    if (pp->currently_streaming) {
-        *out_tok = pp->stream.next(&pp->stream, pp->diag);
-        if (out_tok->type != EL_TT_EOF)
+bool _el_pp_read_directive_token(ElPreproc* pp, ElToken* out_tok) {
+    while (read_from_active_frame(pp, out_tok)) {
+        switch (out_tok->type) {
+        case EL_TT_WHITESPACE:
+        case EL_TT_LINE_COMMENT:
+        case EL_TT_BLOCK_COMMENT:
+            continue;
+
+        case EL_TT_NEWLINE:
+        case EL_TT_HASH:
+            frame_unread(pp, *out_tok);
+            return false;
+
+        default:
             return true;
-
-        pp->currently_streaming = false;
+        }
     }
 
-    if (pp->pending.len != 0) {
-        el_tkque_pop(&pp->pending, out_tok);
-        return true;
-    }
     return false;
+}
+
+bool _el_pp_peek_directive_token(ElPreproc* pp, ElToken* out_tok) {
+    if (!_el_pp_read_directive_token(pp, out_tok)) {
+        return false;
+    }
+    frame_unread(pp, *out_tok);
+    return true;
 }
 
 bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
     pp->diag = diag;
 
     while (true) {
-        if (yield_pending_tokens(pp, out_tok))
-            return true;
+        ElToken input_tok;
 
-        ElToken input_tok = pp->input.next(&pp->input, pp->diag);
+        if (pp->pending.len != 0) {
+            el_tkque_pop(&pp->pending, &input_tok);
+        } else if (pp->has_lookahead) {
+            input_tok = pp->lookahead;
+            pp->has_lookahead = false;
+        } else if (!read_from_active_frame(pp, &input_tok)) {
+            return false;
+        }
+
         switch (input_tok.type) {
         case EL_TT_NEWLINE:
         case EL_TT_WHITESPACE:
@@ -59,10 +123,25 @@ bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
     }
 }
 
+bool _el_pp_peek(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
+    if (pp->has_lookahead) {
+        *out_tok = pp->lookahead;
+        return true;
+    }
+    if (el_pp_next(pp, out_tok, diag)) {
+        pp->lookahead = *out_tok;
+        pp->has_lookahead = true;
+        return true;
+    }
+    return false;
+}
+
 static ElToken _el_pp_token_stream_next(ElTokenStream* self, ElDiagEngine* diag) {
     ElPreproc* pp = (ElPreproc*)self->ctx;
     ElToken tok;
-    (void) el_pp_next(pp, &tok, diag);
+    if (!el_pp_next(pp, &tok, diag)) {
+        return (ElToken){ .type = EL_TT_EOF };
+    }
     return tok;
 }
 

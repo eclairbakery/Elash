@@ -29,8 +29,7 @@ bool elc_driver_init(ElcDriver* driver) {
 
     elc_pipeline_init(
         &driver->pipeline, &driver->arena, &driver->diag,
-        &driver->binder_builtins, &driver->lowerer_builtins,
-        ELC_OPT_O0
+        &driver->binder_builtins, &driver->lowerer_builtins
     );
 
     return true;
@@ -154,6 +153,7 @@ static ElcArtifactKind determine_target(const ElcArgs* args) {
 
 bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
     driver->pipeline.context.optlevel = args->opt;
+    driver->pipeline.context.imap     = &args->imap;
 
     ElSourceDocument src;
     if (!init_source_document(driver, args, &src)) {

@@ -1,7 +1,10 @@
 #include "preproc-internals.h"
 
 bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken* out_tok) {
-    ElToken directive = pp->input.next(&pp->input, pp->diag);
+    ElToken directive;
+    if (!_el_pp_read_directive_token(pp, &directive)) {
+        return false;
+    }
 
     // optimization i guess
     switch (directive.lexeme.data[0]) {
