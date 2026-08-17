@@ -3,17 +3,17 @@
 #include <elash/util/dynarena.h>
 
 void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc) {
-    ElPpFrame* frame = EL_DYNARENA_NEW(pp->arena, ElPpFrame);
-    *frame = (ElPpFrame) {
+    pp->include_depth++;
+    pp->frame = EL_DYNARENA_NEW_STRUCT(pp->arena, ElPpFrame, {
         .stream = stream,
         .doc    = doc,
         .parent = pp->frame,
-    };
-    pp->frame = frame;
+    });
 }
 
 static void el_pp_pop_frame(ElPreproc* pp) {
     pp->frame = pp->frame->parent;
+    pp->include_depth--;
 }
 
 static void frame_unread(ElPreproc* pp, ElToken tok) {
@@ -22,22 +22,18 @@ static void frame_unread(ElPreproc* pp, ElToken tok) {
 }
 
 static bool read_from_active_frame(ElPreproc* pp, ElToken* out_tok) {
-    while (pp->frame != NULL) {
-        if (pp->frame->has_pushback) {
-            *out_tok = pp->frame->pushback;
-            pp->frame->has_pushback = false;
-            return true;
-        }
-
-        *out_tok = pp->frame->stream.next(&pp->frame->stream, pp->diag);
-        if (out_tok->type != EL_TT_EOF) {
-            return true;
-        }
-
-        el_pp_pop_frame(pp);
+    if (pp->frame == NULL) {
+        return false;
     }
 
-    return false;
+    if (pp->frame->has_pushback) {
+        *out_tok = pp->frame->pushback;
+        pp->frame->has_pushback = false;
+        return true;
+    }
+
+    *out_tok = pp->frame->stream.next(&pp->frame->stream, pp->diag);
+    return out_tok->type != EL_TT_EOF;
 }
 
 bool el_pp_init(
@@ -101,8 +97,11 @@ bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
         } else if (pp->has_lookahead) {
             input_tok = pp->lookahead;
             pp->has_lookahead = false;
-        } else if (!read_from_active_frame(pp, &input_tok)) {
+        } else if (pp->frame == NULL) {
             return false;
+        } else if (!read_from_active_frame(pp, &input_tok)) {
+            el_pp_pop_frame(pp);
+            continue;
         }
 
         switch (input_tok.type) {

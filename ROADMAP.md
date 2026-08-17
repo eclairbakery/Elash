@@ -36,9 +36,9 @@
 ## Preprocessor
 - [x] Implement file inclusion directive
 - [x] Resolve scoped and local include paths
-- [ ] Max include depth limit
+- [x] Max include depth limit
 - [ ] Implement embed directive
-- [ ] Solve source spans issues with #include
+- [x] Solve source spans issues with #include
 - [ ] Support preprocessor variables and constants
 - [ ] Support preprocessor functions
 - [ ] Implement macro expansion engine
