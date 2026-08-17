@@ -17,8 +17,9 @@
 typedef struct ElPpFrame ElPpFrame;
 
 typedef struct ElPreproc {
-    ElPpFrame* frame;
+    uint include_depth;
 
+    ElPpFrame* frame;
     ElTokenQueue pending;
 
     ElToken lookahead;

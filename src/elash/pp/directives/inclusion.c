@@ -110,6 +110,22 @@ static bool _el_pp_resolve_inc_path(ElPreproc* pp, const ElPpIncPath* path, ElPp
 }
 
 bool _el_pp_handle_include(ElPreproc* pp, ElToken* out_tok) {
+    if (pp->include_depth >= INCLUDE_DEPTH_LIMIT) {
+        ElToken tok; _el_pp_peek_directive_token(pp, &tok);
+        el_diag_report(
+            pp->diag, EL_DIAG_ERROR, "pp.include-depth",
+            tok.span, "include depth limit exceeded",
+        );
+        el_diag_help(
+            pp->diag, "check if you don't have any recursive includes without a stop condition"
+        );
+        el_diag_help(
+            pp->diag, "include depth limit is set to ${limit}",
+            EL_DIAG_INT("limit", INCLUDE_DEPTH_LIMIT)
+        );
+        return false;
+    }
+
     ElPpIncPath path;
     if (!parse_inc_path(pp, &path)) return false;
 
@@ -123,7 +139,6 @@ bool _el_pp_handle_include(ElPreproc* pp, ElToken* out_tok) {
     el_lexer_init(lexer, doc, EL_LEXER_FLAGS_DEFAULT);
 
     _el_pp_push_frame(pp, el_lexer_as_token_stream(lexer), doc);
-
     return el_pp_next(pp, out_tok, pp->diag);
 }
 

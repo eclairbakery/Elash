@@ -1,6 +1,8 @@
 #pragma once
 #include <elash/pp/preproc.h> // IWYU pragma: export
 
+#define INCLUDE_DEPTH_LIMIT 220
+
 typedef struct ElPpFrame {
     ElTokenStream           stream;
     const ElSourceDocument* doc;

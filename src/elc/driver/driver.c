@@ -1,6 +1,8 @@
 #include <elc/driver/driver.h>
 #include <elash/util/todo.h>
 
+#include <elash/defs/platform.h>
+
 #include <elash/diag/engine.h>
 #include <elash/diag/handle.h>
 #include <elash/diag/printer/console.h>
@@ -179,6 +181,9 @@ bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
         } else if (!el_sv_is_null(out_path)) {
             const char* path = el_dynarena_make_cstr(&driver->arena, out_path);
             f = fopen(path, "wb");
+            #if EL_PLATFORM_IS_POSIX
+                if (f == NULL) perror("fopen");
+            #endif
         }
 
         if (f != NULL) {
