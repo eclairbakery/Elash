@@ -9,7 +9,7 @@ void el_diag_console_printer_begin(ElDiagPrinter* self, FILE* out) {
     (void) out;
 }
 
-ElAnsiStyle _el_diag_console_printer_get_style(ElDiagSeverity sev) {
+static ElAnsiStyle get_style(ElDiagSeverity sev) {
     ElAnsiColor color = EL_ANSI_CLR_DEFAULT;
     switch (sev) {
     case EL_DIAG_ERROR: color = EL_ANSI_CLR_RED;            break;
@@ -25,9 +25,9 @@ ElAnsiStyle _el_diag_console_printer_get_style(ElDiagSeverity sev) {
     };
 }
 
-void _el_diag_console_printer_print_sev(ElDiagSeverity sev, ElStringView cat, FILE* out) {
+static void print_sev(ElDiagSeverity sev, ElStringView cat, FILE* out) {
     ElStringView sev_str = el_diag_severity_to_string(sev);
-    ElAnsiStyle style = _el_diag_console_printer_get_style(sev);
+    ElAnsiStyle style = get_style(sev);
     bool ansi = el_ansi_is_supported(out);
 
     if (ansi) el_ansi_apply_style(style, out);
@@ -35,14 +35,14 @@ void _el_diag_console_printer_print_sev(ElDiagSeverity sev, ElStringView cat, FI
     if (ansi) el_ansi_reset_style(out);
 }
 
-void _el_diag_console_printer_print_loc(const ElSourceRange* range, FILE* out) {
+static void print_loc(const ElSourceRange* range, FILE* out) {
     if (range->doc != NULL) {
         fprintf(out, "at "EL_SV_FMT":%u:%u\n",
                 EL_SV_FARG(range->doc->filename), range->start.line, range->start.column);
     }
 }
 
-static ElStringView _el_diag_console_printer_get_line_content(ElStringView content, uint offset) {
+static ElStringView get_line_content(ElStringView content, uint offset) {
     uint start = offset;
     while (start > 0 && content.data[start - 1] != '\n' && content.data[start - 1] != '\r') {
         start--;
@@ -56,7 +56,7 @@ static ElStringView _el_diag_console_printer_get_line_content(ElStringView conte
     return el_sv_slice(content, start, end);
 }
 
-static void _el_diag_console_printer_print_carets(FILE* out, ElStringView line, const ElSourceRange* range, ElDiagSeverity sev) {
+static void print_carets(FILE* out, ElStringView line, const ElSourceRange* range, ElDiagSeverity sev) {
     fprintf(out, "   | ");
 
     uint start_col = range->start.column > 0 ? range->start.column : 1;
@@ -70,7 +70,7 @@ static void _el_diag_console_printer_print_carets(FILE* out, ElStringView line, 
         }
     }
 
-    ElAnsiStyle style = _el_diag_console_printer_get_style(sev);
+    ElAnsiStyle style = get_style(sev);
     bool ansi = el_ansi_is_supported(out);
     if (ansi) el_ansi_apply_style(style, out);
 
@@ -93,27 +93,27 @@ static void _el_diag_console_printer_print_carets(FILE* out, ElStringView line, 
     fputc('\n', out);
 }
 
-void _el_diag_console_printer_print_snippet(const ElSourceRange* range, ElDiagSeverity sev, FILE* out) {
+static void print_snippet(const ElSourceRange* range, ElDiagSeverity sev, FILE* out) {
     if (range->doc == NULL) return;
 
     ElStringView content = el_srcdoc_content(range->doc);
     if (content.data == NULL || content.len == 0) return;
 
-    ElStringView line = _el_diag_console_printer_get_line_content(content, range->start.offset);
+    ElStringView line = get_line_content(content, range->start.offset);
 
     fprintf(out, "%2u | "EL_SV_FMT"\n", range->start.line + 1, EL_SV_FARG(line));
-    _el_diag_console_printer_print_carets(out, line, range, sev);
+    print_carets(out, line, range, sev);
 }
 
 void el_diag_console_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnostic* diag) {
     (void) self;
-    _el_diag_console_printer_print_sev(diag->sev, diag->category, out);
+    print_sev(diag->sev, diag->category, out);
     el_sv_print(diag->formatted, out);
     fputc('\n', out);
     for (uint i = 0; i < diag->span.count; i++) {
         const ElSourceRange* range = &diag->span.ranges[i];
-        _el_diag_console_printer_print_loc(range, out);
-        _el_diag_console_printer_print_snippet(range, diag->sev, out);
+        print_loc(range, out);
+        print_snippet(range, diag->sev, out);
     }
 
     for (ElDiagnosticHelp* help = diag->help_head; help != NULL; help = help->next) {
@@ -137,7 +137,7 @@ void el_diag_console_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagn
 
 static void print_diag_count(FILE *out, unsigned int count, ElDiagSeverity sev, bool ansi) {
     if (count == 0) return;
-    ElAnsiStyle style = _el_diag_console_printer_get_style(sev);
+    ElAnsiStyle style = get_style(sev);
     if (ansi) el_ansi_apply_style(style, out);
     fprintf(out, "%u %s%s", count, (sev == EL_DIAG_ERROR ? "error" : "warning"), (count == 1 ? "" : "s"));
     if (ansi) el_ansi_reset_style(out);
