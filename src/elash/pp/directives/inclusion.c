@@ -19,7 +19,7 @@ static bool parse_inc_path(ElPreproc* pp, ElPpIncPath* out_path) {
     ElToken first_tok;
     if (!_el_pp_read_directive_token(pp, &first_tok)) return false;
 
-    const uint directive_line = first_tok.span.start.line;
+    const uint directive_line = first_tok.span.ranges[0].start.line;
 
     ElToken next;
     if (_el_pp_peek_directive_token(pp, &next) && next.type == EL_TT_COLON) {
@@ -34,7 +34,7 @@ static bool parse_inc_path(ElPreproc* pp, ElPpIncPath* out_path) {
         while (
             _el_pp_peek_directive_token(pp, &next) &&
             is_valid_path_token(next.type) &&
-            next.span.start.line == directive_line
+            next.span.ranges[0].start.line == directive_line
         ) {
             _el_pp_read_directive_token(pp, &next);
             el_strbuf_append(&path_sb, next.lexeme);
