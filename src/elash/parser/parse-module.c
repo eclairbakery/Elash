@@ -23,7 +23,7 @@ ElAstModule* el_parser_parse_module(ElParser* parser) {
         if (first) {
             module->span = node->span;
             first = false;
-        } else if (module->span.doc == node->span.doc) {
+        } else {
             module->span = el_srcspan_merge(module->span, node->span);
         }
     }

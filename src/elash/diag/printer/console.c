@@ -35,10 +35,10 @@ void _el_diag_console_printer_print_sev(ElDiagSeverity sev, ElStringView cat, FI
     if (ansi) el_ansi_reset_style(out);
 }
 
-void _el_diag_console_printer_print_loc(const ElSourceSpan* span, FILE* out) {
-    if (span->doc != NULL) {
+void _el_diag_console_printer_print_loc(const ElSourceRange* range, FILE* out) {
+    if (range->doc != NULL) {
         fprintf(out, "at "EL_SV_FMT":%u:%u\n",
-                EL_SV_FARG(span->doc->filename), span->start.line, span->start.column);
+                EL_SV_FARG(range->doc->filename), range->start.line, range->start.column);
     }
 }
 
@@ -56,11 +56,11 @@ static ElStringView _el_diag_console_printer_get_line_content(ElStringView conte
     return el_sv_slice(content, start, end);
 }
 
-static void _el_diag_console_printer_print_carets(FILE* out, ElStringView line, const ElSourceSpan* span, ElDiagSeverity sev) {
+static void _el_diag_console_printer_print_carets(FILE* out, ElStringView line, const ElSourceRange* range, ElDiagSeverity sev) {
     fprintf(out, "   | ");
 
-    uint start_col = span->start.column > 0 ? span->start.column : 1;
-    uint end_col = span->end.column > 0 ? span->end.column : start_col;
+    uint start_col = range->start.column > 0 ? range->start.column : 1;
+    uint end_col = range->end.column > 0 ? range->end.column : start_col;
 
     for (uint i = 0; i < start_col; i++) {
         if (i < line.len && line.data[i] == '\t') {
@@ -75,7 +75,7 @@ static void _el_diag_console_printer_print_carets(FILE* out, ElStringView line, 
     if (ansi) el_ansi_apply_style(style, out);
 
     uint caret_len = 1;
-    if (span->end.line == span->start.line) {
+    if (range->end.line == range->start.line) {
         if (end_col > start_col) {
             caret_len = end_col - start_col;
         }
@@ -93,16 +93,16 @@ static void _el_diag_console_printer_print_carets(FILE* out, ElStringView line, 
     fputc('\n', out);
 }
 
-void _el_diag_console_printer_print_snippet(const ElSourceSpan* span, ElDiagSeverity sev, FILE* out) {
-    if (span->doc == NULL) return;
+void _el_diag_console_printer_print_snippet(const ElSourceRange* range, ElDiagSeverity sev, FILE* out) {
+    if (range->doc == NULL) return;
 
-    ElStringView content = el_srcdoc_content(span->doc);
+    ElStringView content = el_srcdoc_content(range->doc);
     if (content.data == NULL || content.len == 0) return;
 
-    ElStringView line = _el_diag_console_printer_get_line_content(content, span->start.offset);
+    ElStringView line = _el_diag_console_printer_get_line_content(content, range->start.offset);
 
-    fprintf(out, "%2u | "EL_SV_FMT"\n", span->start.line, EL_SV_FARG(line));
-    _el_diag_console_printer_print_carets(out, line, span, sev);
+    fprintf(out, "%2u | "EL_SV_FMT"\n", range->start.line + 1, EL_SV_FARG(line));
+    _el_diag_console_printer_print_carets(out, line, range, sev);
 }
 
 void el_diag_console_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnostic* diag) {
@@ -110,8 +110,11 @@ void el_diag_console_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagn
     _el_diag_console_printer_print_sev(diag->sev, diag->category, out);
     el_sv_print(diag->formatted, out);
     fputc('\n', out);
-    _el_diag_console_printer_print_loc(&diag->span, out);
-    _el_diag_console_printer_print_snippet(&diag->span, diag->sev, out);
+    for (uint i = 0; i < diag->span.count; i++) {
+        const ElSourceRange* range = &diag->span.ranges[i];
+        _el_diag_console_printer_print_loc(range, out);
+        _el_diag_console_printer_print_snippet(range, diag->sev, out);
+    }
 
     for (ElDiagnosticHelp* help = diag->help_head; help != NULL; help = help->next) {
         bool ansi = el_ansi_is_supported(out);
