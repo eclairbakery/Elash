@@ -25,7 +25,13 @@ def very_advanced_thread_safe_print_function_to_fix_issues_with_parallelism_vers
     with PRINT_LOCK: builtins.print(*a, **k)
 print = very_advanced_thread_safe_print_function_to_fix_issues_with_parallelism_version_1_0_0
 
-type TestStage = Literal['compilation'] | Literal['linking'] | Literal['runtime'];
+TestStage = Literal['compilation', 'linking', 'runtime']
+
+@dataclass
+class Timeouts:
+    compile: float
+    link:    float
+    runtime: float
 
 @dataclass
 class TestExpectation:
@@ -35,17 +41,24 @@ class TestExpectation:
     diags: Optional[list[str]] = None
 
 @dataclass
-class TestResult:
+class FinishedResult:
     exitcode:    int
     stdout:      str
     stderr:      str
     stage:       TestStage
+
+@dataclass
+class TimedOutResult:
+    stage: TestStage
+
+TestResult = FinishedResult | TimedOutResult
 
 script_dir = Path(__file__).resolve().parent
 
 CLR_BLUE   = '\033[0;34m'
 CLR_GREEN  = '\033[0;32m'
 CLR_RED    = '\033[0;31m'
+CLR_ORANGE = '\033[38;5;166m'
 CLR_BOLD   = '\033[0;1m'
 CLR_RESET  = '\033[0m'
 
@@ -61,6 +74,8 @@ def print_skip(name: str):
     print(f'[{CLR_BLUE}SKIP{CLR_RESET}] Test skipped: {name}')
 def print_fail(name: str):
     eprint(f'[{CLR_RED}FAIL{CLR_RESET}] Test failed: {name}')
+def print_timeout(name: str):
+    eprint(f'[{CLR_ORANGE}TIME{CLR_RESET}] Test timed out: {name}')
 
 def error(*args):
     eprint(f'{CLR_RED}error: {CLR_RESET}', end='')
@@ -102,42 +117,83 @@ def print_diff(expected: str, actual: str, stream_name: str):
     for line in diff:
         print_info(f'  {line.rstrip()}')
 
-def run_test_case(elc_bin: Path, work_dir: Path, path: Path, name: str, is_negative: bool) -> TestResult | None:
+def _run_stage(cmd: list[str], stage: TestStage, timeout: float, cwd: Path | None = None) -> TestResult:
+    try:
+        res = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=cwd,
+        )
+        return FinishedResult(
+            exitcode=res.returncode,
+            stdout=res.stdout.strip(),
+            stderr=res.stderr.strip(),
+            stage=stage,
+        )
+    except subprocess.TimeoutExpired:
+        return TimedOutResult(stage=stage)
+
+
+def resolve_test_paths(path: Path, name: str) -> tuple[Path, Path]:
     if path.is_dir():
-        input_file = path.joinpath('input.eu')
+        input_file = path / 'input.eu'
         if not input_file.is_file():
             error(f"ill-formed test case '{name}': no input.eu")
+        skip_file = path / 'skip'
     else:
         input_file = path
+        skip_file = path.parent / 'skip'
 
-    skip_file = path.joinpath('skip') if path.is_dir() else path.parent.joinpath('skip')
+    return input_file, skip_file
+
+
+def run_test_case(
+    elc_bin: Path, work_dir: Path,
+    path: Path, name: str,
+    is_negative: bool,
+    timeouts: Timeouts,
+) -> TestResult | None:
+    input_file, skip_file = resolve_test_paths(path, name)
     if skip_file.is_file():
         return None
 
     safe_name = name.replace(os.sep, '_').replace('/', '_')
-    obj = work_dir.joinpath(f'{safe_name}.o')
+    obj = work_dir / f'{safe_name}.o'
     exe_name = f'{safe_name}.exe' if sys.platform == 'win32' else safe_name
-    exe = work_dir.joinpath(exe_name)
-    latest_compile_input_mtime = max(input_file.stat().st_mtime, elc_bin.stat().st_mtime)
+    exe = work_dir / exe_name
 
-    if is_negative or not obj.is_file() or obj.stat().st_mtime < latest_compile_input_mtime:
-        res = subprocess.run([str(elc_bin), 'compile', str(input_file), '-o', str(obj), *ELC_FLAGS], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=script_dir)
-        if is_negative or res.returncode != 0:
-            return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='compilation')
+    # The compilation
+    latest_mtime = max(input_file.stat().st_mtime, elc_bin.stat().st_mtime)
+    needs_compile = is_negative or not obj.is_file() or obj.stat().st_mtime < latest_mtime
 
-    if not exe.is_file() or exe.stat().st_mtime < obj.stat().st_mtime:
+    if needs_compile:
+        cmd = [str(elc_bin), 'compile', str(input_file), '-o', str(obj), *ELC_FLAGS]
+        result = _run_stage(cmd, stage='compilation', timeout=timeouts.compile, cwd=script_dir)
+        if isinstance(result, TimedOutResult) or result.exitcode != 0:
+            return result
+
+    # The linking
+    needs_link = not exe.is_file() or exe.stat().st_mtime < obj.stat().st_mtime
+    if needs_link:
         cc_cmd = ['cc', '-no-pie', str(obj), '-o', str(exe)]
         if sys.platform == 'win32':
             cc_cmd.append('-mconsole')
 
-        res = subprocess.run(cc_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        if res.returncode != 0:
-            return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='linking')
+        result = _run_stage(cc_cmd, stage='linking', timeout=timeouts.link)
+        if isinstance(result, TimedOutResult) or result.exitcode != 0:
+            return result
 
-    res = subprocess.run([str(exe)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    return TestResult(exitcode=res.returncode, stdout=res.stdout.strip(), stderr=res.stderr.strip(), stage='runtime')
+    # The runtime
+    return _run_stage([str(exe)], stage='runtime', timeout=timeouts.runtime)
 
 def report_failure(name: str, expected: TestExpectation, actual: TestResult):
+    if isinstance(actual, TimedOutResult):
+        print_timeout(name)
+        print_info(f'  Timed out during {CLR_BOLD}{actual.stage}{CLR_RESET} stage')
+        return
+
     print_fail(name)
 
     is_unexpected_stage = False
@@ -181,6 +237,9 @@ def _collect_test_items():
     return sorted(test_items)
 
 def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
+    if isinstance(actual, TimedOutResult):
+        return False
+
     if expected.diags is not None:
         if actual.stage != 'compilation':
             return False
@@ -204,7 +263,7 @@ def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
             return False
         return True
 
-def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int]) -> bool:
+def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Timeouts) -> bool:
     passed_count  = 0
     failed_count  = 0
     skipped_count = 0
@@ -216,7 +275,6 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int]) -> bool:
         name = str(path.relative_to(script_dir)).removesuffix(".eu")
         tasks.append((path, name, get_expectation(path, name)))
 
-    # Process results as they finish
     def handle_result(name, expected, actual):
         nonlocal passed_count, failed_count, skipped_count
         if actual is None:
@@ -233,7 +291,7 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int]) -> bool:
         with ThreadPoolExecutor(max_workers=jobs) as executor:
             future_to_test = {}
             for path, name, expected in tasks:
-                future = executor.submit(run_test_case, elc_bin, work_dir, path, name, expected.diags is not None)
+                future = executor.submit(run_test_case, elc_bin, work_dir, path, name, expected.diags is not None, timeouts)
                 future_to_test[future] = (name, expected)
 
             for future in as_completed(future_to_test):
@@ -241,7 +299,7 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int]) -> bool:
                 handle_result(name, expected, future.result())
     else:
         for path, name, expected in tasks:
-            handle_result(name, expected, run_test_case(elc_bin, work_dir, path, name, expected.diags is not None))
+            handle_result(name, expected, run_test_case(elc_bin, work_dir, path, name, expected.diags is not None, timeouts))
 
     tested_count = passed_count + failed_count + skipped_count
     print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')
@@ -254,13 +312,17 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int]) -> bool:
     return failed_count == 0
 
 class CliArgs(argparse.Namespace):
-    elc_bin:  Path
-    work_dir: Path
-    parallel: Optional[int]
+    elc_bin:         Path
+    work_dir:        Path
+    parallel:        Optional[int]
+
+    compile_timeout: float
+    link_timeout:    float
+    runtime_timeout: float
 
 def main():
     parser = argparse.ArgumentParser(description="Elash's end-to-end test runner");
-    parser.add_argument('elc_bin', type=Path, help='Path to elc binary');
+    parser.add_argument('elc_bin',  type=Path, help='Path to elc binary');
     parser.add_argument('work_dir', type=Path, help='Path to working directory');
     parser.add_argument(
         '-j', '--parallel', nargs='?',
@@ -268,8 +330,22 @@ def main():
         help='run in parallel with optional N workers limit'
     );
 
+    parser.add_argument(
+        '-t', '--timeout', type=float, default=1.0,
+        help='base timeout multiplier'
+    )
+    parser.add_argument('--compile-timeout', type=float, help='compile stage timeout (default: 1.5s * timeout)')
+    parser.add_argument('--link-timeout',    type=float, help='link stage timeout (default: 5s * timeout)')
+    parser.add_argument('--runtime-timeout', type=float, help='runtime stage timeout (default: 3s * timeout)')
+
     #very advanced static typing
     args: CliArgs = typing.cast(CliArgs, parser.parse_args())
+
+    timeouts = Timeouts(
+        compile = (args.compile_timeout or 1.5) * args.timeout,
+        runtime = (args.runtime_timeout or 3.0) * args.timeout,
+        link    = (args.link_timeout    or 5.0) * args.timeout,
+    )
 
     elc_bin  = args.elc_bin.resolve()
     work_dir = args.work_dir.resolve()
@@ -277,7 +353,7 @@ def main():
     if not work_dir.exists():
         os.makedirs(str(work_dir), exist_ok=True)
 
-    if not run_suite(elc_bin, work_dir, args.parallel):
+    if not run_suite(elc_bin, work_dir, args.parallel, timeouts):
         sys.exit(1)
 
 if __name__ == '__main__':
