@@ -1,5 +1,6 @@
 import threading
 import os
+import json
 
 from concurrent.futures import (
     ThreadPoolExecutor, as_completed
@@ -12,6 +13,42 @@ from .defs    import *
 
 from .test import run_test_case, get_expectation
 
+def _parse_jsonl_diagnostics(actual: FinishedResult):
+    diagnostics = []
+    output = actual.stdout + "\n" + actual.stderr
+    for line in output.splitlines():
+        try:
+            data = json.loads(line)
+            if data['type'] == 'diag':
+                diagnostics.append(data)
+        except json.JSONDecodeError:
+            pass
+    return diagnostics
+
+def _match_diagnostic(exp: DiagnosticExpectation, diag: dict) -> bool:
+    if exp.severity != diag['severity']:
+        return False
+    if exp.code != diag['category']:
+        return False
+
+    if exp.lines is not None:
+        # jsonl printer outputs 0-indexed lines and line numbers in diags.txt files are 1-indexed
+        actual_lines = [r['start']['line'] + 1 for r in diag['span']['ranges']]
+        if not all(l in actual_lines for l in exp.lines):
+            return False
+
+    return True
+
+def _expand_expectations(diags: list[DiagnosticExpectation]) -> list[DiagnosticExpectation]:
+    expanded = []
+    for exp in diags:
+        if exp.lines:
+            for line in exp.lines:
+                expanded.append(DiagnosticExpectation(severity=exp.severity, code=exp.code, lines=[line]))
+        else:
+            expanded.append(exp)
+    return expanded
+
 def report_failure(name: str, expected: TestExpectation, actual: TestResult):
     if isinstance(actual, TimedOutResult):
         print_timeout(name)
@@ -20,31 +57,34 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
 
     print_fail(name)
 
-    is_unexpected_stage = False
-    if expected.diags is not None:
+    if isinstance(expected, NegativeTestExpectation):
         if actual.stage != 'compilation':
-            is_unexpected_stage = True
-    else:
-        if actual.stage != 'runtime':
-            is_unexpected_stage = True
+            print_info(f'  Error during {CLR_BOLD}{actual.stage}{CLR_RESET} stage (exitcode {actual.exitcode})')
+            return
 
-    if is_unexpected_stage:
-        print_info(f'  Error during {CLR_BOLD}{actual.stage}{CLR_RESET} stage (exitcode {actual.exitcode})')
-        for stream in ['stdout', 'stderr']:
-            content = getattr(actual, stream)
-            if content:
-                print_info(f'  {actual.stage} {stream}:')
-                for line in content.splitlines():
-                    print_info(f'    {line}')
-    else:
+        diagnostics = _parse_jsonl_diagnostics(actual)
+        expanded    = _expand_expectations(expected.diags)
+
+        # missing diagnostics
+        for exp in expanded:
+            if not any(_match_diagnostic(exp, diag) for diag in diagnostics):
+                line_str = ','.join(map(str, exp.lines)) + ':' if exp.lines else ''
+                print_info(f'  missing diag: {CLR_BOLD}{line_str}{exp.severity}[{exp.code}]{CLR_RESET}')
+
+        # unexpected diagnostics
+        for diag in diagnostics:
+            if not any(_match_diagnostic(exp, diag) for exp in expanded):
+                actual_lines = [r['start']['line'] + 1 for r in diag['span']['ranges']]
+                lines_str = ','.join(map(str, actual_lines))  + ':'
+                print_info(f'  unexpected diag: {CLR_BOLD}{lines_str}{diag["severity"]}[{diag["category"]}]{CLR_RESET}')
+
+    elif isinstance(expected, PositiveTestExpectation):
+        if actual.stage != 'runtime':
+             print_info(f'  Error during {CLR_BOLD}{actual.stage}{CLR_RESET} stage (exitcode {actual.exitcode})')
+             return
+
         if actual.exitcode != expected.exitcode:
             print_info(f'  exitcode: expected {expected.exitcode}, actual {actual.exitcode}')
-
-        if expected.diags:
-            combined_output = actual.stdout + actual.stderr
-            for code in expected.diags:
-                if code not in combined_output:
-                    print_info(f'  missing diag code: {CLR_BOLD}{code}{CLR_RESET}')
 
         if expected.stdout or actual.stdout:
             print_diff(expected.stdout, actual.stdout, 'stdout')
@@ -64,19 +104,30 @@ def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
     if isinstance(actual, TimedOutResult):
         return False
 
-    if expected.diags is not None:
+    if isinstance(expected, NegativeTestExpectation):
         if actual.stage != 'compilation':
             return False
         if actual.exitcode == 0:
             return False
-        if expected.exitcode != 0 and actual.exitcode != expected.exitcode:
-            return False
-        combined_output = actual.stdout + actual.stderr
-        for code in expected.diags:
-            if code not in combined_output:
+
+        diagnostics = _parse_jsonl_diagnostics(actual)
+        expanded    = _expand_expectations(expected.diags)
+
+        # missing diagnostics
+        for exp in expanded:
+            if not any(_match_diagnostic(exp, diag) for diag in diagnostics):
                 return False
+
+        if expected.ignore_unexpected: return True
+
+        # unexpected diagnostics
+        for diag in diagnostics:
+            if not any(_match_diagnostic(exp, diag) for exp in expanded):
+                return False
+
         return True
-    else:
+
+    elif isinstance(expected, PositiveTestExpectation):
         if actual.stage != 'runtime':
             return False
         if actual.exitcode != expected.exitcode:
@@ -86,6 +137,8 @@ def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
         if actual.stderr != expected.stderr:
             return False
         return True
+
+    assert False
 
 def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Timeouts) -> bool:
     passed_count  = 0
@@ -115,7 +168,7 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
         with ThreadPoolExecutor(max_workers=jobs) as executor:
             future_to_test = {}
             for path, name, expected in tasks:
-                future = executor.submit(run_test_case, elc_bin, work_dir, path, name, expected.diags is not None, timeouts)
+                future = executor.submit(run_test_case, elc_bin, work_dir, path, name, isinstance(expected, NegativeTestExpectation), timeouts)
                 future_to_test[future] = (name, expected)
 
             for future in as_completed(future_to_test):
@@ -123,7 +176,7 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
                 handle_result(name, expected, future.result())
     else:
         for path, name, expected in tasks:
-            handle_result(name, expected, run_test_case(elc_bin, work_dir, path, name, expected.diags is not None, timeouts))
+            handle_result(name, expected, run_test_case(elc_bin, work_dir, path, name, isinstance(expected, NegativeTestExpectation), timeouts))
 
     tested_count = passed_count + failed_count + skipped_count
     print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')

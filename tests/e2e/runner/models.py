@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Literal, Optional
 
 TestStage = Literal['compilation', 'linking', 'runtime']
+Severity  = Literal['error', 'warning', 'note']
 
 @dataclass
 class Timeouts:
@@ -10,11 +11,25 @@ class Timeouts:
     runtime: float
 
 @dataclass
-class TestExpectation:
+class DiagnosticExpectation:
+    severity: Severity
+    code:     str
+    lines:    Optional[list[int]]
+
+
+@dataclass
+class PositiveTestExpectation:
     exitcode:    int
     stdout:      str
     stderr:      str
-    diags: Optional[list[str]] = None
+
+@dataclass
+class NegativeTestExpectation:
+    diags: list[DiagnosticExpectation]
+    ignore_unexpected: bool = False
+
+TestExpectation = PositiveTestExpectation | NegativeTestExpectation
+
 
 @dataclass
 class FinishedResult:
