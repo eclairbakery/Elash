@@ -32,6 +32,10 @@ static inline ElStringView el_sv_from_data_and_len(const char* data, usize len) 
     return (ElStringView) { .data = data, .len = len };
 }
 
+static inline ElStringView el_sv_from_char(const char* c) {
+    return (ElStringView) { .data = c, .len = 1 };
+}
+
 static inline bool el_sv_is_null(ElStringView sv) {
     return sv.data == NULL;
 }
