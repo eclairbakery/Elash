@@ -34,3 +34,11 @@ typedef struct ElPpValue {
     } as;
     ElPpType type;
 } ElPpValue;
+
+ElPpValue* _el_pp_new_int(ElDynArena* arena, int64_t val);
+ElPpValue* _el_pp_new_float(ElDynArena* arena, double val);
+ElPpValue* _el_pp_new_bool(ElDynArena* arena, bool val);
+ElPpValue* _el_pp_new_char(ElDynArena* arena, char val);
+ElPpValue* _el_pp_new_str(ElDynArena* arena, ElStringView val);
+ElPpValue* _el_pp_new_tok(ElDynArena* arena, ElToken tok);
+ElPpValue* _el_pp_new_list(ElDynArena* arena, ElPpList list);
