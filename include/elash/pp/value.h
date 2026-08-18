@@ -22,9 +22,10 @@ typedef enum ElPpValueType {
 bool el_pp_value_type_is_trivial(ElPpValueType type);
 
 typedef struct ElPpValue {
+    // TODO: use big ints / big floats
     union {
-        int          int_;   // EL_PP_VAR_INT
-        float        float_; // EL_PP_VAR_FLOAT
+        int64_t      int_;   // EL_PP_VAR_INT
+        double       float_; // EL_PP_VAR_FLOAT
         bool         bool_;  // EL_PP_VAR_BOOL
         char         char_;  // EL_PP_VAR_CHAR
         ElStringBuf  str_;   // EL_PP_VAR_STRING
