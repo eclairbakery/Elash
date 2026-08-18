@@ -38,7 +38,7 @@ static void print_sev(ElDiagSeverity sev, ElStringView cat, FILE* out) {
 static void print_loc(const ElSourceRange* range, FILE* out) {
     if (range->doc != NULL) {
         fprintf(out, "at "EL_SV_FMT":%u:%u\n",
-                EL_SV_FARG(range->doc->filename), range->start.line, range->start.column);
+                EL_SV_FARG(range->doc->filename), range->start.line + 1, range->start.column + 1);
     }
 }
 
