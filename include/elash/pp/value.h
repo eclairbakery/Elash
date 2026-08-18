@@ -23,7 +23,7 @@ typedef struct ElPpValue {
         double       float_; // EL_PP_VAR_FLOAT
         bool         bool_;  // EL_PP_VAR_BOOL
         char         char_;  // EL_PP_VAR_CHAR
-        ElStringBuf  str_;   // EL_PP_VAR_STRING
+        ElStringView str_;   // EL_PP_VAR_STRING
         ElPpValueArr arr_;   // EL_PP_VAR_ARRAY
         ElToken      tok_;   // EL_PP_VAR_TOKENS
     } as;
