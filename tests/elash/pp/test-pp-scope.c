@@ -19,7 +19,7 @@ Test(pp_scope, basic_usage) {
     ElPpSymbol var1 = {
         .name = EL_SV("foo"),
         .as.var = EL_DYNARENA_NEW_STRUCT(&arena, ElPpValue, {
-            .type = EL_PP_VAR_INT,
+            .type = EL_PP_TYPE_INT,
             .as.int_ = 42,
         }),
     };
@@ -46,7 +46,7 @@ Test(pp_scope, nested_lookup) {
     ElPpSymbol var_parent = {
         .name = EL_SV("foo"),
         .as.var = EL_DYNARENA_NEW_STRUCT(&arena, ElPpValue, {
-            .type = EL_PP_VAR_INT,
+            .type = EL_PP_TYPE_INT,
             .as.int_ = 100,
         }),
     };
@@ -70,7 +70,7 @@ Test(pp_scope, shadowing) {
     ElPpSymbol var_parent = {
         .name = EL_SV("foo"),
         .as.var = EL_DYNARENA_NEW_STRUCT(&arena, ElPpValue, {
-            .type = EL_PP_VAR_FLOAT,
+            .type = EL_PP_TYPE_FLOAT,
             .as.float_ = 3.14f,
         }),
     };
@@ -78,7 +78,7 @@ Test(pp_scope, shadowing) {
     ElPpSymbol var_child = {
         .name = EL_SV("foo"),
         .as.var = EL_DYNARENA_NEW_STRUCT(&arena, ElPpValue, {
-            .type = EL_PP_VAR_FLOAT,
+            .type = EL_PP_TYPE_FLOAT,
             .as.float_ = 2.19f,
         }),
     };
