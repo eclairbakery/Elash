@@ -1,5 +1,4 @@
 #include <elash/pp/scope.h>
-#include <elash/pp/valarr.h>
 
 #include <elash/defs/int-types.h>
 #include <elash/util/strhash.h>
