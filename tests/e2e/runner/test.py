@@ -1,6 +1,8 @@
 import subprocess
+import typing
 import sys
 import os
+import re
 
 from pathlib import Path
 
@@ -13,9 +15,39 @@ ELC_FLAGS = (
     '-I', 'utils=utils/'
 )
 
+def _parse_diag(line: str) -> DiagnosticExpectation:
+    parts = line.split(':')
+    if len(parts) == 1:
+        # sev[code]
+        content = parts[0]
+        lines = None
+    else:
+        # 1,2,3:sev[code]
+        lines = [int(l) for l in parts[0].split(',')]
+        content = parts[1]
+
+    match = re.match(r'(\w+)\[(.+)\]', content)
+    if not match:
+        error(f"ill-formed diagnostic: {line}")
+
+    assert match != None # to make pyright happy
+
+    severity, code = match.groups()
+    if severity not in ('error', 'warning', 'note'):
+        error(f'ill-formed diagnostic: unknown severity "{severity}"')
+
+    return DiagnosticExpectation(
+        severity=typing.cast(Severity, severity), code=code, lines=lines
+    )
+
 def get_expectation(path: Path, name: str) -> TestExpectation:
     if path.is_file():
-        return TestExpectation(exitcode=0, stdout='', stderr='')
+        return PositiveTestExpectation(exitcode=0, stdout='', stderr='')
+
+    if (f := path.joinpath('diags.txt')).is_file():
+        lines = [line.strip() for line in f.read_text().splitlines() if line.strip()]
+        diags = [_parse_diag(line) for line in lines if line != '...']
+        return NegativeTestExpectation(diags=diags, ignore_unexpected='...' in lines)
 
     exitcode: int = 0
     if (f := path.joinpath('exitcode.txt')).is_file():
@@ -32,11 +64,7 @@ def get_expectation(path: Path, name: str) -> TestExpectation:
     if (f := path.joinpath('stderr.txt')).is_file():
         stderr = f.read_text().strip()
 
-    diags = None
-    if (f := path.joinpath('diags.txt')).is_file():
-        diags = [line.strip() for line in f.read_text().splitlines() if line.strip()]
-
-    return TestExpectation(exitcode=exitcode, stdout=stdout, stderr=stderr, diags=diags)
+    return PositiveTestExpectation(exitcode=exitcode, stdout=stdout, stderr=stderr)
 
 def _run_stage(cmd: list[str], stage: TestStage, timeout: float, cwd: Path | None = None) -> TestResult:
     try:
@@ -91,6 +119,8 @@ def run_test_case(
 
     if needs_compile:
         cmd = [str(elc_bin), 'compile', str(input_file), '-o', str(obj), *ELC_FLAGS]
+        if is_negative:
+            cmd.append('--jsonl')
         result = _run_stage(cmd, stage='compilation', timeout=timeouts.compile, cwd=script_dir)
         if isinstance(result, TimedOutResult) or result.exitcode != 0:
             return result
