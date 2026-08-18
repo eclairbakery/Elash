@@ -46,23 +46,3 @@ void el_pp_value_move(ElPpValue* src, ElPpValue* dst);
 /// @param dst A pointer to the destination ElPpValue to copy to.
 /// @return True if the copy is successful, false otherwise (e.g., memory allocation failure for array types).
 bool el_pp_value_copy(const ElPpValue* src, ElPpValue* dst);
-
-typedef struct ElPpVar {
-    ElStringView name;
-    ElPpValue    value;
-} ElPpVar;
-
-/// @brief Frees any dynamically allocated resources held by an ElPpVar.
-/// @param var A pointer to the ElPpVar whose resources are to be freed.
-void el_pp_var_free(ElPpVar* var);
-/// @brief Moves the content of a source ElPpVar to a destination ElPpVar.
-/// @param src A pointer to the source ElPpVar, which will be invalidated for non-trivial types.
-/// @param dst A pointer to the destination ElPpVar.
-void el_pp_var_move(ElPpVar* src, ElPpVar* dst);
-/// @brief Creates a deep copy of a source ElPpVar into a destination ElPpVar.
-/// @param src A pointer to the source ElPpVar to copy from.
-/// @param dst A pointer to the destination ElPpVar to copy to.
-/// @return True if the copy is successful, false otherwise (e.g., memory allocation failure for array types).
-bool el_pp_var_copy(const ElPpVar* src, ElPpVar* dst);
-
-

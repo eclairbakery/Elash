@@ -115,7 +115,7 @@ void el_pp_scope_destroy(ElPpScope* vars) {
     vars->num_tombstones = 0;
 }
 
-bool el_pp_scope_assign(ElPpScope* vars, ElStringView key, ElPpVar* value) {
+bool el_pp_scope_assign(ElPpScope* vars, ElStringView key, ElPpSymbol* value) {
     if (!ensure_capacity_for_new_var(vars))
         return false;
 
@@ -153,7 +153,7 @@ bool el_pp_scope_deassign(ElPpScope* vars, ElStringView key) {
     return true;
 }
 
-ElPpVar* el_pp_scope_lookup_local(ElPpScope* vars, ElStringView key) {
+ElPpSymbol* el_pp_scope_lookup_local(ElPpScope* vars, ElStringView key) {
     bool found;
     Entry* slot = find_slot(vars, key, &found);
     if (!found)
@@ -162,8 +162,8 @@ ElPpVar* el_pp_scope_lookup_local(ElPpScope* vars, ElStringView key) {
     return slot->value;
 }
 
-ElPpVar* el_pp_scope_lookup(ElPpScope* vars, ElStringView key) {
-    ElPpVar* var = el_pp_scope_lookup_local(vars, key);
+ElPpSymbol* el_pp_scope_lookup(ElPpScope* vars, ElStringView key) {
+    ElPpSymbol* var = el_pp_scope_lookup_local(vars, key);
     if (var != NULL)
         return var;
     if (vars->parent != NULL)

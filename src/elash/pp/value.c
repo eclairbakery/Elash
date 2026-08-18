@@ -39,13 +39,3 @@ void el_pp_value_free(ElPpValue* val) {
         el_strbuf_destroy(&val->as.str_);
     }
 }
-
-void el_pp_var_free(ElPpVar* var) {
-    el_pp_value_free(&var->value);
-}
-bool el_pp_var_copy(const ElPpVar* src, ElPpVar* dst) {
-    return el_pp_value_copy(&src->value, &dst->value);
-}
-void el_pp_var_move(ElPpVar* src, ElPpVar* dst) {
-    el_pp_value_move(&src->value, &dst->value);
-}
