@@ -16,13 +16,28 @@ from .test import run_test_case, get_expectation
 def _parse_jsonl_diagnostics(actual: FinishedResult):
     diagnostics = []
     output = actual.stdout + "\n" + actual.stderr
+
+    errors: list[Exception] = []
     for line in output.splitlines():
         try:
             data = json.loads(line)
             if data['type'] == 'diag':
                 diagnostics.append(data)
-        except json.JSONDecodeError:
-            pass
+        except (json.JSONDecodeError, KeyError) as err:
+            errors.append(err)
+
+    if len(errors) != 0:
+        if len(errors) == 1:
+            print_info(f'failed to parse elc output: {errors[0]}')
+        else:
+            print_info(f'failed to parse elc output:')
+            for i, err in enumerate(errors):
+                print_info(f'  {i}: {err}')
+
+        print_info('compilation stdout + stderr:')
+        for line in output.splitlines():
+            print_info(f'  {line}')
+
     return diagnostics
 
 def _match_diagnostic(exp: DiagnosticExpectation, diag: dict) -> bool:
