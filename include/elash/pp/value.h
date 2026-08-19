@@ -15,6 +15,7 @@ typedef enum ElPpType {
 } ElPpType;
 
 typedef struct ElPpValue ElPpValue;
+typedef struct ElPreproc ElPreproc;
 
 typedef struct ElPpList {
     ElPpValue** values;
@@ -34,6 +35,11 @@ typedef struct ElPpValue {
     } as;
     ElPpType type;
 } ElPpValue;
+
+ElStringView _el_pp_type_name(ElPpType type);
+
+ElPpValue* _el_pp_strcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs);
+ElPpValue* _el_pp_listcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs);
 
 ElPpValue* _el_pp_new_int(ElDynArena* arena, int64_t val);
 ElPpValue* _el_pp_new_float(ElDynArena* arena, double val);
