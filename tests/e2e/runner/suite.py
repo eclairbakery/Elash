@@ -1,6 +1,7 @@
 import threading
-import os
+import typing
 import json
+import os
 
 from concurrent.futures import (
     ThreadPoolExecutor, as_completed
@@ -40,7 +41,19 @@ def _parse_jsonl_diagnostics(actual: FinishedResult):
 
     return diagnostics
 
-def _match_diagnostic(exp: DiagnosticExpectation, diag: dict) -> bool:
+def _match_diagnostic(exp: DiagExpectation, diag: dict) -> bool:
+    if not _match_diagnostic_nomsg(exp, diag):
+        return False
+
+    if exp.message is not None:
+        if 'formatted' not in diag:
+            return False
+        if exp.message.lower().strip() != diag['formatted'].lower().strip():
+            return False
+
+    return True
+
+def _match_diagnostic_nomsg(exp: DiagExpectation, diag: dict) -> bool:
     if exp.severity != diag['severity']:
         return False
     if exp.code != diag['category']:
@@ -54,15 +67,37 @@ def _match_diagnostic(exp: DiagnosticExpectation, diag: dict) -> bool:
 
     return True
 
-def _expand_expectations(diags: list[DiagnosticExpectation]) -> list[DiagnosticExpectation]:
+def _expand_expectations(diags: list[DiagExpectation]) -> list[DiagExpectation]:
     expanded = []
     for exp in diags:
         if exp.lines:
             for line in exp.lines:
-                expanded.append(DiagnosticExpectation(severity=exp.severity, code=exp.code, lines=[line]))
+                expanded.append(DiagExpectation(severity=exp.severity, code=exp.code, lines=[line], message=exp.message))
         else:
             expanded.append(exp)
     return expanded
+
+def _report_diag_mismatches(expanded: list[DiagExpectation], diagnostics: list[dict]):
+    for exp in expanded:
+        if any(_match_diagnostic(exp, diag) for diag in diagnostics):
+            continue
+
+        partial_matches = [d for d in diagnostics if _match_diagnostic_nomsg(exp, d)]
+        if partial_matches and exp.message:
+            for diag in partial_matches:
+                print_info(f'  diagnostic message mismatch:')
+                print_diff(exp.message, diag.get('formatted', ''))
+            continue
+
+        line_str = ','.join(map(str, exp.lines)) + ':' if exp.lines else ''
+        msg_str = f': {exp.message}' if exp.message else ''
+        print_info(f'  missing diag: {CLR_BOLD}{line_str}{exp.severity}[{exp.code}]{msg_str}{CLR_RESET}')
+
+    for diag in diagnostics:
+        if not any(_match_diagnostic(exp, diag) for exp in expanded):
+            actual_lines = [r['start']['line'] + 1 for r in diag['span']['ranges']]
+            lines_str = ','.join(map(str, actual_lines))  + ':'
+            print_info(f'  unexpected diag: {CLR_BOLD}{lines_str}{diag["severity"]}[{diag["category"]}]{CLR_RESET}')
 
 def report_failure(name: str, expected: TestExpectation, actual: TestResult):
     if isinstance(actual, TimedOutResult):
@@ -79,19 +114,7 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
 
         diagnostics = _parse_jsonl_diagnostics(actual)
         expanded    = _expand_expectations(expected.diags)
-
-        # missing diagnostics
-        for exp in expanded:
-            if not any(_match_diagnostic(exp, diag) for diag in diagnostics):
-                line_str = ','.join(map(str, exp.lines)) + ':' if exp.lines else ''
-                print_info(f'  missing diag: {CLR_BOLD}{line_str}{exp.severity}[{exp.code}]{CLR_RESET}')
-
-        # unexpected diagnostics
-        for diag in diagnostics:
-            if not any(_match_diagnostic(exp, diag) for exp in expanded):
-                actual_lines = [r['start']['line'] + 1 for r in diag['span']['ranges']]
-                lines_str = ','.join(map(str, actual_lines))  + ':'
-                print_info(f'  unexpected diag: {CLR_BOLD}{lines_str}{diag["severity"]}[{diag["category"]}]{CLR_RESET}')
+        _report_diag_mismatches(expanded, diagnostics)
 
     elif isinstance(expected, PositiveTestExpectation):
         if actual.stage != 'runtime':
@@ -106,14 +129,32 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
         if expected.stderr or actual.stderr:
             print_diff(expected.stderr, actual.stderr, 'stderr')
 
-def _collect_test_items():
-    test_items = []
-    for p in script_dir.rglob('input.eu'):
-        test_items.append(p.parent)
-    for p in script_dir.rglob('*.eu'):
-        if p.name != 'input.eu':
-            test_items.append(p)
-    return sorted(test_items)
+        if expected.diags and actual.compilation_result is not None:
+            diagnostics = _parse_jsonl_diagnostics(actual.compilation_result)
+            expanded    = _expand_expectations(expected.diags)
+            _report_diag_mismatches(expanded, diagnostics)
+
+def _collect_test_cases() -> list[TestCase]:
+    def get_name(item: Path) -> str:
+        return str(item.relative_to(script_dir)).removesuffix(".eu")
+
+    def collect(ttype: TestType) -> list[TestCase]:
+        cases: list[TestCase] = []
+
+        dir = script_dir.joinpath(ttype)
+        if not dir.is_dir():
+            error(f"invalid tests directory structure: expected '{ttype}' to be a directory")
+
+        for p in dir.rglob('input.eu'):
+            cases.append(TestCase(path=p.parent, name=get_name(p.parent), type=ttype))
+        for p in dir.rglob('*.eu'):
+            if p.name != 'input.eu':
+                cases.append(TestCase(path=p, name=get_name(p), type=ttype))
+
+        return cases
+
+    cases = (*collect('positive'), *collect('negative'))
+    return sorted(cases)
 
 def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
     if isinstance(actual, TimedOutResult):
@@ -151,6 +192,19 @@ def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
             return False
         if actual.stderr != expected.stderr:
             return False
+
+        if expected.diags and actual.compilation_result is not None:
+            diagnostics = _parse_jsonl_diagnostics(actual.compilation_result)
+            expanded    = _expand_expectations(expected.diags)
+
+            for exp in expanded:
+                if not any(_match_diagnostic(exp, diag) for diag in diagnostics):
+                    return False
+
+            for diag in diagnostics:
+                if not any(_match_diagnostic(exp, diag) for exp in expanded):
+                    return False
+
         return True
 
     assert False
@@ -160,12 +214,11 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
     failed_count  = 0
     skipped_count = 0
 
-    test_items = _collect_test_items()
+    test_cases = _collect_test_cases()
 
     tasks = []
-    for path in test_items:
-        name = str(path.relative_to(script_dir)).removesuffix(".eu")
-        tasks.append((path, name, get_expectation(path, name)))
+    for case in test_cases:
+        tasks.append((case, get_expectation(case)))
 
     def handle_result(name, expected, actual):
         nonlocal passed_count, failed_count, skipped_count
@@ -182,16 +235,16 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
     if jobs is None or jobs > 1:
         with ThreadPoolExecutor(max_workers=jobs) as executor:
             future_to_test = {}
-            for path, name, expected in tasks:
-                future = executor.submit(run_test_case, elc_bin, work_dir, path, name, isinstance(expected, NegativeTestExpectation), timeouts)
-                future_to_test[future] = (name, expected)
+            for case, expected in tasks:
+                future = executor.submit(run_test_case, elc_bin, work_dir, case, timeouts)
+                future_to_test[future] = (case.name, expected)
 
             for future in as_completed(future_to_test):
                 name, expected = future_to_test[future]
                 handle_result(name, expected, future.result())
     else:
-        for path, name, expected in tasks:
-            handle_result(name, expected, run_test_case(elc_bin, work_dir, path, name, isinstance(expected, NegativeTestExpectation), timeouts))
+        for case, expected in tasks:
+            handle_result(case.name, expected, run_test_case(elc_bin, work_dir, case, timeouts))
 
     tested_count = passed_count + failed_count + skipped_count
     print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')

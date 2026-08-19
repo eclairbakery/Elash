@@ -1,7 +1,9 @@
+import threading
 import builtins
 import difflib
 import sys
-import threading
+
+from typing import Optional
 
 CLR_BLUE   = '\033[0;34m'
 CLR_GREEN  = '\033[0;32m'
@@ -35,12 +37,16 @@ def error(*args):
     eprint(*args)
     sys.exit(1)
 
-def print_diff(expected: str, actual: str, stream_name: str):
+def print_diff(expected: str, actual: str, stream_name: Optional[str] = None):
     diff = difflib.unified_diff(
         expected.splitlines(keepends=True),
         actual.splitlines(keepends=True),
-        fromfile=f'expected {stream_name}',
-        tofile=f'actual {stream_name}',
+        fromfile=f'expected {stream_name}' if stream_name is not None else '',
+        tofile=f'actual {stream_name}' if stream_name is not None else '',
     )
+
     for line in diff:
+        if stream_name is None:
+            if line.startswith("---") or line.startswith("+++"):
+                continue
         print_info(f'  {line.rstrip()}')

@@ -15,7 +15,14 @@ ELC_FLAGS = (
     '-I', 'utils=utils/'
 )
 
-def _parse_diag(line: str) -> DiagnosticExpectation:
+def _parse_diag(line: str, ttype: TestType) -> DiagExpectation:
+    # sev[code]: message
+    message = None
+    if line.count(':') >= 2:
+        parts = line.rsplit(':', 1)
+        line = parts[0]
+        message = parts[1].strip()
+
     parts = line.split(':')
     if len(parts) == 1:
         # sev[code]
@@ -33,20 +40,31 @@ def _parse_diag(line: str) -> DiagnosticExpectation:
     assert match != None # to make pyright happy
 
     severity, code = match.groups()
+    if severity == 'warn': severity = 'warning'
     if severity not in ('error', 'warning', 'note'):
-        error(f'ill-formed diagnostic: unknown severity "{severity}"')
+        error(f"ill-formed diagnostic: unknown severity '{severity}'")
 
-    return DiagnosticExpectation(
-        severity=typing.cast(Severity, severity), code=code, lines=lines
+    if ttype == 'positive' and severity == 'error':
+        error("ill-formed diagnostic: 'error' not allowed in positive test cases")
+
+    return DiagExpectation(
+        severity=typing.cast(Severity, severity), code=code, lines=lines, message=message
     )
 
-def get_expectation(path: Path, name: str) -> TestExpectation:
-    if path.is_file():
-        return PositiveTestExpectation(exitcode=0, stdout='', stderr='')
+def get_expectation(test: TestCase) -> TestExpectation:
+    name, path = test.name, test.path
 
+    if path.is_file():
+        if test.type == 'negative':
+            error(f"ill-formed test '{name}': negative cases must be directories")
+        return PositiveTestExpectation(exitcode=0, stdout='', stderr='', diags=[])
+
+    lines, diags = [], []
     if (f := path.joinpath('diags.txt')).is_file():
         lines = [line.strip() for line in f.read_text().splitlines() if line.strip()]
-        diags = [_parse_diag(line) for line in lines if line != '...']
+        diags = [_parse_diag(line, test.type) for line in lines if line != '...']
+
+    if test.type == 'negative':
         return NegativeTestExpectation(diags=diags, ignore_unexpected='...' in lines)
 
     exitcode: int = 0
@@ -64,7 +82,7 @@ def get_expectation(path: Path, name: str) -> TestExpectation:
     if (f := path.joinpath('stderr.txt')).is_file():
         stderr = f.read_text().strip()
 
-    return PositiveTestExpectation(exitcode=exitcode, stdout=stdout, stderr=stderr)
+    return PositiveTestExpectation(exitcode=exitcode, stdout=stdout, stderr=stderr, diags=diags)
 
 def _run_stage(cmd: list[str], stage: TestStage, timeout: float, cwd: Path | None = None) -> TestResult:
     try:
@@ -98,12 +116,10 @@ def resolve_test_paths(path: Path, name: str) -> tuple[Path, Path]:
     return input_file, skip_file
 
 
-def run_test_case(
-    elc_bin: Path, work_dir: Path,
-    path: Path, name: str,
-    is_negative: bool,
-    timeouts: Timeouts,
-) -> TestResult | None:
+def run_test_case(elc_bin: Path, work_dir: Path, case: TestCase, timeouts: Timeouts) -> TestResult | None:
+    path, name = case.path, case.name
+    is_negative = case.type == 'negative'
+
     input_file, skip_file = resolve_test_paths(path, name)
     if skip_file.is_file():
         return None
@@ -114,16 +130,21 @@ def run_test_case(
     exe = work_dir / exe_name
 
     # The compilation
+    has_diags_file = path.is_dir() and path.joinpath('diags.txt').is_file()
+    use_jsonl = is_negative or has_diags_file
     latest_mtime = max(input_file.stat().st_mtime, elc_bin.stat().st_mtime)
-    needs_compile = is_negative or not obj.is_file() or obj.stat().st_mtime < latest_mtime
+    needs_compile = is_negative or has_diags_file or not obj.is_file() or obj.stat().st_mtime < latest_mtime
 
+    compilation_result = None
     if needs_compile:
         cmd = [str(elc_bin), 'compile', str(input_file), '-o', str(obj), *ELC_FLAGS]
-        if is_negative:
+        if use_jsonl:
             cmd.append('--jsonl')
         result = _run_stage(cmd, stage='compilation', timeout=timeouts.compile, cwd=script_dir)
         if isinstance(result, TimedOutResult) or result.exitcode != 0:
             return result
+        if has_diags_file:
+            compilation_result = result
 
     # The linking
     needs_link = not exe.is_file() or exe.stat().st_mtime < obj.stat().st_mtime
@@ -137,4 +158,7 @@ def run_test_case(
             return result
 
     # The runtime
-    return _run_stage([str(exe)], stage='runtime', timeout=timeouts.runtime)
+    runtime_result = _run_stage([str(exe)], stage='runtime', timeout=timeouts.runtime)
+    if isinstance(runtime_result, FinishedResult) and compilation_result is not None:
+        runtime_result.compilation_result = compilation_result
+    return runtime_result
