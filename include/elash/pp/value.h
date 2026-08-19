@@ -30,13 +30,17 @@ typedef struct ElPpValue {
         bool         bool_;  // EL_PP_TYPE_BOOL
         char         char_;  // EL_PP_TYPE_CHAR
         ElPpList     list_;  // EL_PP_TYPE_LIST
-        ElStringView str_;   // EL_PP_TYPE_STRING
-        ElToken      tok_;   // EL_PP_TYPE_TOKENS
+        ElStringView str_;   // EL_PP_TYPE_STR
+        ElToken      tok_;   // EL_PP_TYPE_TOK
     } as;
     ElPpType type;
 } ElPpValue;
 
 ElStringView _el_pp_type_name(ElPpType type);
+
+bool _el_pp_value_eq(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span);
+bool _el_pp_value_lt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span);
+bool _el_pp_value_gt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span);
 
 ElPpValue* _el_pp_strcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs);
 ElPpValue* _el_pp_listcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs);

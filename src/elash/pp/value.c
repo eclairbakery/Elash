@@ -43,6 +43,94 @@ ElPpValue* _el_pp_listcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs) {
     return _el_pp_new_list(pp->arena, (ElPpList) { values, count });
 }
 
+// let's support comparing ints and floats for convenience
+static bool is_int_float_compar(ElPpType ltype, ElPpType rtype) {
+    return (ltype == EL_PP_TYPE_INT || ltype == EL_PP_TYPE_FLOAT)
+        && (rtype == EL_PP_TYPE_INT || rtype == EL_PP_TYPE_FLOAT);
+}
+
+#define FOOBARBAZ(OP) do {                                                                \
+    if (lhs->type == EL_PP_TYPE_INT && rhs->type == EL_PP_TYPE_INT) {                     \
+        return lhs->as.int_ OP rhs->as.int_;                                              \
+    }                                                                                     \
+    if (is_int_float_compar(lhs->type, rhs->type)) {                                      \
+        double l = (lhs->type == EL_PP_TYPE_INT) ? (double)lhs->as.int_ : lhs->as.float_; \
+        double r = (rhs->type == EL_PP_TYPE_INT) ? (double)rhs->as.int_ : rhs->as.float_; \
+        return l OP r;                                                                    \
+    }                                                                                     \
+} while (0)
+
+bool _el_pp_value_eq(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span) {
+    if (lhs->type != rhs->type) {
+        FOOBARBAZ(==);
+
+        return el_diag_report(
+            pp->diag, EL_DIAG_ERROR, "pp.eval", span,
+            "equality comparison between incompatible types: '${left}' and '${right}'",
+            EL_DIAG_STRING("left", _el_pp_type_name(lhs->type)),
+            EL_DIAG_STRING("right", _el_pp_type_name(rhs->type))
+        );
+    }
+
+    switch (lhs->type) {
+    case EL_PP_TYPE_INT:
+        return lhs->as.int_ == rhs->as.int_; break;
+    case EL_PP_TYPE_BOOL:
+        return lhs->as.bool_ == rhs->as.bool_; break;
+    case EL_PP_TYPE_FLOAT:
+        return lhs->as.float_ == rhs->as.float_; break;
+    case EL_PP_TYPE_CHAR:
+        return lhs->as.char_ == rhs->as.char_; break;
+    case EL_PP_TYPE_STR:
+        return el_sv_eql(lhs->as.str_, rhs->as.str_); break;
+    case EL_PP_TYPE_LIST:
+        if (lhs->as.list_.count != rhs->as.list_.count)
+            return false;
+
+        for (usize i = 0; i < lhs->as.list_.count; ++i)
+            // TODO: passing `span` here is sloppy.
+            if (!_el_pp_value_eq(pp, lhs->as.list_.values[i], rhs->as.list_.values[i], span))
+                return false;
+
+        return true;
+    case EL_PP_TYPE_TOK:
+        return lhs->as.tok_.type == rhs->as.tok_.type
+            && el_sv_eql(lhs->as.tok_.lexeme, rhs->as.tok_.lexeme);
+    }
+
+    EL_UNREACHABLE_ENUM_VAL(ElPpType, lhs->type);
+}
+
+bool _el_pp_value_lt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span) {
+    FOOBARBAZ(<);
+
+    if (lhs->type == EL_PP_TYPE_CHAR && rhs->type == EL_PP_TYPE_CHAR) {
+        return lhs->as.char_ < rhs->as.char_;
+    }
+
+    return el_diag_report(
+        pp->diag, EL_DIAG_ERROR, "pp.eval", span,
+        "operator '<' is not defined for '${left}' and '${right}'",
+        EL_DIAG_STRING("left", _el_pp_type_name(lhs->type)),
+        EL_DIAG_STRING("right", _el_pp_type_name(rhs->type))
+    );
+}
+
+bool _el_pp_value_gt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span) {
+    FOOBARBAZ(>);
+
+    if (lhs->type == EL_PP_TYPE_CHAR && rhs->type == EL_PP_TYPE_CHAR) {
+        return lhs->as.char_ > rhs->as.char_;
+    }
+
+    return el_diag_report(
+        pp->diag, EL_DIAG_ERROR, "pp.compar", span,
+        "operator '>' is not defined for '${left}' and '${right}'",
+        EL_DIAG_STRING("left", _el_pp_type_name(lhs->type)),
+        EL_DIAG_STRING("right", _el_pp_type_name(rhs->type))
+    );
+}
+
 /////// constructors ///////
 ElPpValue* _el_pp_new_int(ElDynArena* arena, int64_t val) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElPpValue, {
