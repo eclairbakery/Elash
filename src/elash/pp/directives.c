@@ -2,7 +2,7 @@
 
 bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken* out_tok) {
     ElToken directive;
-    if (!_el_pp_read_directive_token(pp, &directive)) {
+    if (!_el_pp_read(pp, &directive)) {
         return false;
     }
 
