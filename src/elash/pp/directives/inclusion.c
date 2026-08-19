@@ -109,7 +109,7 @@ static bool _el_pp_resolve_inc_path(ElPreproc* pp, const ElPpIncPath* path, ElPp
     return false;
 }
 
-bool _el_pp_handle_include(ElPreproc* pp, ElToken* out_tok) {
+bool _el_pp_handle_include(ElPreproc* pp) {
     if (pp->include_depth >= INCLUDE_DEPTH_LIMIT) {
         ElToken tok; _el_pp_peek(pp, &tok);
         el_diag_report(
@@ -139,10 +139,10 @@ bool _el_pp_handle_include(ElPreproc* pp, ElToken* out_tok) {
     el_lexer_init(lexer, doc, EL_LEXER_FLAGS_DEFAULT);
 
     _el_pp_push_frame(pp, el_lexer_as_token_stream(lexer), doc);
-    return _el_pp_next(pp, out_tok);
+    return true;
 }
 
-bool _el_pp_handle_embed(ElPreproc* pp, ElToken* out_tok) {
-    (void) pp, (void) out_tok;
+bool _el_pp_handle_embed(ElPreproc* pp) {
+    (void) pp;
     EL_TODO("implement #embed");
 }

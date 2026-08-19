@@ -65,7 +65,7 @@ bool _el_pp_value_eq(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan
         FOOBARBAZ(==);
 
         return el_diag_report(
-            pp->diag, EL_DIAG_ERROR, "pp.eval", span,
+            pp->diag, EL_DIAG_ERROR, "pp.compar", span,
             "equality comparison between incompatible types: '${left}' and '${right}'",
             EL_DIAG_STRING("left", _el_pp_type_name(lhs->type)),
             EL_DIAG_STRING("right", _el_pp_type_name(rhs->type))
@@ -109,7 +109,7 @@ bool _el_pp_value_lt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan
     }
 
     return el_diag_report(
-        pp->diag, EL_DIAG_ERROR, "pp.eval", span,
+        pp->diag, EL_DIAG_ERROR, "pp.compar", span,
         "operator '<' is not defined for '${left}' and '${right}'",
         EL_DIAG_STRING("left", _el_pp_type_name(lhs->type)),
         EL_DIAG_STRING("right", _el_pp_type_name(rhs->type))

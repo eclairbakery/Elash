@@ -1,0 +1,20 @@
+ 1:note[pp.dir]: 123
+ 2:warn[pp.dir]: Hello
+ 3:note[pp.dir]: 4
+ 4:warn[pp.dir]: X
+ 5:note[pp.dir]: 26
+ 6:note[pp.dir]: { 1, 12, 3 }
+ 7:warn[pp.dir]: XYAB
+ 8:note[pp.dir]: { 1, 2, 3 }
+ 9:note[pp.dir]: Q
+10:note[pp.dir]: { k, "y", 1 }
+11:warn[pp.dir]: { 1, 1 }
+12:note[pp.dir]: 4
+13:note[pp.dir]: 6.28
+14:warn[pp.dir]: 1.2
+15:note[pp.dir]: false
+16:note[pp.dir]: true
+17:note[pp.dir]: true
+18:note[pp.dir]: false
+19:note[pp.dir]: true
+20:note[pp.dir]: true
