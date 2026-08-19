@@ -1,6 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal, Optional
+from pathlib import Path
 
+TestType  = Literal['positive', 'negative']
 TestStage = Literal['compilation', 'linking', 'runtime']
 Severity  = Literal['error', 'warning', 'note']
 
@@ -11,11 +13,17 @@ class Timeouts:
     runtime: float
 
 @dataclass
-class DiagnosticExpectation:
+class DiagExpectation:
     severity: Severity
     code:     str
     lines:    Optional[list[int]]
+    message:  Optional[str] = None
 
+@dataclass(order=True)
+class TestCase:
+    name: str
+    path: Path = field(compare=False)
+    type: TestType
 
 @dataclass
 class PositiveTestExpectation:
@@ -23,9 +31,11 @@ class PositiveTestExpectation:
     stdout:      str
     stderr:      str
 
+    diags: list[DiagExpectation]
+
 @dataclass
 class NegativeTestExpectation:
-    diags: list[DiagnosticExpectation]
+    diags: list[DiagExpectation]
     ignore_unexpected: bool = False
 
 TestExpectation = PositiveTestExpectation | NegativeTestExpectation
@@ -37,6 +47,7 @@ class FinishedResult:
     stdout:      str
     stderr:      str
     stage:       TestStage
+    compilation_result: Optional['FinishedResult'] = None
 
 @dataclass
 class TimedOutResult:
