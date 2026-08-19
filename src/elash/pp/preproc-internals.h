@@ -1,6 +1,11 @@
 #pragma once
 #include <elash/pp/preproc.h> // IWYU pragma: export
+#include <elash/util/assert.h> // IWYU pragma: export
 
+#include <elash/sema/unary-op.h>
+#include <elash/sema/bin-op.h>
+
+//////// include frames ////////
 #define INCLUDE_DEPTH_LIMIT 220
 
 typedef struct ElPpFrame {
@@ -11,22 +16,61 @@ typedef struct ElPpFrame {
     bool                    has_pushback;
 } ElPpFrame;
 
+void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc);
+
+////////// directives //////////
 bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken* out_tok);
 
-bool _el_pp_handle_include(ElPreproc* pp, ElToken* out_tok);
-bool _el_pp_handle_embed  (ElPreproc* pp, ElToken* out_tok);
+bool _el_pp_handle_include(ElPreproc* pp);
+bool _el_pp_handle_embed(ElPreproc* pp);
 
-bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev);
+bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan span);
+
+////////// expressions ///////////
+typedef enum ElPpNumKind {
+    EL_PP_NUM_INT,
+    EL_PP_NUM_FLOAT,
+} ElPpNumKind;
+
+typedef struct ElPpNum {
+    ElPpNumKind kind;
+    union {
+        int64_t int_;
+        double  float_;
+    } as;
+} ElPpNum;
+
+bool _el_pp_to_num(ElPpValue* val, ElPpNum* out);
+bool _el_pp_to_int(ElPpValue* val, int64_t* out);
+
+ElPpValue* _el_pp_apply_numeric_bin(
+    ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op, ElPpNum lhs, ElPpNum rhs
+);
+ElPpValue* _el_pp_apply_bin_op(
+    ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op, ElPpValue* lhs, ElPpValue* rhs
+);
+ElPpValue* _el_pp_apply_unary_op(
+    ElPreproc* pp, ElSourceSpan span, ElSemaUnaryOp op, ElPpValue* operand
+);
 
 ElPpValue* _el_pp_eval(ElPreproc* pp);
 
+////////// tokens ///////////
 bool _el_pp_next(ElPreproc* pp, ElToken* out_tok);
 bool _el_pp_peek(ElPreproc* pp, ElToken* out_tok);
 bool _el_pp_read(ElPreproc* pp, ElToken* out_tok);
 
+bool _el_pp_next_d(ElPreproc* pp, ElToken* out_tok);
+
+/////////// parsing helpers //////////
 ElToken _el_pp_advance(ElPreproc* pp);
 
 bool _el_pp_match(ElPreproc* pp, ElTokenType type);
 bool _el_pp_expect(ElPreproc* pp, ElTokenType type, ElSourceSpan span, ElStringView what);
 
-void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc);
+/////// diagnostics ///////
+void* _el_pp_report_incdec(ElPreproc* pp, ElSourceSpan span);
+void* _el_pp_report_deref(ElPreproc* pp, ElSourceSpan span);
+void* _el_pp_report_float_bw(ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op);
+void* _el_pp_report_non_bool_logical(ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op);
+void* _el_pp_report_non_bool_logical_unary(ElPreproc* pp, ElSourceSpan span, ElSemaUnaryOp op);

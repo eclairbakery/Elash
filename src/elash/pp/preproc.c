@@ -66,7 +66,7 @@ bool _el_pp_read(ElPreproc* pp, ElToken* out_tok) {
             continue;
 
         case EL_TT_NEWLINE:
-        case EL_TT_HASH:
+        //case EL_TT_HASH:
             frame_unread(pp, *out_tok);
             return false;
 
@@ -86,13 +86,7 @@ bool _el_pp_peek(ElPreproc* pp, ElToken* out_tok) {
     return true;
 }
 
-bool _el_pp_next(ElPreproc* pp, ElToken* out_tok) {
-    return el_pp_next(pp, out_tok, pp->diag);
-}
-
-bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
-    pp->diag = diag;
-
+bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directives) {
     while (true) {
         ElToken input_tok;
 
@@ -117,13 +111,32 @@ bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
             continue;
 
         case EL_TT_HASH:
-            return _el_pp_preprocess_directive(pp, out_tok);
+            if (handle_directives) {
+                return _el_pp_preprocess_directive(pp, out_tok);
+            } else {
+                // maybe fallthrough would be a better approach BUT
+                // -Werror=implicit-fallthrough won't let me do that
+                *out_tok = input_tok;
+                return true;
+            }
 
         default:
             *out_tok = input_tok;
             return true;
         }
     }
+}
+
+bool _el_pp_next(ElPreproc* pp, ElToken* out_tok) {
+    return _el_pp_next_internal(pp, out_tok, false);
+}
+bool _el_pp_next_d(ElPreproc* pp, ElToken* out_tok) {
+    return _el_pp_next_internal(pp, out_tok, true);
+}
+
+bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
+    pp->diag = diag;
+    return _el_pp_next_internal(pp, out_tok, true);
 }
 
 ElToken _el_pp_advance(ElPreproc* pp) {

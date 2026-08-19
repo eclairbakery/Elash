@@ -97,7 +97,7 @@ def _report_diag_mismatches(expanded: list[DiagExpectation], diagnostics: list[d
         if not any(_match_diagnostic(exp, diag) for exp in expanded):
             actual_lines = [r['start']['line'] + 1 for r in diag['span']['ranges']]
             lines_str = ','.join(map(str, actual_lines))  + ':'
-            print_info(f'  unexpected diag: {CLR_BOLD}{lines_str}{diag["severity"]}[{diag["category"]}]{CLR_RESET}')
+            print_info(f'  unexpected diag: {CLR_BOLD}{lines_str}{diag["severity"]}[{diag["category"]}]: {diag["formatted"]}{CLR_RESET}')
 
 def report_failure(name: str, expected: TestExpectation, actual: TestResult):
     if isinstance(actual, TimedOutResult):
