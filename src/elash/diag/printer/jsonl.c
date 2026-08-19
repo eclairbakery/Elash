@@ -49,6 +49,21 @@ static void dump_src_span(FILE* out, const ElSourceSpan* span) {
     fputs("]}", out);
 }
 
+static void dump_token(FILE* out, const ElToken* token) {
+    fputc('{', out);
+
+    fputs("\"type\":", out);
+    escape_json_str(out, el_token_type_to_string(token->type));
+
+    fputs(",\"lexeme\":", out);
+    escape_json_str(out, token->lexeme);
+
+    fputs(",\"span\":", out);
+    dump_src_span(out, &token->span);
+
+    fputc('}', out);
+}
+
 static void dump_diag_meta(const ElDiagMetaEntry* entry, FILE* out) {
     switch (entry->type) {
     case EL_DIAG_META_TYPE: {
@@ -59,14 +74,17 @@ static void dump_diag_meta(const ElDiagMetaEntry* entry, FILE* out) {
         el_strbuf_destroy(&sb);
         return;
     }
-    case EL_DIAG_META_STRING:
+    case EL_DIAG_META_STR:
         escape_json_str(out, entry->as.string);
         return;
-    case EL_DIAG_META_INTEGER:
+    case EL_DIAG_META_INT:
         fprintf(out, "%d", entry->as.integer);
         return;
-    case EL_DIAG_META_CHARACTER:
+    case EL_DIAG_META_CHAR:
         escape_json_str(out, el_sv_from_char(&entry->as.character));
+        return;
+    case EL_DIAG_META_TOK:
+        dump_token(out, &entry->as.token);
         return;
     }
 
