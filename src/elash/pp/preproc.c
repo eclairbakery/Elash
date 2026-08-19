@@ -57,7 +57,7 @@ void el_pp_destroy(ElPreproc* pp) {
     el_tkque_destroy(&pp->pending);
 }
 
-bool _el_pp_read_directive_token(ElPreproc* pp, ElToken* out_tok) {
+bool _el_pp_read(ElPreproc* pp, ElToken* out_tok) {
     while (read_from_active_frame(pp, out_tok)) {
         switch (out_tok->type) {
         case EL_TT_WHITESPACE:
@@ -78,12 +78,16 @@ bool _el_pp_read_directive_token(ElPreproc* pp, ElToken* out_tok) {
     return false;
 }
 
-bool _el_pp_peek_directive_token(ElPreproc* pp, ElToken* out_tok) {
-    if (!_el_pp_read_directive_token(pp, out_tok)) {
+bool _el_pp_peek(ElPreproc* pp, ElToken* out_tok) {
+    if (!_el_pp_read(pp, out_tok)) {
         return false;
     }
     frame_unread(pp, *out_tok);
     return true;
+}
+
+bool _el_pp_next(ElPreproc* pp, ElToken* out_tok) {
+    return el_pp_next(pp, out_tok, pp->diag);
 }
 
 bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
@@ -122,21 +126,40 @@ bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
     }
 }
 
-bool _el_pp_peek(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag) {
-    if (pp->has_lookahead) {
-        *out_tok = pp->lookahead;
+ElToken _el_pp_advance(ElPreproc* pp) {
+    ElToken tok;
+    if (!_el_pp_read(pp, &tok)) {
+        return (ElToken) { .type = EL_TT_EOF };
+    }
+    return tok;
+}
+
+bool _el_pp_match(ElPreproc* pp, ElTokenType type) {
+    ElToken tok;
+    if (!_el_pp_peek(pp, &tok) || tok.type != type) {
+        return false;
+
+    }
+    _el_pp_advance(pp);
+    return true;
+}
+
+bool _el_pp_expect(ElPreproc* pp, ElTokenType type, ElSourceSpan span, ElStringView what) {
+    ElToken tok = _el_pp_advance(pp);
+    if (tok.type == type) {
         return true;
     }
-    if (el_pp_next(pp, out_tok, diag)) {
-        pp->lookahead = *out_tok;
-        pp->has_lookahead = true;
-        return true;
-    }
-    return false;
+
+    return el_diag_report(
+        pp->diag, EL_DIAG_ERROR, "pp.unexpected-token",
+        span, "expected ${what}, found ${tok}",
+        EL_DIAG_STRING("what", what),
+        EL_DIAG_TOKEN("tok", tok),
+    );
 }
 
 static ElToken _el_pp_token_stream_next(ElTokenStream* self, ElDiagEngine* diag) {
-    ElPreproc* pp = (ElPreproc*)self->ctx;
+    ElPreproc* pp = self->ctx;
     ElToken tok;
     if (!el_pp_next(pp, &tok, diag)) {
         return (ElToken){ .type = EL_TT_EOF };

@@ -17,13 +17,13 @@ static bool is_valid_path_token(ElTokenType type) {
 
 static bool parse_inc_path(ElPreproc* pp, ElPpIncPath* out_path) {
     ElToken first_tok;
-    if (!_el_pp_read_directive_token(pp, &first_tok)) return false;
+    if (!_el_pp_read(pp, &first_tok)) return false;
 
     const uint directive_line = first_tok.span.ranges[0].start.line;
 
     ElToken next;
-    if (_el_pp_peek_directive_token(pp, &next) && next.type == EL_TT_COLON) {
-        _el_pp_read_directive_token(pp, &next);
+    if (_el_pp_peek(pp, &next) && next.type == EL_TT_COLON) {
+        _el_pp_read(pp, &next);
 
         out_path->scope = el_dynarena_clone_sv(pp->arena, first_tok.lexeme);
 
@@ -32,11 +32,11 @@ static bool parse_inc_path(ElPreproc* pp, ElPpIncPath* out_path) {
 
         ElToken last_tok = next;
         while (
-            _el_pp_peek_directive_token(pp, &next) &&
+            _el_pp_peek(pp, &next) &&
             is_valid_path_token(next.type) &&
             next.span.ranges[0].start.line == directive_line
         ) {
-            _el_pp_read_directive_token(pp, &next);
+            _el_pp_read(pp, &next);
             el_strbuf_append(&path_sb, next.lexeme);
             last_tok = next;
         }
@@ -111,7 +111,7 @@ static bool _el_pp_resolve_inc_path(ElPreproc* pp, const ElPpIncPath* path, ElPp
 
 bool _el_pp_handle_include(ElPreproc* pp, ElToken* out_tok) {
     if (pp->include_depth >= INCLUDE_DEPTH_LIMIT) {
-        ElToken tok; _el_pp_peek_directive_token(pp, &tok);
+        ElToken tok; _el_pp_peek(pp, &tok);
         el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.include-depth",
             tok.span, "include depth limit exceeded",
@@ -139,7 +139,7 @@ bool _el_pp_handle_include(ElPreproc* pp, ElToken* out_tok) {
     el_lexer_init(lexer, doc, EL_LEXER_FLAGS_DEFAULT);
 
     _el_pp_push_frame(pp, el_lexer_as_token_stream(lexer), doc);
-    return el_pp_next(pp, out_tok, pp->diag);
+    return _el_pp_next(pp, out_tok);
 }
 
 bool _el_pp_handle_embed(ElPreproc* pp, ElToken* out_tok) {
