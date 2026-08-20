@@ -18,6 +18,10 @@ typedef struct ElPpFrame {
 
 void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc);
 
+////////// scopes //////////
+ElPpScope* _el_pp_push_scope(ElPreproc* pp);
+ElPpScope* _el_pp_pop_scope(ElPreproc* pp);
+
 ////////// directives //////////
 bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken* out_tok);
 

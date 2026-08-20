@@ -2,6 +2,49 @@
 
 #include <elash/util/dynarena.h>
 
+bool el_pp_init(
+    ElPreproc* pp, ElTokenStream input, const ElSourceDocument* root_doc,
+    ElDynArena* arena, const ElPpIncMap* imap
+) {
+    pp->frame = NULL;
+    pp->has_lookahead = false;
+
+    if (!el_tkque_init(&pp->pending)) {
+        return false;
+    }
+
+    pp->imap  = imap;
+    pp->arena = arena;
+
+    _el_pp_push_frame(pp, input, root_doc);
+
+    pp->current_scope = NULL;
+    pp->builtin_scope = _el_pp_push_scope(pp);
+    pp->global_scope  = _el_pp_push_scope(pp);
+
+    return true;
+}
+
+void el_pp_free(ElPreproc* pp) {
+    EL_ASSERT(pp->current_scope == pp->global_scope, "nested scopes were not popped before destruction");
+    el_pp_scope_free(pp->global_scope);
+    el_pp_scope_free(pp->builtin_scope);
+
+    el_tkque_destroy(&pp->pending);
+}
+
+ElPpScope* _el_pp_push_scope(ElPreproc* pp) {
+    ElPpScope* scope = el_pp_scope_new(pp->current_scope);
+    pp->current_scope = scope;
+    return scope;
+}
+
+ElPpScope* _el_pp_pop_scope(ElPreproc* pp) {
+    ElPpScope* parent = pp->current_scope->parent;
+    el_pp_scope_free(pp->current_scope);
+    return pp->current_scope = parent;
+}
+
 void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc) {
     pp->include_depth++;
     pp->frame = EL_DYNARENA_NEW_STRUCT(pp->arena, ElPpFrame, {
@@ -9,11 +52,14 @@ void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocume
         .doc    = doc,
         .parent = pp->frame,
     });
+
+    _el_pp_push_scope(pp);
 }
 
 static void el_pp_pop_frame(ElPreproc* pp) {
     pp->frame = pp->frame->parent;
     pp->include_depth--;
+    _el_pp_pop_scope(pp);
 }
 
 static void frame_unread(ElPreproc* pp, ElToken tok) {
@@ -34,27 +80,6 @@ static bool read_from_active_frame(ElPreproc* pp, ElToken* out_tok) {
 
     *out_tok = pp->frame->stream.next(&pp->frame->stream, pp->diag);
     return out_tok->type != EL_TT_EOF;
-}
-
-bool el_pp_init(
-    ElPreproc* pp, ElTokenStream input, const ElSourceDocument* root_doc,
-    ElDynArena* arena, const ElPpIncMap* imap
-) {
-    pp->frame = NULL;
-    pp->has_lookahead = false;
-
-    if (!el_tkque_init(&pp->pending)) {
-        return false;
-    }
-
-    pp->imap  = imap;
-    pp->arena = arena;
-    _el_pp_push_frame(pp, input, root_doc);
-    return true;
-}
-
-void el_pp_destroy(ElPreproc* pp) {
-    el_tkque_destroy(&pp->pending);
 }
 
 bool _el_pp_read(ElPreproc* pp, ElToken* out_tok) {

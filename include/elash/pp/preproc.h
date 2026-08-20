@@ -30,15 +30,16 @@ typedef struct ElPreproc {
     ElDynArena* arena;
     ElDiagEngine* diag;
 
-    //ElPpScope builtin_scope;
-    //ElPpScope global_scope;
+    ElPpScope* builtin_scope;
+    ElPpScope* global_scope;
+    ElPpScope* current_scope;
 } ElPreproc;
 
 bool el_pp_init(
     ElPreproc* pp, ElTokenStream input, const ElSourceDocument* root_doc,
     ElDynArena* arena, const ElPpIncMap* imap
 );
-void el_pp_destroy(ElPreproc* pp);
+void el_pp_free(ElPreproc* pp);
 
 bool el_pp_next(ElPreproc* pp, ElToken* out_tok, ElDiagEngine* diag);
 
