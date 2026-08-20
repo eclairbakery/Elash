@@ -141,7 +141,17 @@ bool _el_pp_handle_include(ElPreproc* pp, ElSourceSpan dspan) {
     return true;
 }
 
+bool _el_pp_skip_include(ElPreproc* pp) {
+    ElPpIncPath path;
+    return parse_inc_path(pp, &path);
+}
+
 bool _el_pp_handle_embed(ElPreproc* pp, ElSourceSpan dspan) {
     (void) pp, (void) dspan;
+    EL_TODO("implement #embed");
+}
+
+bool _el_pp_skip_embed(ElPreproc* pp) {
+    (void) pp;
     EL_TODO("implement #embed");
 }

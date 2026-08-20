@@ -24,16 +24,25 @@ ElPpScope* _el_pp_pop_scope(ElPreproc* pp);
 
 ////////// directives //////////
 bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken hash, ElToken* out_tok);
+bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash);
 
 bool _el_pp_handle_include(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_embed(ElPreproc* pp, ElSourceSpan dspan);
+
+bool _el_pp_skip_include(ElPreproc* pp);
+bool _el_pp_skip_embed(ElPreproc* pp);
 
 bool _el_pp_handle_var(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_set(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_inc(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_dec(ElPreproc* pp, ElSourceSpan dspan);
 
+bool _el_pp_skip_var(ElPreproc* pp);
+bool _el_pp_skip_set(ElPreproc* pp);
+bool _el_pp_skip_incdec(ElPreproc* pp);
+
 bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan span);
+bool _el_pp_skip_diag(ElPreproc* pp);
 
 ////////// expressions ///////////
 typedef enum ElPpNumKind {
@@ -63,6 +72,7 @@ ElPpValue* _el_pp_apply_unary_op(
 );
 
 ElPpValue* _el_pp_eval(ElPreproc* pp);
+bool _el_pp_skip_expr(ElPreproc* pp);
 
 ////////// tokens ///////////
 bool _el_pp_next(ElPreproc* pp, ElToken* out_tok);
@@ -78,8 +88,9 @@ bool _el_pp_match(ElPreproc* pp, ElTokenType type);
 bool _el_pp_expect(ElPreproc* pp, ElTokenType type, ElSourceSpan span, ElStringView what);
 
 /////// diagnostics ///////
-void* _el_pp_report_incdec(ElPreproc* pp, ElSourceSpan span);
 void* _el_pp_report_deref(ElPreproc* pp, ElSourceSpan span);
+void* _el_pp_report_incdec(ElPreproc* pp, ElSourceSpan span);
+void* _el_pp_report_unterm_quote(ElPreproc* pp, ElSourceSpan span);
 void* _el_pp_report_float_bw(ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op);
 void* _el_pp_report_non_bool_logical(ElPreproc* pp, ElSourceSpan span, ElSemaBinOp op);
 void* _el_pp_report_non_bool_logical_unary(ElPreproc* pp, ElSourceSpan span, ElSemaUnaryOp op);

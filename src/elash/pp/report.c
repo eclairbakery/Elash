@@ -48,3 +48,10 @@ void* _el_pp_report_non_bool_logical_unary(ElPreproc* pp, ElSourceSpan span, ElS
           EL_DIAG_STRING("op", el_sema_unary_op_to_string(op)),
     );
 }
+
+void* _el_pp_report_unterm_quote(ElPreproc* pp, ElSourceSpan span) {
+    return el_diag_report(
+        pp->diag, EL_DIAG_ERROR, "pp.invalid-quote",
+        span, "unterminated token list '#(...)'"
+    );
+}
