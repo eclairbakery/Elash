@@ -4,6 +4,9 @@
 
 bool format_value(ElStringBuf* out, ElPpValue* value) {
     switch (value->type) {
+    case EL_PP_TYPE_NULL:
+        return el_strbuf_append(out, EL_SV("null"));
+
     case EL_PP_TYPE_INT:
         return el_strbuf_appendf(out, "%"PRId64, value->as.int_);
     case EL_PP_TYPE_FLOAT:
@@ -35,7 +38,7 @@ bool format_value(ElStringBuf* out, ElPpValue* value) {
     EL_UNREACHABLE_ENUM_VAL(ElPpType, value->type);
 }
 
-bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan span) {
+bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan dspan) {
     ElStringBuf message;
     el_strbuf_init(&message);
 
@@ -44,16 +47,18 @@ bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan span) {
         if (value == NULL) {
             return false;
         }
-        if (!format_value(&message, value)) {
+
+        if (!format_value(&message, value))
             return false;
-        }
 
         if (!_el_pp_match(pp, EL_TT_COMMA)) break;
+
+        el_strbuf_append_char(&message, ' ');
     }
 
     el_diag_report(
-        pp->diag, sev, "pp.dir", span,
-        "${message}",
+        pp->diag, sev, "pp.dir",
+        dspan, "${message}",
         EL_DIAG_STRING("message", el_strbuf_view(&message)),
     );
 

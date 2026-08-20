@@ -109,12 +109,11 @@ static bool _el_pp_resolve_inc_path(ElPreproc* pp, const ElPpIncPath* path, ElPp
     return false;
 }
 
-bool _el_pp_handle_include(ElPreproc* pp) {
+bool _el_pp_handle_include(ElPreproc* pp, ElSourceSpan dspan) {
     if (pp->include_depth >= INCLUDE_DEPTH_LIMIT) {
-        ElToken tok; _el_pp_peek(pp, &tok);
         el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.include-depth",
-            tok.span, "include depth limit exceeded",
+            dspan, "include depth limit exceeded",
         );
         el_diag_help(
             pp->diag, "check if you don't have any recursive includes without a stop condition"
@@ -142,7 +141,7 @@ bool _el_pp_handle_include(ElPreproc* pp) {
     return true;
 }
 
-bool _el_pp_handle_embed(ElPreproc* pp) {
-    (void) pp;
+bool _el_pp_handle_embed(ElPreproc* pp, ElSourceSpan dspan) {
+    (void) pp, (void) dspan;
     EL_TODO("implement #embed");
 }
