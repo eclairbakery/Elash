@@ -24,19 +24,19 @@ struct ElPpScope {
 };
 
 /// @brief Initializes an ElPpScope hash map.
-bool el_pp_scope_init(ElPpScope* vars, ElPpScope* parent, usize initial_capacity);
+bool el_pp_scope_init(ElPpScope* scope, ElPpScope* parent);
 /// @brief Destroys an ElPpScope hash map and frees its resources.
-void el_pp_scope_destroy(ElPpScope* vars);
+void el_pp_scope_destroy(ElPpScope* scope);
 
-/// @brief Assigns a pointer to a variable to a key in the hash map.
+/// @brief Assigns a pointer to a symbol to a key in the hash map.
 /// @return True if assignment is successful, false otherwise.
-bool el_pp_scope_assign(ElPpScope* vars, ElStringView key, ElPpSymbol* value);
+bool el_pp_scope_assign(ElPpScope* scope, ElStringView key, ElPpSymbol* value);
 /// @brief Removes a key-value pair from the hash map (does not free the value).
-bool el_pp_scope_deassign(ElPpScope* vars, ElStringView key);
+bool el_pp_scope_deassign(ElPpScope* scope, ElStringView key);
 
-/// @brief Retrieves the pointer to the variable associated with a key from this scope only.
-ElPpSymbol* el_pp_scope_lookup_local(ElPpScope* vars, ElStringView key);
-/// @brief Retrieves the pointer to the variable associated with a key from this scope or its parents.
-ElPpSymbol* el_pp_scope_lookup(ElPpScope* vars, ElStringView key);
+/// @brief Retrieves the pointer to the symbol associated with a key from this scope only.
+ElPpSymbol* el_pp_scope_lookup_local(ElPpScope* scope, ElStringView key);
+/// @brief Retrieves the pointer to the symbol associated with a key from this scope or its parents.
+ElPpSymbol* el_pp_scope_lookup(ElPpScope* scope, ElStringView key);
 /// @brief Checks if a key exists in the hash map.
-bool el_pp_scope_has(ElPpScope* vars, ElStringView key);
+bool el_pp_scope_has(ElPpScope* scope, ElStringView key);

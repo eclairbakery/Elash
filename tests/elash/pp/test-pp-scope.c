@@ -14,7 +14,7 @@ TestSuite(pp_scope, .init = init, .fini = fini);
 
 Test(pp_scope, basic_usage) {
     ElPpScope scope;
-    el_pp_scope_init(&scope, NULL, 8);
+    el_pp_scope_init(&scope, NULL);
 
     ElPpSymbol var1 = {
         .name = EL_SV("foo"),
@@ -40,8 +40,8 @@ Test(pp_scope, basic_usage) {
 
 Test(pp_scope, nested_lookup) {
     ElPpScope parent, child;
-    el_pp_scope_init(&parent, NULL, 8);
-    el_pp_scope_init(&child, &parent, 8);
+    el_pp_scope_init(&parent, NULL);
+    el_pp_scope_init(&child, &parent);
 
     ElPpSymbol var_parent = {
         .name = EL_SV("foo"),
@@ -64,8 +64,8 @@ Test(pp_scope, nested_lookup) {
 
 Test(pp_scope, shadowing) {
     ElPpScope parent, child;
-    el_pp_scope_init(&parent, NULL, 8);
-    el_pp_scope_init(&child, &parent, 8);
+    el_pp_scope_init(&parent, NULL);
+    el_pp_scope_init(&child, &parent);
 
     ElPpSymbol var_parent = {
         .name = EL_SV("foo"),
