@@ -65,3 +65,11 @@ bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan dspan) {
     el_strbuf_destroy(&message);
     return sev != EL_DIAG_ERROR;
 }
+
+bool _el_pp_skip_diag(ElPreproc* pp) {
+    while (true) {
+        if (!_el_pp_skip_expr(pp)) return false;
+        if (!_el_pp_match(pp, EL_TT_COMMA)) break;
+    }
+    return true;
+}

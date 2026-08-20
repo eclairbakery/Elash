@@ -69,6 +69,17 @@ bool _el_pp_handle_var(ElPreproc* pp, ElSourceSpan dspan) {
     return el_pp_scope_assign(pp->current_scope, sym->name, sym);
 }
 
+bool _el_pp_skip_var(ElPreproc* pp) {
+    ElToken name_tok;
+    if (!_el_pp_read(pp, &name_tok) || name_tok.type != EL_TT_IDENT) return false;
+    ElToken next;
+    if (_el_pp_peek(pp, &next) && next.type == EL_TT_ASSIGN) {
+        _el_pp_advance(pp);
+        return _el_pp_skip_expr(pp);
+    }
+    return true;
+}
+
 bool _el_pp_handle_set(ElPreproc* pp, ElSourceSpan dspan) {
     ElToken name_tok;
     ElPpSymbol* sym = _el_pp_get_var_symbol(pp, EL_SV("set"), dspan, &name_tok);
@@ -87,6 +98,13 @@ bool _el_pp_handle_set(ElPreproc* pp, ElSourceSpan dspan) {
 
     sym->as.var = value;
     return true;
+}
+
+bool _el_pp_skip_set(ElPreproc* pp) {
+    ElToken name_tok;
+    if (!_el_pp_read(pp, &name_tok) || name_tok.type != EL_TT_IDENT) return false;
+    if (!_el_pp_match(pp, EL_TT_ASSIGN)) return false;
+    return _el_pp_skip_expr(pp);
 }
 
 static bool _el_pp_handle_incdec(ElPreproc* pp, ElStringView dname, bool increment, ElSourceSpan dspan) {
@@ -118,4 +136,9 @@ bool _el_pp_handle_inc(ElPreproc* pp, ElSourceSpan dspan) {
 
 bool _el_pp_handle_dec(ElPreproc* pp, ElSourceSpan dspan) {
     return _el_pp_handle_incdec(pp, EL_SV("dec"), false, dspan);
+}
+
+bool _el_pp_skip_incdec(ElPreproc* pp) {
+    ElToken name_tok;
+    return _el_pp_read(pp, &name_tok) && name_tok.type == EL_TT_IDENT;
 }

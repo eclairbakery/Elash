@@ -113,19 +113,15 @@ static ElPpValue* parse_token_list(ElPreproc* pp, ElSourceSpan hash_span) {
         ElToken tok = _el_pp_advance(pp);
         if (tok.type == EL_TT_EOF) {
             el_pp_valbuf_free(&buf);
-            return el_diag_report(
-                pp->diag, EL_DIAG_ERROR, "pp.invalid-quote", hash_span,
-                "unterminated token list '#(...)'"
-            );
+            return _el_pp_report_unterm_quote(pp, hash_span);
         }
 
         if (tok.type == EL_TT_LPAREN) {
             depth++;
         } else if (tok.type == EL_TT_RPAREN) {
             depth--;
-            if (depth == 0) {
+            if (depth == 0)
                 break;
-            }
         }
 
         ElPpValue* elem = _el_pp_new_tok(pp->arena, tok);
