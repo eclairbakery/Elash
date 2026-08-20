@@ -85,30 +85,30 @@ static Entry* find_slot(ElPpScope* scope, ElStringView key, bool* found) {
     }
 }
 
-bool el_pp_scope_init(ElPpScope* scope, ElPpScope* parent) {
-    if (!scope) return false;
+ElPpScope* el_pp_scope_new(ElPpScope* parent) {
+    ElPpScope* scope = malloc(sizeof(ElPpScope));
+    if (!scope) return NULL;
 
     scope->entries = calloc(INITIAL_CAPACITY, sizeof(Entry));
-    if (!scope->entries)
-        return false;
+    if (!scope->entries) {
+        free(scope);
+        return NULL;
+    }
 
     scope->capacity = INITIAL_CAPACITY;
     scope->num_entries = 0;
     scope->num_tombstones = 0;
     scope->parent = parent;
 
-    return true;
+    return scope;
 }
 
-void el_pp_scope_destroy(ElPpScope* scope) {
-    if (scope == NULL || scope->entries == NULL)
+void el_pp_scope_free(ElPpScope* scope) {
+    if (scope == NULL)
         return;
 
     free(scope->entries);
-    scope->entries = NULL;
-    scope->capacity = 0;
-    scope->num_entries = 0;
-    scope->num_tombstones = 0;
+    free(scope);
 }
 
 bool el_pp_scope_assign(ElPpScope* scope, ElStringView key, ElPpSymbol* value) {

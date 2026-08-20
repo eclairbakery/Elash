@@ -23,10 +23,10 @@ struct ElPpScope {
     ElPpScope* parent;
 };
 
-/// @brief Initializes an ElPpScope hash map.
-bool el_pp_scope_init(ElPpScope* scope, ElPpScope* parent);
-/// @brief Destroys an ElPpScope hash map and frees its resources.
-void el_pp_scope_destroy(ElPpScope* scope);
+/// @brief Allocates and initializes a new ElPpScope hash map.
+ElPpScope* el_pp_scope_new(ElPpScope* parent);
+/// @brief Destroys an ElPpScope hash map and frees its memory.
+void el_pp_scope_free(ElPpScope* scope);
 
 /// @brief Assigns a pointer to a symbol to a key in the hash map.
 /// @return True if assignment is successful, false otherwise.
