@@ -23,10 +23,10 @@ ElPpScope* _el_pp_push_scope(ElPreproc* pp);
 ElPpScope* _el_pp_pop_scope(ElPreproc* pp);
 
 ////////// directives //////////
-bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken* out_tok);
+bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken hash, ElToken* out_tok);
 
-bool _el_pp_handle_include(ElPreproc* pp);
-bool _el_pp_handle_embed(ElPreproc* pp);
+bool _el_pp_handle_include(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_handle_embed(ElPreproc* pp, ElSourceSpan dspan);
 
 bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan span);
 

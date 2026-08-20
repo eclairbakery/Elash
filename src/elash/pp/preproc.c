@@ -137,7 +137,7 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
 
         case EL_TT_HASH:
             if (handle_directives) {
-                return _el_pp_preprocess_directive(pp, out_tok);
+                return _el_pp_preprocess_directive(pp, input_tok, out_tok);
             } else {
                 // maybe fallthrough would be a better approach BUT
                 // -Werror=implicit-fallthrough won't let me do that
