@@ -28,6 +28,11 @@ bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken hash, ElToken* out_tok);
 bool _el_pp_handle_include(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_embed(ElPreproc* pp, ElSourceSpan dspan);
 
+bool _el_pp_handle_var(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_handle_set(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_handle_inc(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_handle_dec(ElPreproc* pp, ElSourceSpan dspan);
+
 bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan span);
 
 ////////// expressions ///////////
