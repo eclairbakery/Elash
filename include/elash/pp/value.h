@@ -5,6 +5,7 @@
 #include <elash/lexer/tokbuf.h>
 
 typedef enum ElPpType {
+    EL_PP_TYPE_NULL,
     EL_PP_TYPE_INT,
     EL_PP_TYPE_BOOL,
     EL_PP_TYPE_FLOAT,
@@ -45,6 +46,9 @@ bool _el_pp_value_gt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan
 ElPpValue* _el_pp_strcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs);
 ElPpValue* _el_pp_listcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs);
 
+ElPpValue* _el_pp_value_clone(ElDynArena* arena, ElPpValue* value);
+
+ElPpValue* _el_pp_new_null(ElDynArena* arena);
 ElPpValue* _el_pp_new_int(ElDynArena* arena, int64_t val);
 ElPpValue* _el_pp_new_float(ElDynArena* arena, double val);
 ElPpValue* _el_pp_new_bool(ElDynArena* arena, bool val);

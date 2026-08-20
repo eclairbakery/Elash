@@ -14,3 +14,5 @@ typedef struct ElPpSymbol {
         ElPpValue* var;
     } as;
 } ElPpSymbol;
+
+ElPpSymbol* _el_pp_new_sym_var(ElDynArena* arena, ElStringView name, ElPpValue* value);

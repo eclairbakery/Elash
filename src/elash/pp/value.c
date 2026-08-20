@@ -5,6 +5,7 @@
 
 ElStringView _el_pp_type_name(ElPpType type) {
     switch (type) {
+    case EL_PP_TYPE_NULL:  return EL_SV("null");
     case EL_PP_TYPE_INT:   return EL_SV("int");
     case EL_PP_TYPE_BOOL:  return EL_SV("bool");
     case EL_PP_TYPE_FLOAT: return EL_SV("float");
@@ -73,16 +74,18 @@ bool _el_pp_value_eq(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan
     }
 
     switch (lhs->type) {
+    case EL_PP_TYPE_NULL:
+        return true;
     case EL_PP_TYPE_INT:
-        return lhs->as.int_ == rhs->as.int_; break;
+        return lhs->as.int_ == rhs->as.int_;
     case EL_PP_TYPE_BOOL:
-        return lhs->as.bool_ == rhs->as.bool_; break;
+        return lhs->as.bool_ == rhs->as.bool_;
     case EL_PP_TYPE_FLOAT:
-        return lhs->as.float_ == rhs->as.float_; break;
+        return lhs->as.float_ == rhs->as.float_;
     case EL_PP_TYPE_CHAR:
-        return lhs->as.char_ == rhs->as.char_; break;
+        return lhs->as.char_ == rhs->as.char_;
     case EL_PP_TYPE_STR:
-        return el_sv_eql(lhs->as.str_, rhs->as.str_); break;
+        return el_sv_eql(lhs->as.str_, rhs->as.str_);
     case EL_PP_TYPE_LIST:
         if (lhs->as.list_.count != rhs->as.list_.count)
             return false;
@@ -131,7 +134,39 @@ bool _el_pp_value_gt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan
     );
 }
 
+//////// clone ////////
+ElPpValue* _el_pp_value_clone(ElDynArena* arena, ElPpValue* val) {
+    if (val == NULL) return NULL;
+
+    switch (val->type) {
+    case EL_PP_TYPE_NULL:  return _el_pp_new_null(arena);
+    case EL_PP_TYPE_INT:   return _el_pp_new_int(arena, val->as.int_);
+    case EL_PP_TYPE_BOOL:  return _el_pp_new_bool(arena, val->as.bool_);
+    case EL_PP_TYPE_FLOAT: return _el_pp_new_float(arena, val->as.float_);
+    case EL_PP_TYPE_CHAR:  return _el_pp_new_char(arena, val->as.char_);
+    case EL_PP_TYPE_STR:   return _el_pp_new_str(arena, val->as.str_);
+    case EL_PP_TYPE_TOK:   return _el_pp_new_tok(arena, val->as.tok_);
+    case EL_PP_TYPE_LIST: {
+        ElPpValue** new_values = NULL;
+        if (val->as.list_.count != 0) {
+            new_values = EL_DYNARENA_NEW_ARR(arena, ElPpValue*, val->as.list_.count);
+            for (usize i = 0; i < val->as.list_.count; ++i) {
+                new_values[i] = _el_pp_value_clone(arena, val->as.list_.values[i]);
+            }
+        }
+        return _el_pp_new_list(arena, (ElPpList) { new_values, val->as.list_.count });
+    }
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElPpType, val->type);
+}
+
 /////// constructors ///////
+ElPpValue* _el_pp_new_null(ElDynArena* arena) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElPpValue, {
+        .type = EL_PP_TYPE_NULL,
+    });
+}
+
 ElPpValue* _el_pp_new_int(ElDynArena* arena, int64_t val) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElPpValue, {
         .type = EL_PP_TYPE_INT,
