@@ -18,6 +18,7 @@
 #note 1 > 2              // false
 #note 1 == 1             // true
 #note 1 != 2             // true
+#warn null               // null
 
 int main() {
     return 0;
