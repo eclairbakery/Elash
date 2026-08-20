@@ -11,8 +11,8 @@
 #include <elash/util/fs.h>
 
 static bool is_valid_path_token(ElTokenType type) {
-    return type == EL_TT_IDENT || type == EL_TT_STRING_LITERAL ||
-           type == EL_TT_INT_LITERAL || type == EL_TT_SLASH || type == EL_TT_DOT;
+    return type == EL_TT_IDENT || type == EL_TT_STRING_LITERAL || type == EL_TT_MINUS
+        || type == EL_TT_INT_LITERAL || type == EL_TT_SLASH || type == EL_TT_DOT;
 }
 
 static bool parse_inc_path(ElPreproc* pp, ElPpIncPath* out_path) {
@@ -22,33 +22,33 @@ static bool parse_inc_path(ElPreproc* pp, ElPpIncPath* out_path) {
     const uint directive_line = first_tok.span.ranges[0].start.line;
 
     ElToken next;
+    ElStringBuf path_sb;
+    el_strbuf_init(&path_sb);
+
+    ElToken last_tok = first_tok;
+
     if (_el_pp_peek(pp, &next) && next.type == EL_TT_COLON) {
-        _el_pp_read(pp, &next);
-
+        _el_pp_read(pp, &next); // ':'
         out_path->scope = el_dynarena_clone_sv(pp->arena, first_tok.lexeme);
-
-        ElStringBuf path_sb;
-        el_strbuf_init(&path_sb);
-
-        ElToken last_tok = next;
-        while (
-            _el_pp_peek(pp, &next) &&
-            is_valid_path_token(next.type) &&
-            next.span.ranges[0].start.line == directive_line
-        ) {
-            _el_pp_read(pp, &next);
-            el_strbuf_append(&path_sb, next.lexeme);
-            last_tok = next;
-        }
-
-        out_path->ipath = el_dynarena_clone_sv(pp->arena, el_strbuf_view(&path_sb));
-        out_path->span  = el_srcspan_merge(first_tok.span, last_tok.span);
-        el_strbuf_destroy(&path_sb);
     } else {
         out_path->scope = EL_SV_NULL;
-        out_path->ipath = el_dynarena_clone_sv(pp->arena, first_tok.lexeme);
-        out_path->span  = first_tok.span;
+        el_strbuf_append(&path_sb, first_tok.lexeme);
     }
+
+    while (
+        _el_pp_peek(pp, &next) &&
+        is_valid_path_token(next.type) &&
+        next.span.ranges[0].start.line == directive_line
+    ) {
+        _el_pp_read(pp, &next);
+        el_strbuf_append(&path_sb, next.lexeme);
+        last_tok = next;
+    }
+
+    out_path->ipath = el_dynarena_clone_sv(pp->arena, el_strbuf_view(&path_sb));
+    out_path->span  = el_srcspan_merge(first_tok.span, last_tok.span);
+    el_strbuf_destroy(&path_sb);
+
     return true;
 }
 
