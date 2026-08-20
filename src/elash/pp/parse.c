@@ -204,6 +204,8 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
         return _el_pp_new_bool(pp->arena, true);
     case EL_TT_FALSE_LITERAL:
         return _el_pp_new_bool(pp->arena, false);
+    case EL_TT_NULL_LITERAL:
+        return _el_pp_new_null(pp->arena);
     case EL_TT_LPAREN: {
         ElPpValue* expr = _el_pp_eval(pp);
         if (expr == NULL) {
@@ -215,13 +217,25 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
         return expr;
     }
 
-    case EL_TT_IDENT:
-        // TODO: lookup variables here.
-        return el_diag_report(
-            pp->diag, EL_DIAG_ERROR, "pp.undefined", tok.span,
-            "undefined identifier '${name}' in preprocessor expression",
-            EL_DIAG_STRING("name", tok.lexeme)
-        );
+    case EL_TT_IDENT: {
+        ElPpSymbol* sym = el_pp_scope_lookup(pp->current_scope, tok.lexeme);
+        if (sym == NULL) {
+            return el_diag_report(
+                pp->diag, EL_DIAG_ERROR, "pp.undeclared", tok.span,
+                "undeclared identifier '${name}' in preprocessor expression",
+                EL_DIAG_STRING("name", tok.lexeme)
+            );
+        }
+        if (sym->kind != EL_PP_SYM_VAR) {
+            return el_diag_report(
+                pp->diag, EL_DIAG_ERROR, "pp.sym-kind",
+                tok.span, "expected a variable name"
+            );
+        }
+
+        return _el_pp_value_clone(pp->arena, sym->as.var);
+    }
+
     default:
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.unexpected-token", tok.span,
