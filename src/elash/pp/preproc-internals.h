@@ -115,7 +115,7 @@ bool _el_pp_next_d(ElPreproc* pp, ElToken* out_tok);
 ElToken _el_pp_advance(ElPreproc* pp);
 
 bool _el_pp_match(ElPreproc* pp, ElTokenType type);
-bool _el_pp_expect(ElPreproc* pp, ElTokenType type, ElSourceSpan span, ElStringView what);
+bool _el_pp_expect(ElPreproc* pp, ElTokenType type);
 
 /////// diagnostics ///////
 void* _el_pp_report_deref(ElPreproc* pp, ElSourceSpan span);

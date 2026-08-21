@@ -62,7 +62,7 @@ static bool emit_value(ElPreproc* pp, ElPpValue* value, ElSourceSpan span) {
 }
 
 static bool handle_splice(ElPreproc* pp, ElToken hash) {
-    if (!_el_pp_expect(pp, EL_TT_LBRACE, hash.span, EL_SV("'{'"))) {
+    if (!_el_pp_expect(pp, EL_TT_LBRACE)) {
         return false;
     }
 
@@ -72,7 +72,7 @@ static bool handle_splice(ElPreproc* pp, ElToken hash) {
     }
 
     ElToken t; _el_pp_peek(pp, &t);
-    if (!_el_pp_expect(pp, EL_TT_RBRACE, hash.span, EL_SV("'}'"))) {
+    if (!_el_pp_expect(pp, EL_TT_RBRACE)) {
         return false;
     }
 
