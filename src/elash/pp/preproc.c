@@ -260,7 +260,7 @@ bool _el_pp_match(ElPreproc* pp, ElTokenType type) {
     return true;
 }
 
-bool _el_pp_expect(ElPreproc* pp, ElTokenType type, ElSourceSpan span, ElStringView what) {
+bool _el_pp_expect(ElPreproc* pp, ElTokenType type) {
     ElToken tok = _el_pp_advance(pp);
     if (tok.type == type) {
         return true;
@@ -268,9 +268,9 @@ bool _el_pp_expect(ElPreproc* pp, ElTokenType type, ElSourceSpan span, ElStringV
 
     return el_diag_report(
         pp->diag, EL_DIAG_ERROR, "pp.unexpected-token",
-        span, "expected ${what}, found ${tok}",
-        EL_DIAG_STRING("what", what),
-        EL_DIAG_TOKEN("tok", tok),
+        tok.span, "expected ${expected}, found ${found}",
+        EL_DIAG_STRING("expected", el_token_type_format(type)),
+        EL_DIAG_TOKEN("found", tok),
     );
 }
 

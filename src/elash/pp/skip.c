@@ -32,7 +32,7 @@ static bool skip_primary(ElPreproc* pp) {
         }
 
         if (depth != 0)
-            return _el_pp_expect(pp, EL_TT_RBRACE, tok.span, EL_SV("'}'"));
+            return _el_pp_expect(pp, EL_TT_RBRACE);
     }
 
     if (tok.type == EL_TT_LPAREN) {

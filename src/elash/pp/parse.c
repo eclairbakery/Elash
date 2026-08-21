@@ -207,7 +207,7 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
         if (expr == NULL) {
             return NULL;
         }
-        if (!_el_pp_expect(pp, EL_TT_RPAREN, tok.span, EL_SV("')'"))) {
+        if (!_el_pp_expect(pp, EL_TT_RPAREN)) {
             return NULL;
         }
         return expr;
@@ -264,7 +264,7 @@ static ElPpValue* parse_postfix(ElPreproc* pp) {
             if (index == NULL) {
                 return NULL;
             }
-            if (!_el_pp_expect(pp, EL_TT_RBRACKET, open_span, EL_SV("']'"))) {
+            if (!_el_pp_expect(pp, EL_TT_RBRACKET)) {
                 return NULL;
             }
             expr = _el_pp_apply_bin_op(
