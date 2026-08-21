@@ -73,7 +73,7 @@ Test(el_unparser, integration_test) {
         ElSourceDocument doc;
         cr_assert_eq(el_srcdoc_init_from_file(&doc, g.gl_pathv[i]), EL_SRCDOC_ERR_SUCCESS);
 
-        el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT|EL_LF_SKIP_COMMENTS);
+        el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT|EL_LF_SKIP_WHITESPACE|EL_LF_SKIP_COMMENTS);
 
         el_parser_init(&parser, el_lexer_as_token_stream(&lexer), &diag, &arena);
         ElAstModule* orig = el_parser_parse_module(&parser);
