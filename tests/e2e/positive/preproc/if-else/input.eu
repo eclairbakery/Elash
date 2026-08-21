@@ -34,11 +34,11 @@
     #note "this SHOULD be reached"
 #end
 
-#var test = true
+#const test = true
 #if true
     // if gets its own scope, #var here should shadow
     // test from outer scope
-    #var test = false
+    #const test = false
 #end
 
 #if !test

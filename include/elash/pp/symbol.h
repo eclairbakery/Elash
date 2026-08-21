@@ -7,15 +7,22 @@ typedef enum ElPpSymbolKind {
     //EL_PP_SYM_MACRO,
 } ElPpSymbolKind;
 
+typedef struct ElPpVarSym {
+    ElPpValue* v;
+    bool is_mutable;
+    bool was_mutated;
+} ElPpVarSym;
+
 typedef struct ElPpSymbol {
     ElStringView   name;
     ElPpSymbolKind kind;
+    ElSourceSpan defspan;
     union {
-        struct {
-            ElPpValue* v;
-            bool is_mutable;
-        } var;
+        ElPpVarSym var;
     } as;
 } ElPpSymbol;
 
-ElPpSymbol* _el_pp_new_sym_var(ElDynArena* arena, ElStringView name, ElPpValue* value, bool mut);
+ElPpSymbol* _el_pp_new_sym_var(
+    ElDynArena* arena, ElStringView name, ElSourceSpan defspan,
+    ElPpValue* value, bool mut
+);
