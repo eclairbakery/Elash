@@ -18,6 +18,21 @@ typedef struct ElPpFrame {
 
 void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc);
 
+////////// if frames //////////
+typedef struct ElPpIfFrame ElPpIfFrame;
+struct ElPpIfFrame {
+    ElSourceSpan ifspan;
+    bool branch_taken;
+    bool has_scope;
+    bool had_else;
+    ElPpIfFrame* parent;
+};
+
+void _el_pp_push_if_frame(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan);
+void _el_pp_enter_if_branch(ElPreproc* pp);
+void _el_pp_leave_if_branch(ElPreproc* pp);
+void _el_pp_pop_if_frame(ElPreproc* pp);
+
 ////////// scopes //////////
 ElPpScope* _el_pp_push_scope(ElPreproc* pp);
 ElPpScope* _el_pp_pop_scope(ElPreproc* pp);
@@ -43,6 +58,16 @@ bool _el_pp_skip_incdec(ElPreproc* pp);
 
 bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan span);
 bool _el_pp_skip_diag(ElPreproc* pp);
+
+bool _el_pp_handle_if(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_handle_else(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_handle_elif(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_handle_end(ElPreproc* pp, ElSourceSpan dspan);
+
+bool _el_pp_skip_if(ElPreproc* pp);
+bool _el_pp_skip_else(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_skip_elif(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_skip_end(ElPreproc* pp);
 
 ////////// expressions ///////////
 typedef enum ElPpNumKind {
