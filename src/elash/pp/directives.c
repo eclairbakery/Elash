@@ -27,6 +27,8 @@ bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken hash, ElToken* out_tok) 
 
     if (el_sv_eql(dir.lexeme, EL_SV("include")))
         return _el_pp_handle_include(pp, dspan) && _el_pp_next_d(pp, out_tok);
+    if (el_sv_eql(dir.lexeme, EL_SV("emit")))
+        return _el_pp_handle_emit(pp, dspan) && _el_pp_next_d(pp, out_tok);
     if (el_sv_eql(dir.lexeme, EL_SV("embed")))
         return _el_pp_handle_embed(pp, dspan) && _el_pp_next_d(pp, out_tok);
 
@@ -72,6 +74,7 @@ bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash) {
         el_srcspan_merge(hash.span, dir.span);
 
     if (el_sv_eql(dir.lexeme, EL_SV("include"))) return _el_pp_skip_include(pp);
+    if (el_sv_eql(dir.lexeme, EL_SV("emit")))    return _el_pp_skip_emit(pp);
     if (el_sv_eql(dir.lexeme, EL_SV("embed")))   return _el_pp_skip_embed(pp);
 
     if (el_sv_eql(dir.lexeme, EL_SV("const"))) return _el_pp_skip_const(pp);
