@@ -44,8 +44,26 @@ ElPpScope* _el_pp_push_scope(ElPreproc* pp) {
 }
 
 ElPpScope* _el_pp_pop_scope(ElPreproc* pp) {
-    ElPpScope* parent = pp->current_scope->parent;
-    el_pp_scope_free(pp->current_scope);
+    ElPpScope* scope = pp->current_scope;
+    for (usize i = 0; i < scope->capacity; ++i) {
+        if (scope->entries[i].state != _EL_PP_OCCUPIED) continue;
+        if (scope->entries[i].value->kind != EL_PP_SYM_VAR) continue;
+
+        ElPpVarSym* var = &scope->entries[i].value->as.var;
+        if (!var->is_mutable || var->was_mutated) continue;
+
+        el_diag_report(
+            pp->diag, EL_DIAG_WARN, "pp.never-mutated",
+            scope->entries[i].value->defspan,
+            "variable defined as mutable but never mutated",
+        );
+        el_diag_help(
+            pp->diag, "use #const if you don't need mutability"
+        );
+    }
+
+    ElPpScope* parent = scope->parent;
+    el_pp_scope_free(scope);
     return pp->current_scope = parent;
 }
 

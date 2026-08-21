@@ -37,7 +37,7 @@ bool resize(ElPpScope* scope, usize new_capacity) {
     scope->num_tombstones = 0;
 
     for (usize i = 0; i < old_capacity; ++i) {
-        if (old_entries[i].state == _EL_PP_VARS_OCCUPIED) {
+        if (old_entries[i].state == _EL_PP_OCCUPIED) {
            el_pp_scope_assign(scope, old_entries[i].key, old_entries[i].value);
         }
     }
@@ -68,12 +68,12 @@ static Entry* find_slot(ElPpScope* scope, ElStringView key, bool* found) {
     for (;;) {
         Entry* entry = &scope->entries[index];
 
-        if (entry->state == _EL_PP_VARS_EMPTY) {
+        if (entry->state == _EL_PP_EMPTY) {
             *found = false;
             return first_tombstone != NULL ? first_tombstone : entry;
         }
 
-        if (entry->state == _EL_PP_VARS_TOMBSTONE) {
+        if (entry->state == _EL_PP_TOMBSTONE) {
             if (first_tombstone == NULL)
                 first_tombstone = entry;
         } else if (el_sv_eql(entry->key, key)) {
@@ -123,12 +123,12 @@ bool el_pp_scope_assign(ElPpScope* scope, ElStringView key, ElPpSymbol* value) {
         return true;
     }
 
-    if (slot->state == _EL_PP_VARS_TOMBSTONE)
+    if (slot->state == _EL_PP_TOMBSTONE)
         scope->num_tombstones--;
 
     slot->key = key;
     slot->value = value;
-    slot->state = _EL_PP_VARS_OCCUPIED;
+    slot->state = _EL_PP_OCCUPIED;
     scope->num_entries++;
 
     return true;
@@ -141,7 +141,7 @@ bool el_pp_scope_deassign(ElPpScope* scope, ElStringView key) {
     if (!found)
         return false;
 
-    slot->state = _EL_PP_VARS_TOMBSTONE;
+    slot->state = _EL_PP_TOMBSTONE;
     scope->num_entries--;
     scope->num_tombstones++;
 

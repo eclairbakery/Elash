@@ -11,8 +11,8 @@
 #const z = 200
 #note x, y, z
 
-#var shared    = 20
-#var nonshared = 99
+#var   shared    = 20
+#const nonshared = 99
 
 #note "shared == 20 is", shared == 20
 #note "nonshared == 99 is", nonshared == 99

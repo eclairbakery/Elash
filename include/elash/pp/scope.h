@@ -8,9 +8,9 @@ struct _ElPpScopeEntry {
     ElStringView key;
     ElPpSymbol* value;
     enum {
-        _EL_PP_VARS_EMPTY,
-        _EL_PP_VARS_OCCUPIED,
-        _EL_PP_VARS_TOMBSTONE,
+        _EL_PP_EMPTY,
+        _EL_PP_OCCUPIED,
+        _EL_PP_TOMBSTONE,
     } state;
 };
 
