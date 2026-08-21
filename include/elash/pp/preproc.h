@@ -15,11 +15,15 @@
 #include <stdbool.h>
 
 typedef struct ElPpFrame ElPpFrame;
+typedef struct ElPpIfFrame ElPpIfFrame;
 
 typedef struct ElPreproc {
     uint include_depth;
-
     ElPpFrame* frame;
+
+    uint skip_depth;
+    ElPpIfFrame* if_stack;
+
     ElTokenQueue pending;
 
     ElToken lookahead;

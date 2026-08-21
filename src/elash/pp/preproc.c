@@ -7,6 +7,9 @@ bool el_pp_init(
     ElDynArena* arena, const ElPpIncMap* imap
 ) {
     pp->frame = NULL;
+    pp->include_depth = 0;
+    pp->skip_depth = 0;
+    pp->if_stack = NULL;
     pp->has_lookahead = false;
 
     if (!el_tkque_init(&pp->pending)) {
@@ -33,6 +36,7 @@ void el_pp_free(ElPreproc* pp) {
     el_tkque_destroy(&pp->pending);
 }
 
+////////// scopes ////////////
 ElPpScope* _el_pp_push_scope(ElPreproc* pp) {
     ElPpScope* scope = el_pp_scope_new(pp->current_scope);
     pp->current_scope = scope;
@@ -45,6 +49,7 @@ ElPpScope* _el_pp_pop_scope(ElPreproc* pp) {
     return pp->current_scope = parent;
 }
 
+///////// include frames ///////////
 void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc) {
     pp->include_depth++;
     pp->frame = EL_DYNARENA_NEW_STRUCT(pp->arena, ElPpFrame, {
@@ -80,6 +85,43 @@ static bool read_from_active_frame(ElPreproc* pp, ElToken* out_tok) {
 
     *out_tok = pp->frame->stream.next(&pp->frame->stream, pp->diag);
     return out_tok->type != EL_TT_EOF;
+}
+
+////////////// if frames //////////////
+void _el_pp_push_if_frame(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan) {
+    pp->if_stack = EL_DYNARENA_NEW_STRUCT(pp->arena, ElPpIfFrame, {
+        .branch_taken = take_branch,
+        .has_scope    = take_branch,
+        .had_else     = false,
+        .ifspan       = ifspan,
+        .parent       = pp->if_stack,
+    });
+    if (take_branch) {
+        _el_pp_push_scope(pp);
+    }
+}
+
+void _el_pp_enter_if_branch(ElPreproc* pp) {
+    EL_ASSERT(pp->if_stack != NULL, "enter_if_branch with empty if stack");
+    EL_ASSERT(!pp->if_stack->has_scope, "enter_if_branch while a branch scope is already open");
+    pp->if_stack->branch_taken = true;
+    pp->if_stack->has_scope = true;
+    _el_pp_push_scope(pp);
+}
+
+void _el_pp_leave_if_branch(ElPreproc* pp) {
+    EL_ASSERT(pp->if_stack != NULL, "leave_if_branch with empty if stack");
+    EL_ASSERT(pp->if_stack->has_scope, "leave_if_branch without an open branch scope");
+    pp->if_stack->has_scope = false;
+    _el_pp_pop_scope(pp);
+}
+
+void _el_pp_pop_if_frame(ElPreproc* pp) {
+    EL_ASSERT(pp->if_stack != NULL, "pop_if_frame with empty if stack");
+    if (pp->if_stack->has_scope) {
+        _el_pp_pop_scope(pp);
+    }
+    pp->if_stack = pp->if_stack->parent;
 }
 
 bool _el_pp_read(ElPreproc* pp, ElToken* out_tok) {
@@ -121,6 +163,14 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
             input_tok = pp->lookahead;
             pp->has_lookahead = false;
         } else if (pp->frame == NULL) {
+            if (pp->if_stack != NULL || pp->skip_depth != 0) {
+                el_diag_report(
+                    pp->diag, EL_DIAG_ERROR, "pp.unterm-if",
+                    pp->if_stack->ifspan, "unterminated #if directive"
+                );
+                pp->if_stack = NULL;
+                pp->skip_depth = 0;
+            }
             return false;
         } else if (!read_from_active_frame(pp, &input_tok)) {
             el_pp_pop_frame(pp);
@@ -136,16 +186,26 @@ bool _el_pp_next_internal(ElPreproc* pp, ElToken* out_tok, bool handle_directive
             continue;
 
         case EL_TT_HASH:
+            if (pp->skip_depth > 0) {
+                // my first idea was to just push all tokens from the taken branch
+                // to the queue but that would be pretty slow and suboptimal; this
+                // approach is better, just skipping tokens in place without spamming
+                // the queue (it will be reserved for macro expansion)
+                if (!_el_pp_skip_directive(pp, input_tok)) {
+                    return false;
+                }
+                continue;
+            }
             if (handle_directives) {
                 return _el_pp_preprocess_directive(pp, input_tok, out_tok);
-            } else {
-                // maybe fallthrough would be a better approach BUT
-                // -Werror=implicit-fallthrough won't let me do that
-                *out_tok = input_tok;
-                return true;
             }
+            *out_tok = input_tok;
+            return true;
 
         default:
+            if (pp->skip_depth > 0) {
+                continue;
+            }
             *out_tok = input_tok;
             return true;
         }

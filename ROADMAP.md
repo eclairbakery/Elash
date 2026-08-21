@@ -44,7 +44,7 @@
 - [ ] Implement macro expansion engine
 - [ ] Implement macro expansion result rescan
 - [ ] Preserve correct source locations after expansion
-- [ ] Implement conditional compilation directives
+- [x] Implement conditional compilation directives
 - [ ] Implement loops (`#while`, `#for`)
 - [ ] Support predefined preprocessor functions and macros
 - [ ] Builtin constants (`ELC_MODE`, `ELC_VERSION`, `ELC_OPTLVL`)
