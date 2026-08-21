@@ -61,6 +61,9 @@ bool _el_pp_skip_incdec(ElPreproc* pp);
 bool _el_pp_handle_diag(ElPreproc* pp, ElDiagSeverity sev, ElSourceSpan span);
 bool _el_pp_skip_diag(ElPreproc* pp);
 
+bool _el_pp_handle_emit(ElPreproc* pp, ElSourceSpan dspan);
+bool _el_pp_skip_emit(ElPreproc* pp);
+
 bool _el_pp_handle_if(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_else(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_elif(ElPreproc* pp, ElSourceSpan dspan);
