@@ -39,7 +39,7 @@
 - [x] Max include depth limit
 - [ ] Implement embed directive
 - [x] Solve source spans issues with #include
-- [ ] Support preprocessor variables and constants
+- [x] Support preprocessor variables and constants
 - [ ] Support preprocessor functions
 - [ ] Implement macro expansion engine
 - [ ] Implement macro expansion result rescan

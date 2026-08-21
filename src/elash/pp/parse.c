@@ -229,7 +229,7 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
             );
         }
 
-        return _el_pp_value_clone(pp->arena, sym->as.var);
+        return _el_pp_value_clone(pp->arena, sym->as.var.v);
     }
 
     default:

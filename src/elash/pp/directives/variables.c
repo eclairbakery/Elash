@@ -1,6 +1,8 @@
 #include "../preproc-internals.h"
 
-static ElPpSymbol* _el_pp_get_var_symbol(ElPreproc* pp, ElStringView dname, ElSourceSpan dspan, ElToken* out_name_tok) {
+static ElPpSymbol* get_var_symbol(
+    ElPreproc* pp, ElStringView dname, ElSourceSpan dspan, ElToken* out_name_tok, bool mut
+) {
     if (!_el_pp_read(pp, out_name_tok)) {
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.unexpected-token",
@@ -34,22 +36,41 @@ static ElPpSymbol* _el_pp_get_var_symbol(ElPreproc* pp, ElStringView dname, ElSo
         );
     }
 
+    if (mut && !sym->as.var.is_mutable) {
+        return el_diag_report(
+            pp->diag, EL_DIAG_ERROR, "pp.immutable",
+            out_name_tok->span, "constant ${name} cannot be mutated",
+            EL_DIAG_STRING("name", sym->name),
+        );
+    }
+
     return sym;
 }
 
-bool _el_pp_handle_var(ElPreproc* pp, ElSourceSpan dspan) {
+static bool handle_var_slash_const(ElPreproc* pp, ElSourceSpan dspan, bool mut) {
     ElToken name_tok;
     if (!_el_pp_read(pp, &name_tok) || name_tok.type != EL_TT_IDENT) {
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.unexpected-token",
-            dspan, "expected identifier after #var directive"
+            dspan, "expected identifier after #${dir} directive",
+            EL_DIAG_STRING("dir", mut ? EL_SV("var") : EL_SV("const")),
         );
     }
 
-    if (el_pp_scope_lookup_local(pp->current_scope, name_tok.lexeme)) {
+    ElPpSymbol* sym = el_pp_scope_lookup_local(pp->current_scope, name_tok.lexeme);
+    if (sym != NULL) {
+        if (sym->kind != EL_PP_SYM_VAR) {
+            return el_diag_report(
+                pp->diag, EL_DIAG_ERROR, "pp.redefinition",
+                name_tok.span, "redefinition of ${name} as a different kind of symbol",
+                EL_DIAG_STRING("name", name_tok.lexeme)
+            );
+        }
+
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.redefinition",
-            name_tok.span, "redefinition of variable ${name}",
+            name_tok.span, "redefinition of ${kind} ${name}",
+            EL_DIAG_STRING("kind", sym->as.var.is_mutable ? EL_SV("variable") : EL_SV("constant")),
             EL_DIAG_STRING("name", name_tok.lexeme)
         );
     }
@@ -65,11 +86,11 @@ bool _el_pp_handle_var(ElPreproc* pp, ElSourceSpan dspan) {
         value = _el_pp_new_null(pp->arena);
     }
 
-    ElPpSymbol* sym = _el_pp_new_sym_var(pp->arena, name_tok.lexeme, value);
+    sym = _el_pp_new_sym_var(pp->arena, name_tok.lexeme, value, mut);
     return el_pp_scope_assign(pp->current_scope, sym->name, sym);
 }
 
-bool _el_pp_skip_var(ElPreproc* pp) {
+static bool skip_var_slash_const(ElPreproc* pp) {
     ElToken name_tok;
     if (!_el_pp_read(pp, &name_tok) || name_tok.type != EL_TT_IDENT) return false;
     ElToken next;
@@ -80,9 +101,23 @@ bool _el_pp_skip_var(ElPreproc* pp) {
     return true;
 }
 
+bool _el_pp_handle_var(ElPreproc* pp, ElSourceSpan dspan) {
+    return handle_var_slash_const(pp, dspan, true);
+}
+bool _el_pp_handle_const(ElPreproc* pp, ElSourceSpan dspan) {
+    return handle_var_slash_const(pp, dspan, false);
+}
+
+bool _el_pp_skip_var(ElPreproc* pp) {
+    return skip_var_slash_const(pp);
+}
+bool _el_pp_skip_const(ElPreproc* pp) {
+    return skip_var_slash_const(pp);
+}
+
 bool _el_pp_handle_set(ElPreproc* pp, ElSourceSpan dspan) {
     ElToken name_tok;
-    ElPpSymbol* sym = _el_pp_get_var_symbol(pp, EL_SV("set"), dspan, &name_tok);
+    ElPpSymbol* sym = get_var_symbol(pp, EL_SV("set"), dspan, &name_tok, true);
     if (sym == NULL) return false;
 
     if (!_el_pp_match(pp, EL_TT_ASSIGN)) {
@@ -96,7 +131,7 @@ bool _el_pp_handle_set(ElPreproc* pp, ElSourceSpan dspan) {
     ElPpValue* value = _el_pp_eval(pp);
     if (value == NULL) return false;
 
-    sym->as.var = value;
+    sym->as.var.v = value;
     return true;
 }
 
@@ -109,10 +144,10 @@ bool _el_pp_skip_set(ElPreproc* pp) {
 
 static bool _el_pp_handle_incdec(ElPreproc* pp, ElStringView dname, bool increment, ElSourceSpan dspan) {
     ElToken name_tok;
-    ElPpSymbol* sym = _el_pp_get_var_symbol(pp, dname, dspan, &name_tok);
+    ElPpSymbol* sym = get_var_symbol(pp, dname, dspan, &name_tok, true);
     if (sym == NULL) return false;
 
-    ElPpValue* val = sym->as.var;
+    ElPpValue* val = sym->as.var.v;
     if (val->type == EL_PP_TYPE_INT) {
         if (increment) val->as.int_++;   else val->as.int_--;
     } else if (val->type == EL_PP_TYPE_FLOAT) {

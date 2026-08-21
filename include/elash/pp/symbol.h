@@ -11,8 +11,11 @@ typedef struct ElPpSymbol {
     ElStringView   name;
     ElPpSymbolKind kind;
     union {
-        ElPpValue* var;
+        struct {
+            ElPpValue* v;
+            bool is_mutable;
+        } var;
     } as;
 } ElPpSymbol;
 
-ElPpSymbol* _el_pp_new_sym_var(ElDynArena* arena, ElStringView name, ElPpValue* value);
+ElPpSymbol* _el_pp_new_sym_var(ElDynArena* arena, ElStringView name, ElPpValue* value, bool mut);

@@ -47,11 +47,13 @@ bool _el_pp_handle_embed(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_skip_include(ElPreproc* pp);
 bool _el_pp_skip_embed(ElPreproc* pp);
 
+bool _el_pp_handle_const(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_var(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_set(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_inc(ElPreproc* pp, ElSourceSpan dspan);
 bool _el_pp_handle_dec(ElPreproc* pp, ElSourceSpan dspan);
 
+bool _el_pp_skip_const(ElPreproc* pp);
 bool _el_pp_skip_var(ElPreproc* pp);
 bool _el_pp_skip_set(ElPreproc* pp);
 bool _el_pp_skip_incdec(ElPreproc* pp);
