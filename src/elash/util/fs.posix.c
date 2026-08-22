@@ -228,16 +228,14 @@ static bool rm_recursive_internal(ElPathBuf* pb) {
     char* cpath = el_sv_to_cstr_alloc(current_pv);
     if (cpath == NULL) return false;
 
-    struct stat st;
-    if (lstat(cpath, &st) != 0) {
+    if (unlink(cpath) == 0) {
         free(cpath);
-        return false;
+        return true;
     }
 
-    if (!S_ISDIR(st.st_mode)) {
-        int res = remove(cpath);
+    if (errno != EISDIR && errno != EPERM) {
         free(cpath);
-        return res == 0;
+        return false;
     }
 
     DIR* dir = opendir(cpath);
