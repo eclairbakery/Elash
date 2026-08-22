@@ -31,7 +31,11 @@ static void print_sev(ElDiagSeverity sev, ElStringView cat, FILE* out) {
     bool ansi = el_ansi_is_supported(out);
 
     if (ansi) el_ansi_apply_style(style, out);
-    fprintf(out, EL_SV_FMT"["EL_SV_FMT"]: ", EL_SV_FARG(sev_str), EL_SV_FARG(cat));
+    if (cat.len > 0) {
+        fprintf(out, EL_SV_FMT"["EL_SV_FMT"]: ", EL_SV_FARG(sev_str), EL_SV_FARG(cat));
+    } else {
+        fprintf(out, EL_SV_FMT": ", EL_SV_FARG(sev_str));
+    }
     if (ansi) el_ansi_reset_style(out);
 }
 

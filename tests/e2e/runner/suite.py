@@ -56,7 +56,7 @@ def _match_diagnostic(exp: DiagExpectation, diag: dict) -> bool:
 def _match_diagnostic_nomsg(exp: DiagExpectation, diag: dict) -> bool:
     if exp.severity != diag['severity']:
         return False
-    if exp.code != diag['category']:
+    if exp.code is not None and exp.code != diag['category']:
         return False
 
     if exp.lines is not None:
@@ -91,7 +91,8 @@ def _report_diag_mismatches(expanded: list[DiagExpectation], diagnostics: list[d
 
         line_str = ','.join(map(str, exp.lines)) + ':' if exp.lines else ''
         msg_str = f': {exp.message}' if exp.message else ''
-        print_info(f'  missing diag: {CLR_BOLD}{line_str}{exp.severity}[{exp.code}]{msg_str}{CLR_RESET}')
+        cat_str = f'[{exp.code}]' if exp.code is not None else ''
+        print_info(f'  missing diag: {CLR_BOLD}{line_str}{exp.severity}{cat_str}{msg_str}{CLR_RESET}')
 
     for diag in diagnostics:
         if not any(_match_diagnostic(exp, diag) for exp in expanded):

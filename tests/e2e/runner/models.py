@@ -15,7 +15,7 @@ class Timeouts:
 @dataclass
 class DiagExpectation:
     severity: Severity
-    code:     str
+    code:     Optional[str]
     lines:    Optional[list[int]]
     message:  Optional[str] = None
 

@@ -101,7 +101,11 @@ void el_diag_jsonl_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnos
     escape_json_str(out, el_diag_severity_to_string(diag->sev));
 
     fputs(",\"category\":", out);
-    escape_json_str(out, diag->category);
+    if (diag->category.len == 0) {
+        fputs("null", out);
+    } else {
+        escape_json_str(out, diag->category);
+    }
     fputc(',', out);
 
     fputs("\"span\":", out);

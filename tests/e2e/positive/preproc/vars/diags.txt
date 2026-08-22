@@ -1,10 +1,10 @@
- 4:note[pp.dir]: 10 + 20 is 30
- 9:note[pp.dir]: 20 + 21 is 41
-12:note[pp.dir]: 20 21 200
+ 4:note: 10 + 20 is 30
+ 9:note: 20 + 21 is 41
+12:note: 20 21 200
 
-17:note[pp.dir]: shared == 20 is true
-18:note[pp.dir]: nonshared == 99 is true
+17:note: shared == 20 is true
+18:note: nonshared == 99 is true
 
-20:note[pp.dir]: shared == 42 is true
-21:note[pp.dir]: nonshared == 99 is true
+20:note: shared == 42 is true
+21:note: nonshared == 99 is true
 

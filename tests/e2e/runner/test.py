@@ -33,7 +33,7 @@ def _parse_diag(line: str, ttype: TestType) -> DiagExpectation:
         lines = [int(l) for l in parts[0].split(',')]
         content = parts[1]
 
-    match = re.match(r'(\w+)\[(.+)\]', content)
+    match = re.match(r'(\w+)(?:\[(.+)\])?', content)
     if not match:
         error(f"ill-formed diagnostic: {line}")
 
