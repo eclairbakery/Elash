@@ -87,11 +87,11 @@ static bool handle_var_slash_const(ElPreproc* pp, ElSourceSpan dspan, bool mut) 
         if (value == NULL) return false;
 
     } else {
-        value = _el_pp_new_null(pp->arena);
+        value = _el_pp_new_null(pp->iarena);
     }
 
     ElSourceSpan defspan = el_srcspan_merge(dspan, name_tok.span);
-    sym = _el_pp_new_sym_var(pp->arena, name_tok.lexeme, defspan, value, mut);
+    sym = _el_pp_new_sym_var(pp->iarena, name_tok.lexeme, defspan, value, mut);
     return el_pp_scope_assign(pp->current_scope, sym->name, sym);
 }
 
