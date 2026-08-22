@@ -1,2 +1,2 @@
-2:note[pp.dir]: x = 10
+2:note: x = 10
 1:warn[pp.never-mutated]

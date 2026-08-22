@@ -1,21 +1,21 @@
- 1:note[pp.dir]: 123
- 2:warn[pp.dir]: Hello
- 3:note[pp.dir]: 4
- 4:warn[pp.dir]: X
- 5:note[pp.dir]: 26
- 6:note[pp.dir]: { 1, 12, 3 }
- 7:warn[pp.dir]: XYAB
- 8:note[pp.dir]: { 1, 2, 3 }
- 9:note[pp.dir]: Q
-10:note[pp.dir]: { k, "y", 1 }
-11:warn[pp.dir]: { 1, 1 }
-12:note[pp.dir]: 4
-13:note[pp.dir]: 6.28
-14:warn[pp.dir]: 1.2
-15:note[pp.dir]: false
-16:note[pp.dir]: true
-17:note[pp.dir]: true
-18:note[pp.dir]: false
-19:note[pp.dir]: true
-20:note[pp.dir]: true
-21:warn[pp.dir]: null
+ 1:note: 123
+ 2:warn: Hello
+ 3:note: 4
+ 4:warn: X
+ 5:note: 26
+ 6:note: { 1, 12, 3 }
+ 7:warn: XYAB
+ 8:note: { 1, 2, 3 }
+ 9:note: Q
+10:note: { k, "y", 1 }
+11:warn: { 1, 1 }
+12:note: 4
+13:note: 6.28
+14:warn: 1.2
+15:note: false
+16:note: true
+17:note: true
+18:note: false
+19:note: true
+20:note: true
+21:warn: null
