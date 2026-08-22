@@ -21,13 +21,13 @@ ElPpValue* _el_pp_strcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs) {
     EL_ASSERT(lhs->type == EL_PP_TYPE_STR && rhs->type == EL_PP_TYPE_STR, "invalid operand types");
 
     usize len = lhs->as.str_.len + rhs->as.str_.len;
-    char* buf = EL_DYNARENA_NEW_ARR(pp->arena, char, len);
+    char* buf = EL_DYNARENA_NEW_ARR(pp->iarena, char, len);
 
     if (len != 0) {
         memcpy(buf, lhs->as.str_.data, lhs->as.str_.len);
         memcpy(buf + lhs->as.str_.len, rhs->as.str_.data, rhs->as.str_.len);
     }
-    return _el_pp_new_str(pp->arena, el_sv_from_data_and_len(buf, len));
+    return _el_pp_new_str(pp->iarena, el_sv_from_data_and_len(buf, len));
 }
 
 ElPpValue* _el_pp_listcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs) {
@@ -37,11 +37,11 @@ ElPpValue* _el_pp_listcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs) {
     ElPpValue** values = NULL;
 
     if (count != 0) {
-        values = EL_DYNARENA_NEW_ARR(pp->arena, ElPpValue*, count);
+        values = EL_DYNARENA_NEW_ARR(pp->iarena, ElPpValue*, count);
         memcpy(values, lhs->as.list_.values, lhs->as.list_.count * sizeof(ElPpValue*));
         memcpy(values + lhs->as.list_.count, rhs->as.list_.values, rhs->as.list_.count * sizeof(ElPpValue*));
     }
-    return _el_pp_new_list(pp->arena, (ElPpList) { values, count });
+    return _el_pp_new_list(pp->iarena, (ElPpList) { values, count });
 }
 
 // let's support comparing ints and floats for convenience

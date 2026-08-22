@@ -29,7 +29,7 @@ static bool parse_inc_path(ElPreproc* pp, ElPpIncPath* out_path) {
 
     if (_el_pp_peek(pp, &next) && next.type == EL_TT_COLON) {
         _el_pp_read(pp, &next); // ':'
-        out_path->scope = el_dynarena_clone_sv(pp->arena, first_tok.lexeme);
+        out_path->scope = el_dynarena_clone_sv(pp->iarena, first_tok.lexeme);
     } else {
         out_path->scope = EL_SV_NULL;
         el_strbuf_append(&path_sb, first_tok.lexeme);
@@ -45,7 +45,7 @@ static bool parse_inc_path(ElPreproc* pp, ElPpIncPath* out_path) {
         last_tok = next;
     }
 
-    out_path->ipath = el_dynarena_clone_sv(pp->arena, el_strbuf_view(&path_sb));
+    out_path->ipath = el_dynarena_clone_sv(pp->iarena, el_strbuf_view(&path_sb));
     out_path->span  = el_srcspan_merge(first_tok.span, last_tok.span);
     el_strbuf_destroy(&path_sb);
 
@@ -95,7 +95,7 @@ static bool _el_pp_resolve_inc_path(ElPreproc* pp, const ElPpIncPath* path, ElPp
 
     if (exists) {
         out_file->is_system = is_system;
-        out_file->path = el_dynarena_clone_sv(pp->arena, pv);
+        out_file->path = el_dynarena_clone_sv(pp->iarena, pv);
         el_pathbuf_destroy(&full_path);
         return true;
     }
@@ -131,10 +131,10 @@ bool _el_pp_handle_include(ElPreproc* pp, ElSourceSpan dspan) {
     ElPpIncFile file;
     if (!_el_pp_resolve_inc_path(pp, &path, &file)) return false;
 
-    ElSourceDocument* doc = EL_DYNARENA_NEW(pp->arena, ElSourceDocument);
-    if (el_srcdoc_init_from_file(doc, el_dynarena_make_cstr(pp->arena, file.path)) != 0) return false;
+    ElSourceDocument* doc = EL_DYNARENA_NEW(pp->iarena, ElSourceDocument);
+    if (el_srcdoc_init_from_file(doc, el_dynarena_make_cstr(pp->iarena, file.path)) != 0) return false;
 
-    ElLexer* lexer = EL_DYNARENA_NEW(pp->arena, ElLexer);
+    ElLexer* lexer = EL_DYNARENA_NEW(pp->iarena, ElLexer);
     el_lexer_init(lexer, doc, EL_LEXER_FLAGS_DEFAULT);
 
     _el_pp_push_frame(pp, el_lexer_as_token_stream(lexer), doc);

@@ -31,7 +31,9 @@ typedef struct ElPreproc {
 
     const ElPpIncMap* imap;
 
-    ElDynArena* arena;
+    ElDynArena* farena;
+    ElDynArena* iarena;
+
     ElDiagEngine* diag;
 
     ElPpScope* builtin_scope;

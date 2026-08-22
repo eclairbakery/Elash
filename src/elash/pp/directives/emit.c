@@ -11,7 +11,7 @@
 static bool toktok(ElPreproc* pp, ElTokenType type, ElStringView lexeme, ElSourceSpan span) {
     return el_tkque_push(&pp->pending, (ElToken) {
         .type = type,
-        .lexeme = el_dynarena_clone_sv(pp->arena, lexeme),
+        .lexeme = el_dynarena_clone_sv(pp->farena, lexeme),
         .span = span,
     });
 }

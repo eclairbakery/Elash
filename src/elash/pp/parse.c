@@ -74,7 +74,7 @@ static ElPpValue* parse_list_literal(ElPreproc* pp, ElSourceSpan open_span) {
         }
     }
 
-    return el_pp_valbuf_vflush(&buf, pp->arena);
+    return el_pp_valbuf_vflush(&buf, pp->iarena);
 }
 
 static ElPpValue* parse_token_quote(ElPreproc* pp, ElSourceSpan hash_span) {
@@ -100,7 +100,7 @@ static ElPpValue* parse_token_quote(ElPreproc* pp, ElSourceSpan hash_span) {
         return NULL;
     }
 
-    return _el_pp_new_tok(pp->arena, inner);
+    return _el_pp_new_tok(pp->iarena, inner);
 }
 
 static ElPpValue* parse_token_list(ElPreproc* pp, ElSourceSpan hash_span) {
@@ -124,11 +124,11 @@ static ElPpValue* parse_token_list(ElPreproc* pp, ElSourceSpan hash_span) {
                 break;
         }
 
-        ElPpValue* elem = _el_pp_new_tok(pp->arena, tok);
+        ElPpValue* elem = _el_pp_new_tok(pp->iarena, tok);
         el_pp_valbuf_push(&buf, elem);
     }
 
-    return el_pp_valbuf_vflush(&buf, pp->arena);
+    return el_pp_valbuf_vflush(&buf, pp->iarena);
 }
 
 static ElPpValue* parse_primary(ElPreproc* pp) {
@@ -180,7 +180,7 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
                 tok.span, "invalid integer literal"
             );
         }
-        return _el_pp_new_int(pp->arena, val);
+        return _el_pp_new_int(pp->iarena, val);
     }
     case EL_TT_FLOAT_LITERAL: {
         long double val = 0.0L;
@@ -190,18 +190,18 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
                 tok.span, "invalid float literal"
             );
         }
-        return _el_pp_new_float(pp->arena, (double)val);
+        return _el_pp_new_float(pp->iarena, (double)val);
     }
     case EL_TT_CHAR_LITERAL:
-        return _el_pp_new_char(pp->arena, parse_char_literal(tok.lexeme));
+        return _el_pp_new_char(pp->iarena, parse_char_literal(tok.lexeme));
     case EL_TT_STRING_LITERAL:
-        return _el_pp_new_str(pp->arena, tok.lexeme);
+        return _el_pp_new_str(pp->iarena, tok.lexeme);
     case EL_TT_TRUE_LITERAL:
-        return _el_pp_new_bool(pp->arena, true);
+        return _el_pp_new_bool(pp->iarena, true);
     case EL_TT_FALSE_LITERAL:
-        return _el_pp_new_bool(pp->arena, false);
+        return _el_pp_new_bool(pp->iarena, false);
     case EL_TT_NULL_LITERAL:
-        return _el_pp_new_null(pp->arena);
+        return _el_pp_new_null(pp->iarena);
     case EL_TT_LPAREN: {
         ElPpValue* expr = _el_pp_eval(pp);
         if (expr == NULL) {
@@ -229,7 +229,7 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
             );
         }
 
-        return _el_pp_value_clone(pp->arena, sym->as.var.v);
+        return _el_pp_value_clone(pp->iarena, sym->as.var.v);
     }
 
     default:

@@ -12,12 +12,15 @@ bool el_pp_init(
     pp->if_stack = NULL;
     pp->has_lookahead = false;
 
-    if (!el_tkque_init(&pp->pending)) {
-        return false;
-    }
+    pp->imap   = imap;
+    pp->farena = arena;
 
-    pp->imap  = imap;
-    pp->arena = arena;
+    if (!el_tkque_init(&pp->pending))
+        return false;
+
+    pp->iarena = EL_DYNARENA_NEW(pp->farena, ElDynArena);
+    if (!el_dynarena_init(pp->iarena))
+        return false;
 
     _el_pp_push_frame(pp, input, root_doc);
 
@@ -33,6 +36,7 @@ void el_pp_free(ElPreproc* pp) {
     el_pp_scope_free(pp->global_scope);
     el_pp_scope_free(pp->builtin_scope);
 
+    el_dynarena_free(pp->iarena);
     el_tkque_destroy(&pp->pending);
 }
 
@@ -70,7 +74,7 @@ ElPpScope* _el_pp_pop_scope(ElPreproc* pp) {
 ///////// include frames ///////////
 void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc) {
     pp->include_depth++;
-    pp->frame = EL_DYNARENA_NEW_STRUCT(pp->arena, ElPpFrame, {
+    pp->frame = EL_DYNARENA_NEW_STRUCT(pp->iarena, ElPpFrame, {
         .stream = stream,
         .doc    = doc,
         .parent = pp->frame,
@@ -107,7 +111,7 @@ static bool read_from_active_frame(ElPreproc* pp, ElToken* out_tok) {
 
 ////////////// if frames //////////////
 void _el_pp_push_if_frame(ElPreproc* pp, bool take_branch, ElSourceSpan ifspan) {
-    pp->if_stack = EL_DYNARENA_NEW_STRUCT(pp->arena, ElPpIfFrame, {
+    pp->if_stack = EL_DYNARENA_NEW_STRUCT(pp->iarena, ElPpIfFrame, {
         .branch_taken = take_branch,
         .has_scope    = take_branch,
         .had_else     = false,
