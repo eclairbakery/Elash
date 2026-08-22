@@ -320,9 +320,13 @@ bool el_fs_set_executable(ElPathView path, bool enabled) {
     char* cpath = el_sv_to_cstr_alloc(path);
     if (cpath == NULL) return false;
 
+    int fd = open(cpath, O_RDONLY);
+    free(cpath);
+    if (fd < 0) return false;
+
     struct stat st;
-    if (stat(cpath, &st) != 0) {
-        free(cpath);
+    if (fstat(fd, &st) != 0) {
+        close(fd);
         return false;
     }
 
@@ -333,8 +337,8 @@ bool el_fs_set_executable(ElPathView path, bool enabled) {
         mode &= ~(S_IXUSR | S_IXGRP | S_IXOTH);
     }
 
-    int res = chmod(cpath, mode);
-    free(cpath);
+    int res = fchmod(fd, mode);
+    close(fd);
     return res == 0;
 }
 
