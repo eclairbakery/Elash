@@ -2,7 +2,16 @@
 
 #include <elash/diag/engine.h>
 #include <elash/util/assert.h>
-#include <elash/util/todo.h>
+
+static ElHirExpr* len_from_array_type(ElBinder* binder, ElSourceSpan span, ElHirType* type) {
+    if (type == NULL) return NULL;
+    type = el_hir_type_unwrap_distinct(type);
+    if (type->kind != EL_HIR_TYPE_ARRAY) return NULL;
+
+    return el_hir_new_int_constant(
+        binder->arena, span, binder->builtins->type_usize, (int64_t)type->as.array.size
+    );
+}
 
 ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
     if (call->arg_count != 1) {
@@ -13,26 +22,51 @@ ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallEx
         );
     }
 
-    if (call->args[0].kind != EL_AST_INIT_EXPR) {
-        return el_diag_report(
+    ElAstToI* arg = call->args;
+    if (arg == NULL) return NULL;
+
+    if (arg->kind == EL_AST_TOI_INIT && arg->as.init->kind != EL_AST_INIT_EXPR) {
+        el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.invalid-builtin-call",
-            in->span, "an expression was expected as an argument to the len function",
+            arg->span, "argument to 'len' must be an expression or a type"
+        );
+        el_diag_help(
+            binder->diag, "non-expression initializers cannot be passed directly to 'len'"
+        );
+        return NULL;
+    }
+
+    ElHirToE* toe = el_binder_bind_toi(binder, arg, NULL, EL_STORAGECLS_LOCAL);
+    if (toe == NULL) return NULL;
+
+    if (toe->is_type) {
+        ElHirExpr* len = len_from_array_type(binder, in->span, toe->as.type);
+        if (len != NULL) return len;
+
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+            arg->span, "argument to 'len' must be an array or slice type"
         );
     }
 
-    ElHirExpr* arg = el_binder_bind_expr(binder, call->args[0].expr);
-    if (!arg) return NULL;
+    ElHirExpr* earg = toe->as.expr;
+    if (earg == NULL) return NULL;
 
-    if (arg->type->kind == EL_HIR_TYPE_ARRAY) {
-        return el_hir_new_int_constant(binder->arena, in->span, binder->builtins->type_usize, (int64_t)arg->type->as.array.size);
+    ElHirType* type = el_hir_type_unwrap_distinct(earg->type);
+
+    if (type->kind == EL_HIR_TYPE_ARRAY) {
+        return el_hir_new_int_constant(
+            binder->arena, in->span, binder->builtins->type_usize,
+            (int64_t)type->as.array.size
+        );
     }
-    if (arg->type->kind == EL_HIR_TYPE_SLICE) {
-        return el_hir_new_slice_len_intr(binder->arena, in->span, binder->builtins->type_usize, arg);
+    if (type->kind == EL_HIR_TYPE_SLICE) {
+        return el_hir_new_slice_len_intr(binder->arena, in->span, binder->builtins->type_usize, earg);
     }
 
     return el_diag_report(
         binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
-        call->args->span,"argument to 'len' must be an array or slice"
+        arg->span, "argument to 'len' must be an array or slice"
     );
 }
 
@@ -45,19 +79,37 @@ ElHirExpr* _el_binder_bind_mkslice_call(ElBinder* binder, ElAstExpr* in, ElAstCa
         );
     }
 
-    ElAstInit* raw_arg = call->args;
-    ElAstInit* len_arg = call->args->next;
+    ElAstToI* raw_arg = call->args;
+    ElAstToI* len_arg = call->args != NULL ? call->args->next : NULL;
+    if (raw_arg == NULL || len_arg == NULL) return NULL;
 
-    if (raw_arg->kind != EL_AST_INIT_EXPR || len_arg->kind != EL_AST_INIT_EXPR) {
+    if ((raw_arg->kind == EL_AST_TOI_INIT && raw_arg->as.init->kind != EL_AST_INIT_EXPR)
+     || (len_arg->kind == EL_AST_TOI_INIT && len_arg->as.init->kind != EL_AST_INIT_EXPR)
+    ) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.invalid-builtin-call",
             in->span,
-            "expressions were expected as arguments to the mkslice function",
+            "expressions were expected as arguments to the mkslice function"
         );
         return NULL;
     }
 
-    ElHirExpr* raw = el_binder_bind_expr(binder, raw_arg->expr);
+    ElHirToE* raw_toe = el_binder_bind_toi(binder, raw_arg, NULL, EL_STORAGECLS_LOCAL);
+    ElHirToE* len_toe = el_binder_bind_toi(binder, len_arg, NULL, EL_STORAGECLS_LOCAL);
+
+    if (raw_toe == NULL || len_toe == NULL) return NULL;
+
+    if (raw_toe->is_type || len_toe->is_type) {
+        el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.invalid-builtin-call",
+            in->span,
+            "expressions were expected as arguments to the mkslice function"
+        );
+        return NULL;
+    }
+
+    ElHirExpr* raw = raw_toe->as.expr;
+    if (raw == NULL) return NULL;
     if (raw->type->kind != EL_HIR_TYPE_RWSLICE) {
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
@@ -65,7 +117,7 @@ ElHirExpr* _el_binder_bind_mkslice_call(ElBinder* binder, ElAstExpr* in, ElAstCa
         );
     }
 
-    ElHirExpr* len = el_binder_bind_expr(binder, len_arg->expr);
+    ElHirExpr* len = len_toe->as.expr;
     if (len == NULL) return NULL;
 
     len = _el_binder_implicit_cast(binder, len_arg->span, len, binder->builtins->type_usize);

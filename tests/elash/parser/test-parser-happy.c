@@ -62,12 +62,14 @@ Test(el_parser_happy, parse_stmt_println) {
 
     // args: "Hello, world!"
     cr_assert_eq(expr->as.call.arg_count, 1);
-    ElAstInit* arg = expr->as.call.args;
+    ElAstToI* arg = expr->as.call.args;
     cr_assert_not_null(arg);
-    cr_assert_eq(arg->kind, EL_AST_INIT_EXPR);
-    cr_assert_not_null(arg->expr);
-    cr_assert_eq(arg->expr->type, EL_AST_EXPR_LITERAL);
-    assert_str_lit(arg->expr, "Hello, world!");
+    cr_assert_eq(arg->kind, EL_AST_TOI_INIT);
+    cr_assert_not_null(arg->as.init);
+    cr_assert_eq(arg->as.init->kind, EL_AST_INIT_EXPR);
+    cr_assert_not_null(arg->as.init->expr);
+    cr_assert_eq(arg->as.init->expr->type, EL_AST_EXPR_LITERAL);
+    assert_str_lit(arg->as.init->expr, "Hello, world!");
 }
 
 Test(el_parser_happy, parse_stmt_aug_assign) {

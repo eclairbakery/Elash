@@ -1,16 +1,18 @@
 #pragma once
 
+#include <elash/defs/int-types.h>
 #include <elash/util/dynarena.h>
 #include <elash/source/span.h>
-#include <elash/defs/int-types.h>
 
 typedef struct ElAstExpr ElAstExpr;
-typedef struct ElAstInit ElAstInit;
+typedef struct ElAstToI ElAstToI;
 
 typedef struct ElAstCallExpr {
     ElAstExpr* callee;
-    ElAstInit* args; // linked list
+    ElAstToI* args;
     usize arg_count;
 } ElAstCallExpr;
 
-ElAstExpr* el_ast_new_call_expr(ElDynArena* arena, ElSourceSpan span, ElAstExpr* callee, ElAstInit* args, usize arg_count);
+ElAstExpr* el_ast_new_call_expr(
+    ElDynArena* arena, ElSourceSpan span, ElAstExpr* callee, ElAstToI* args, usize arg_count
+);

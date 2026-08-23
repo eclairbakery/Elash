@@ -205,8 +205,8 @@ static bool unparse_call(ElUnparser* unpar, ElAstExpr* expr) {
     if (!unparse_child(unpar, expr->as.call.callee, prec, false)) return false;
     if (!el_unparser_push_punct(unpar, EL_TT_LPAREN))             return false;
 
-    for (ElAstInit* arg = expr->as.call.args; arg != NULL; arg = arg->next) {
-        if (!el_unparser_unparse_init(unpar, arg)) return false;
+    for (ElAstToI* arg = expr->as.call.args; arg != NULL; arg = arg->next) {
+        if (!el_unparser_unparse_toi(unpar, arg)) return false;
         if (arg->next != NULL) {
             if (!el_unparser_push_punct(unpar, EL_TT_COMMA)) return false;
         }

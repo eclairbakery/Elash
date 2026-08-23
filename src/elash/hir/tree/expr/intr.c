@@ -4,7 +4,7 @@
 #include <elash/util/assert.h>
 
 #define NICE_TO_HAVE_ASSERTIONS(slice) \
-    EL_ASSERT(slice->type->kind == EL_HIR_TYPE_SLICE, "slice len intrinsic argument must be a slice"); \
+    EL_ASSERT(el_hir_type_unwrap_distinct(slice->type)->kind == EL_HIR_TYPE_SLICE, "slice len intrinsic argument must be a slice"); \
 
 #define ASSERT_USIZE(usize_type)                                          \
     EL_ASSERT(                                                            \

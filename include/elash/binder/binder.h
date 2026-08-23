@@ -15,6 +15,8 @@
 #include <elash/ast/tree/decl.h>
 #include <elash/ast/tree/stmt.h>
 #include <elash/ast/tree/expr.h>
+#include <elash/ast/tree/toe.h>
+#include <elash/ast/tree/toi.h>
 
 #include <elash/util/dynarena.h>
 #include <elash/diag/engine.h>
@@ -50,6 +52,7 @@ void el_binder_free(ElBinder* binder);
 ElHirExpr* el_binder_bind_designated(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls);
 ElHirExpr* el_binder_bind_init_list(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls);
 ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls);
+ElHirToE* el_binder_bind_toi(ElBinder* binder, ElAstToI* in, ElHirType* expected_type, ElStorageClass scls);
 
 ElHirExpr* el_binder_bind_builtin_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, ElHirSymbol* builtin);
 

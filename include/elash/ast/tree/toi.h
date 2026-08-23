@@ -23,6 +23,8 @@ struct ElAstToI {
         ElAstInit* init;
         ElAstUnr*  unr;
     } as;
+
+    ElAstToI* next;
 };
 
 ElAstToI* el_ast_new_toi_type(ElDynArena* arena, ElAstType* type);
@@ -33,3 +35,5 @@ ElAstType* el_ast_toi_as_type(ElDynArena* arena, ElAstToI* node);
 ElAstInit* el_ast_toi_as_init(ElDynArena* arena, ElAstToI* node);
 
 ElAstToI* el_ast_toi_from_toe(ElDynArena* arena, ElAstToE* toe);
+
+void el_ast_append_toi(ElAstToI** head, ElAstToI** tail, ElAstToI* toi);

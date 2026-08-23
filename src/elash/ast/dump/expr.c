@@ -1,9 +1,11 @@
 #include <elash/ast/dump/expr.h>
 #include <elash/ast/tree/expr.h>
+#include <elash/ast/tree/toi.h>
 
 #include <elash/ast/dump/indent.h>
 #include <elash/ast/dump/type.h>
 #include <elash/ast/dump/init.h>
+#include <elash/ast/dump/toi.h>
 #include <inttypes.h>
 
 void el_ast_dump_expr_literal(ElAstLiteral* lit, usize indent, FILE* out) {
@@ -66,8 +68,8 @@ void el_ast_dump_expr(ElAstExpr* node, usize indent, FILE* out) {
         el_ast_dump_expr(node->as.call.callee, indent + 2, out);
         el_ast_dump_print_indent(indent + 1, out);
         fprintf(out, "args:\n");
-        for (ElAstInit* arg = node->as.call.args; arg != NULL; arg = arg->next) {
-            el_ast_dump_init(arg, indent + 2, out);
+        for (ElAstToI* arg = node->as.call.args; arg != NULL; arg = arg->next) {
+            el_ast_dump_type_or_init(arg, indent + 2, out);
         }
         break;
     }

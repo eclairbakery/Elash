@@ -7,6 +7,8 @@ ElScope* _el_binder_pop_scope(ElBinder* binder);
 ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in);
 ElHirType*     _el_binder_bind_type(ElBinder* binder, ElAstType* type);
 
+ElHirToE* _el_binder_bind_unresolved(ElBinder* binder, ElAstToE* in, ElAstUnr* unr);
+
 ElHirExpr* _el_binder_simplify_expr(ElBinder* binder, ElHirExpr* expr);
 ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);
 ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to);

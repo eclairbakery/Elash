@@ -1,0 +1,28 @@
+int main() {
+    int[4] array;
+    if (len(array) != 4)
+        return 1;
+
+    char[] chars = int[3] { 'X', 'Y', 'Z' };
+    if (len(chars) != 3)
+        return 2;
+
+    typedef Slice as bool[];
+
+    Slice slice = bool[2] { true, false } as Slice;
+    if (len(slice) != 2)
+        return 3;
+
+    if (len(int[99]) != 99)
+        return 4;
+
+    typedef Distinct as float[44];
+    if (len(Distinct) != 44)
+        return 5;
+
+    Distinct d;
+    if (len(d) != len(Distinct))
+        return 6;
+
+    return 0;
+}

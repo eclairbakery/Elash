@@ -77,10 +77,11 @@ bool el_ast_equal_expr(const ElAstExpr* a, const ElAstExpr* b) {
     case EL_AST_EXPR_CALL: {
         if (a->as.call.arg_count != b->as.call.arg_count) return false;
         if (!el_ast_equal_expr(a->as.call.callee, b->as.call.callee)) return false;
-        ElAstInit* aa = a->as.call.args;
-        ElAstInit* ab = b->as.call.args;
+
+        ElAstToI* aa = a->as.call.args;
+        ElAstToI* ab = b->as.call.args;
         while (aa != NULL && ab != NULL) {
-            if (!el_ast_equal_init(aa, ab)) return false;
+            if (!el_ast_equal_toi(aa, ab)) return false;
             aa = aa->next;
             ab = ab->next;
         }
@@ -126,7 +127,8 @@ bool el_ast_equal_decl(const ElAstDecl* a, const ElAstDecl* b) {
 
     switch (a->type) {
     case EL_AST_DECL_ALIAS:
-        return el_sv_eql(a->as.alias.name, b->as.alias.name);
+        return el_sv_eql(a->as.alias.name, b->as.alias.name) &&
+               el_ast_equal_toe(&a->as.alias.target, &b->as.alias.target);
     case EL_AST_DECL_TYPEDEF:
         return el_sv_eql(a->as.typedef_.name, b->as.typedef_.name) &&
                el_ast_equal_type(a->as.typedef_.target, b->as.typedef_.target);
@@ -271,4 +273,49 @@ bool el_ast_equal_module(const ElAstModule* a, const ElAstModule* b) {
     }
 
     return da == db;
+}
+
+bool el_ast_equal_unr(const ElAstUnr* a, const ElAstUnr* b) {
+    if (a == b) return true;
+    if (!a || !b) return false;
+    if (a->kind != b->kind) return false;
+    switch (a->kind) {
+        case EL_AST_UNR_IDENT:
+            return el_sv_eql(a->as.ident->name, b->as.ident->name);
+        case EL_AST_UNR_INDEX:
+            return el_ast_equal_unr(a->as.index.base, b->as.index.base) &&
+                   el_ast_equal_unr(a->as.index.index, b->as.index.index) &&
+                   el_ast_equal_expr(a->as.index.index_expr, b->as.index.index_expr);
+    }
+    return false;
+}
+
+bool el_ast_equal_toe(const ElAstToE* a, const ElAstToE* b) {
+    if (a == b) return true;
+    if (!a || !b) return false;
+    if (a->kind != b->kind) return false;
+    switch (a->kind) {
+        case EL_AST_TOE_TYPE:
+            return el_ast_equal_type(a->as.type, b->as.type);
+        case EL_AST_TOE_EXPR:
+            return el_ast_equal_expr(a->as.expr, b->as.expr);
+        case EL_AST_TOE_UNR:
+            return el_ast_equal_unr(a->as.unr, b->as.unr);
+    }
+    return false;
+}
+
+bool el_ast_equal_toi(const ElAstToI* a, const ElAstToI* b) {
+    if (a == b) return true;
+    if (!a || !b) return false;
+    if (a->kind != b->kind) return false;
+    switch (a->kind) {
+        case EL_AST_TOI_TYPE:
+            return el_ast_equal_type(a->as.type, b->as.type);
+        case EL_AST_TOI_INIT:
+            return el_ast_equal_init(a->as.init, b->as.init);
+        case EL_AST_TOI_UNR:
+            return el_ast_equal_unr(a->as.unr, b->as.unr);
+    }
+    return false;
 }

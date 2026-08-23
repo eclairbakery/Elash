@@ -117,4 +117,11 @@ Test(ast_equal, declarations) {
     // different static flag
     ElAstDecl* v3 = el_ast_new_var_def(&arena, span, type, name, NULL, true);
     cr_assert(!el_ast_equal_decl(v1, v3));
+
+    // alias
+    ElAstType* alias_type = el_ast_new_type_name(&arena, span, el_ast_new_ident_raw(&arena, span, el_sv_from_cstr("int")));
+    ElAstToE alias_target = { .kind = EL_AST_TOE_TYPE, .span = span, .as.type = alias_type };
+    ElAstDecl* a1 = el_ast_new_alias(&arena, span, el_sv_from_cstr("myint"), alias_target);
+    ElAstDecl* a2 = el_ast_new_alias(&arena, span, el_sv_from_cstr("myint"), alias_target);
+    cr_assert(el_ast_equal_decl(a1, a2));
 }

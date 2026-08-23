@@ -70,3 +70,12 @@ ElAstToI* el_ast_toi_from_toe(ElDynArena* arena, ElAstToE* toe) {
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstToEKind, toe->kind);
 }
+
+void el_ast_append_toi(ElAstToI** head, ElAstToI** tail, ElAstToI* toi) {
+    if (*tail != NULL) {
+        (*tail)->next = toi;
+        *tail = toi;
+    } else {
+        *head = *tail = toi;
+    }
+}

@@ -5,6 +5,7 @@
 #include <elash/util/todo.h>
 
 #include <elash/hir/type/prim.h>
+#include <elash/ast/tree/toi.h>
 
 #define IMPLICIT_CAST_IF_NEEDED(THING, SPAN, TO) \
     if (THING->type == NULL) { \
@@ -227,8 +228,21 @@ ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* 
 
     ElHirExpr** args = EL_DYNARENA_NEW_ARR(binder->arena, ElHirExpr*, call->arg_count);
     usize i = 0;
-    for (ElAstInit* curr = call->args; curr != NULL; curr = curr->next) {
-        args[i] = el_binder_bind_init(binder, curr, func->params[i], EL_STORAGECLS_LOCAL);
+    for (ElAstToI* curr = call->args; curr != NULL; curr = curr->next) {
+        ElHirToE* toe = el_binder_bind_toi(binder, curr, func->params[i], EL_STORAGECLS_LOCAL);
+        if (toe == NULL) return NULL;
+        if (toe->is_type) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.type-arg",
+                curr->span, "cannot pass a type as an argument to a regular function"
+            );
+            el_diag_help(
+                binder->diag, "types can only be passed to specific builtins, such as 'sizeof'"
+            );
+            return NULL;
+        }
+
+        args[i] = toe->as.expr;
         if (!args[i]) return NULL;
         i++;
     }
