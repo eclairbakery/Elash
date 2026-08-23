@@ -41,14 +41,7 @@ void el_pp_free(ElPreproc* pp) {
 }
 
 ////////// scopes ////////////
-ElPpScope* _el_pp_push_scope(ElPreproc* pp) {
-    ElPpScope* scope = el_pp_scope_new(pp->current_scope);
-    pp->current_scope = scope;
-    return scope;
-}
-
-ElPpScope* _el_pp_pop_scope(ElPreproc* pp) {
-    ElPpScope* scope = pp->current_scope;
+static void el_pp_warn_never_mutated(ElPreproc* pp, ElPpScope* scope) {
     for (usize i = 0; i < scope->capacity; ++i) {
         if (scope->entries[i].state != _EL_PP_OCCUPIED) continue;
         if (scope->entries[i].value->kind != EL_PP_SYM_VAR) continue;
@@ -65,6 +58,17 @@ ElPpScope* _el_pp_pop_scope(ElPreproc* pp) {
             pp->diag, "use #const if you don't need mutability"
         );
     }
+}
+
+ElPpScope* _el_pp_push_scope(ElPreproc* pp) {
+    ElPpScope* scope = el_pp_scope_new(pp->current_scope);
+    pp->current_scope = scope;
+    return scope;
+}
+
+ElPpScope* _el_pp_pop_scope(ElPreproc* pp) {
+    ElPpScope* scope = pp->current_scope;
+    el_pp_warn_never_mutated(pp, scope);
 
     ElPpScope* parent = scope->parent;
     el_pp_scope_free(scope);
@@ -73,20 +77,29 @@ ElPpScope* _el_pp_pop_scope(ElPreproc* pp) {
 
 ///////// include frames ///////////
 void _el_pp_push_frame(ElPreproc* pp, ElTokenStream stream, const ElSourceDocument* doc) {
+    ElPpFrame* parent = pp->frame;
+
     pp->include_depth++;
     pp->frame = EL_DYNARENA_NEW_STRUCT(pp->iarena, ElPpFrame, {
         .stream = stream,
         .doc    = doc,
-        .parent = pp->frame,
+        .parent = parent,
     });
 
-    _el_pp_push_scope(pp);
+    if (parent != NULL) {
+        _el_pp_push_scope(pp);
+    }
 }
 
 static void el_pp_pop_frame(ElPreproc* pp) {
+    bool nested = pp->frame->parent != NULL;
     pp->frame = pp->frame->parent;
     pp->include_depth--;
-    _el_pp_pop_scope(pp);
+    if (nested) {
+        _el_pp_pop_scope(pp);
+    } else {
+        el_pp_warn_never_mutated(pp, pp->global_scope);
+    }
 }
 
 static void frame_unread(ElPreproc* pp, ElToken tok) {
