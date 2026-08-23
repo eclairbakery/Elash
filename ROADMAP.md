@@ -5,6 +5,11 @@
 - [ ] Init-statements in `if` and `while`
 - [ ] Post-iteration statement in `while` loop
 - [x] Initializers as `return` values
+- [ ] Warn when the result or an expression without side effects is ignored 
+
+### Declarations
+- [ ] Make function parameter definitions semicolon-separated and represent them as decl AST mode
+- [ ] Support unnamed function params in declarations
 
 ### Type system
 - [ ] Enum types
@@ -13,17 +18,21 @@
 - [ ] Read-only types
 - [ ] Write-only types
 
-### Operators
-- [ ] Sizeof operator (`sizeof`)
-- [ ] Alignof operator (`alignof`)
-- [ ] Offsetof operator (`offsetof`)
-
+### Expressions
 - [ ] Bitcast operator (`bitcast`)
 
 - [ ] Optional fallback operator (`??`)
 - [ ] Optional map operator (`?:`)
 - [ ] Optional unwrap operator (`!`)
 - [ ] Optional member operator (`?.`)
+
+- [ ] Support passing types as function arguments (for builtins)
+
+### Builtins
+- [ ] Accept array types in len() function
+- [ ] Add `sizeof` function
+- [ ] Add `alignof` function
+- [ ] Add `offsetof` function
 
 ### Driver/CLI
 - [x] `-I[src/sys] <name>=<path>` flag
@@ -58,9 +67,9 @@
 - [ ] `mem` module
 
 ## Lowering
-- [ ] Perform early MIR optimizations
-- [ ] Attach DWARF debug info
-- [ ] Attach source spans to MIR structures
+- [ ] ~~Perform early MIR optimizations~~ *(moved to 0.3.0)*
+- [ ] ~~Attach DWARF debug info~~ *(moved to 0.3.0)*
+- [ ] ~~Attach source spans to MIR structures~~ *(moved to 0.3.0)*
 
 ### Optimizations
 #### LLVM passes
