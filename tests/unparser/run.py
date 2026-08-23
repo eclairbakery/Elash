@@ -70,6 +70,14 @@ def main():
                     for line in stderr.split('\n'):
                         print_info('    ' + line)
 
+    tested_count = passed_count + failed_count + crashed_count
+    print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')
+    print(f'Tested: {CLR_BLUE}{tested_count}{CLR_RESET}{CLR_BOLD} ', end='')
+    print(f'| Passing: {CLR_GREEN}{passed_count}{CLR_RESET}{CLR_BOLD} ', end='')
+    print(f'| Failing: {CLR_RED}{failed_count}{CLR_RESET}{CLR_BOLD} ', end='')
+    print(f'| Crashed: {CLR_ORANGE}{crashed_count}{CLR_RESET}{CLR_ORANGE}', end='')
+    print(CLR_RESET)
+
     return 1 if (failed_count + crashed_count) > 0 else 0
 
 if __name__ == '__main__':
