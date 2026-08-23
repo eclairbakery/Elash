@@ -10,14 +10,8 @@ bool el_unparser_unparse_toe(ElUnparser* unpar, ElAstToE* toe) {
     case EL_AST_TOE_EXPR:
         return el_unparser_unparse_expr(unpar, toe->as.expr);
 
-    case EL_AST_TOE_UNR_IDENT:
-        return _el_unparser_unparse_ident(unpar, toe->as.unr_ident);
-
-    case EL_AST_TOE_UNR_INDEX:
-        if (!el_unparser_unparse_toe(unpar, toe->as.unr_index.base)) return false;
-        if (!el_unparser_push_punct(unpar, EL_TT_LBRACKET)) return false;
-        if (!el_unparser_unparse_toe(unpar, toe->as.unr_index.index)) return false;
-        return el_unparser_push_punct(unpar, EL_TT_RBRACKET);
+    case EL_AST_TOE_UNR:
+        return el_unparser_unparse_unr(unpar, toe->as.unr);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstToEKind, toe->kind);
 }

@@ -6,6 +6,7 @@
 #include <elash/ast/tree/type.h>
 #include <elash/ast/tree/init.h>
 #include <elash/ast/tree/toe.h>
+#include <elash/ast/tree/unr.h>
 
 #include <elash/source/span.h>
 #include <elash/util/assert.h>
@@ -181,8 +182,7 @@ static ElAstToE* gen_toe(ElDynArena* arena, int depth) {
     switch (rand() % 3) {
         case 0: return el_ast_new_toe_type(arena, gen_type(arena, depth - 1));
         case 1: return el_ast_new_toe_expr(arena, gen_expr(arena, depth - 1));
-        case 2: return el_ast_new_toe_unr_ident(arena, NSPAN, gen_ident(arena));
-        // unr_index with a type index prints as `x[struct{...}]`, which is not an expr
+        case 2: return el_ast_new_toe_unr(arena, el_ast_new_unr_ident(arena, NSPAN, gen_ident(arena)));
     }
     EL_UNREACHABLE("shouldn't get here");
 }

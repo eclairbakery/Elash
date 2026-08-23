@@ -11,6 +11,8 @@
 #include <elash/ast/tree/module.h>
 #include <elash/ast/tree/type.h>
 #include <elash/ast/tree/toe.h>
+#include <elash/ast/tree/toi.h>
+#include <elash/ast/tree/unr.h>
 
 typedef struct ElUnparser {
     ElTokenBuf* out;
@@ -31,7 +33,9 @@ bool el_unparser_unparse_stmt(ElUnparser* unparser, ElAstStmt* stmt);
 bool el_unparser_unparse_expr(ElUnparser* unparser, ElAstExpr* expr);
 bool el_unparser_unparse_type(ElUnparser* unparser, ElAstType* type);
 bool el_unparser_unparse_init(ElUnparser* unparser, ElAstInit* init);
+bool el_unparser_unparse_unr(ElUnparser* unparser,  ElAstUnr* unr);
 bool el_unparser_unparse_toe(ElUnparser* unparser,  ElAstToE* toe);
+bool el_unparser_unparse_toi(ElUnparser* unparser,  ElAstToI* toi);
 
 bool _el_unparser_unparse_ident(ElUnparser* unparser, ElAstIdent* ident);
 bool _el_unparser_unparse_block(ElUnparser* unparser, ElAstBlockStmt* block);

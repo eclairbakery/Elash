@@ -18,19 +18,11 @@ ElAstToE* el_ast_new_toe_expr(ElDynArena* arena, ElAstExpr* expr) {
     });
 }
 
-ElAstToE* el_ast_new_toe_unr_ident(ElDynArena* arena, ElSourceSpan span, ElAstIdent* ident) {
+ElAstToE* el_ast_new_toe_unr(ElDynArena* arena, ElAstUnr* unr) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElAstToE, {
-        .kind = EL_AST_TOE_UNR_IDENT,
-        .span = span,
-        .as.unr_ident = ident,
-    });
-}
-
-ElAstToE* el_ast_new_toe_unr_index(ElDynArena* arena, ElSourceSpan span, ElAstToE* base, ElAstToE* index) {
-    return EL_DYNARENA_NEW_STRUCT(arena, ElAstToE, {
-        .kind = EL_AST_TOE_UNR_INDEX,
-        .span = span,
-        .as.unr_index = { base, index },
+        .kind = EL_AST_TOE_UNR,
+        .span = unr->span,
+        .as.unr = unr,
     });
 }
 
@@ -42,14 +34,8 @@ ElAstType* el_ast_toe_as_type(ElDynArena* arena, ElAstToE* node) {
         return node->as.type;
     case EL_AST_TOE_EXPR:
         return NULL;
-    case EL_AST_TOE_UNR_INDEX: {
-        ElAstType* base = el_ast_toe_as_type(arena, node->as.unr_index.base);
-        ElAstExpr* size = el_ast_toe_as_expr(arena, node->as.unr_index.index);
-        if (base == NULL || size == NULL) return NULL;
-        return el_ast_new_type_array(arena, node->span, base, size);
-    }
-    case EL_AST_TOE_UNR_IDENT:
-        return el_ast_new_type_name(arena, node->span, node->as.unr_ident);
+    case EL_AST_TOE_UNR:
+        return el_ast_unr_as_type(arena, node->as.unr);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstToEKind, node->kind);
 }
@@ -62,21 +48,8 @@ ElAstExpr* el_ast_toe_as_expr(ElDynArena* arena, ElAstToE* node) {
         return node->as.expr;
     case EL_AST_TOE_TYPE:
         return NULL;
-    case EL_AST_TOE_UNR_INDEX: {
-        ElAstExpr* base = el_ast_toe_as_expr(arena, node->as.unr_index.base);
-        ElAstExpr* index = el_ast_toe_as_expr(arena, node->as.unr_index.index);
-        if (base == NULL || index == NULL) return NULL;
-        return el_ast_new_bin_expr(
-            arena, node->span,
-            EL_SEMA_BIN_OP_INDEX, base, index
-        );
-    }
-    case EL_AST_TOE_UNR_IDENT:
-        return el_ast_new_ident(
-            arena,
-            node->as.unr_ident->span,
-            node->as.unr_ident->name
-        );
+    case EL_AST_TOE_UNR:
+        return el_ast_unr_as_expr(arena, node->as.unr);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstToEKind, node->kind);
 }

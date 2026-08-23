@@ -6,25 +6,44 @@
 
 #include <elash/hir/toe.h>
 
-static ElHirToE* resolve_toe_by_kind(ElBinder* binder, ElAstToE* in, bool is_type) {
+static ElHirToE* resolve_toe_by_kind(ElBinder* binder, ElAstUnr* in, bool is_type) {
     if (is_type) {
-        ElAstType* ast_type = el_ast_toe_as_type(binder->arena, in);
+        ElAstType* ast_type = el_ast_unr_as_type(binder->arena, in);
         ElHirType* hir_type = _el_binder_bind_type(binder, ast_type);
         if (hir_type == NULL) return NULL;
         return el_hir_new_toe_type(binder->arena, hir_type);
     } else {
-        ElAstExpr* ast_expr = el_ast_toe_as_expr(binder->arena, in);
+        ElAstExpr* ast_expr = el_ast_unr_as_expr(binder->arena, in);
         ElHirExpr* hir_expr = el_binder_bind_expr(binder, ast_expr);
         if (hir_expr == NULL) return NULL;
         return el_hir_new_toe_expr(binder->arena, hir_expr);
     }
 }
 
+static ElHirToE* bind_unresolved(ElBinder* binder, ElAstToE* in, ElAstUnr* unr) {
+    if (unr->kind == EL_AST_UNR_IDENT) {
+        ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, unr->as.ident->name);
+        if (sym == NULL) {
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.unresolved-symbol",
+                in->span, "unresolved symbol: ${name}",
+                EL_DIAG_STRING("name", unr->as.ident->name)
+            );
+        }
+
+        return resolve_toe_by_kind(binder, unr, sym->kind == EL_SYM_TYPE);
+    }
+
+    ElHirToE* base_toe = el_binder_bind_toe(binder, el_ast_new_toe_unr(binder->arena, unr->as.index.base));
+    if (base_toe == NULL) return NULL;
+
+    return resolve_toe_by_kind(binder, unr, base_toe->is_type);
+}
+
 ElHirToE* el_binder_bind_toe(ElBinder* binder, ElAstToE* in) {
     if (in == NULL) return NULL;
 
     switch (in->kind) {
-    // easy cases
     case EL_AST_TOE_TYPE: {
         ElHirType* type = _el_binder_bind_type(binder, in->as.type);
         if (type == NULL) return NULL;
@@ -35,26 +54,8 @@ ElHirToE* el_binder_bind_toe(ElBinder* binder, ElAstToE* in) {
         if (expr == NULL) return NULL;
         return el_hir_new_toe_expr(binder->arena, expr);
     }
-
-    // very very advanced cases
-    case EL_AST_TOE_UNR_IDENT: {
-        ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, in->as.unr_ident->name);
-        if (sym == NULL) {
-            return el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.unresolved-symbol",
-                in->span, "unresolved symbol: ${name}",
-                EL_DIAG_STRING("name", in->as.unr_ident->name)
-            );
-        }
-
-        return resolve_toe_by_kind(binder, in, sym->kind == EL_SYM_TYPE);
-    }
-    case EL_AST_TOE_UNR_INDEX: {
-        ElHirToE* base_toe = el_binder_bind_toe(binder, in->as.unr_index.base);
-        if (base_toe == NULL) return NULL;
-
-        return resolve_toe_by_kind(binder, in, base_toe->is_type);
-    }
+    case EL_AST_TOE_UNR:
+        return bind_unresolved(binder, in, in->as.unr);
     }
 
     EL_UNREACHABLE_ENUM_VAL(ElAstToEKind, in->kind);

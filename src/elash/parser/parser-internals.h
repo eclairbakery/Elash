@@ -1,6 +1,10 @@
 #pragma once
 #include <elash/parser/parser.h> // IWYU pragma: export
 
+#include <elash/ast/tree/toe.h>
+#include <elash/ast/tree/unr.h>
+#include <elash/source/span.h>
+
 void _el_parser_report_expected(ElParser* parser, ElTokenType expected);
 void _el_parser_report_expected_at(ElParser* parser, ElTokenType expected, usize idx);
 void _el_parser_report_unexpected(ElParser* parser, ElToken tok);
@@ -17,3 +21,23 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser);
 ElAstExpr* _el_parser_parse_postfix(ElParser* parser);
 ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr);
 ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee);
+
+typedef enum ElParseAmbigKind {
+    EL_PARSE_AMBIG_TYPE,
+    EL_PARSE_AMBIG_EXPR,
+    EL_PARSE_AMBIG_UNR,
+} ElParseAmbigKind;
+
+typedef struct ElParseAmbig {
+    ElParseAmbigKind kind;
+    ElSourceSpan     span;
+    union {
+        ElAstType* type;
+        ElAstExpr* expr;
+        ElAstUnr*  unr;
+    } as;
+} ElParseAmbig;
+
+bool         _el_parser_is_complex_expr(ElParser* parser);
+ElParseAmbig _el_parser_parse_ambig(ElParser* parser);
+ElAstToE* _el_parser_toe_from_ambig(ElParser* parser, ElParseAmbig node);

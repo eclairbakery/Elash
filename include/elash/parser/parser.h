@@ -14,6 +14,7 @@
 #include <elash/ast/tree/module.h>
 #include <elash/ast/tree/type.h>
 #include <elash/ast/tree/toe.h>
+#include <elash/ast/tree/toi.h>
 
 #include <elash/diag/engine.h>
 
@@ -42,6 +43,7 @@ ElToken el_parser_peek(ElParser* parser);
 ElToken el_parser_peek_at(ElParser* parser, usize n);
 
 ElAstToE*      el_parser_parse_toe(ElParser* parser);
+ElAstToI*      el_parser_parse_toi(ElParser* parser);
 ElAstDecl*     el_parser_parse_decl(ElParser* parser);
 ElAstInit*     el_parser_parse_init(ElParser* parser);
 ElAstExpr*     el_parser_parse_expr(ElParser* parser);
