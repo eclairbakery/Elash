@@ -43,12 +43,12 @@ clean-tests:
 $(TESTS_OUT_DIR)/elash/%$(EXE_EXT): $(TESTS_DIR)/elash/%.c $(LIBELASH_STATIC) | test-dirs
 	@$(call CMD_MKDIR_P,$(dir $@))
 	$(ECHO) "LD $@"
-	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELASH_STATIC) $(TESTS_LDFLAGS) -o $@
+	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELASH_STATIC) $(TESTS_LDFLAGS)  $(CRITERION) -o $@
 
 $(TESTS_OUT_DIR)/elc/%$(EXE_EXT): $(TESTS_DIR)/elc/%.c $(LIBELC_STATIC) $(LIBELASH_STATIC) | test-dirs
 	@$(call CMD_MKDIR_P,$(dir $@))
 	$(ECHO) "CC $@"
-	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELC_STATIC) $(LIBELASH_STATIC) $(TESTS_LDFLAGS) $(LLVM_LDFLAGS) -o $@
+	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELC_STATIC) $(LIBELASH_STATIC) $(TESTS_LDFLAGS) $(CRITERION) $(LLVM_LDFLAGS) -o $@
 
 .PHONY: test-elash test-elc
 test-elash: $(ELASH_TESTS_BINS)
