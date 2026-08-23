@@ -5,7 +5,7 @@
 - [ ] Init-statements in `if` and `while`
 - [ ] Post-iteration statement in `while` loop
 - [x] Initializers as `return` values
-- [ ] Warn when the result or an expression without side effects is ignored 
+- [ ] Warn when the result or an expression without side effects is ignored
 
 ### Declarations
 - [ ] Make function parameter definitions semicolon-separated and represent them as decl AST mode
@@ -26,7 +26,7 @@
 - [ ] Optional unwrap operator (`!`)
 - [ ] Optional member operator (`?.`)
 
-- [ ] Support passing types as function arguments (for builtins)
+- [x] Support passing types as function arguments (for builtins)
 
 ### Builtins
 - [ ] Accept array types in len() function
