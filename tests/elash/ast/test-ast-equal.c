@@ -19,7 +19,9 @@ TestSuite(ast_equal, .init = init, .fini = fini);
 
 /// --- integration test ---
 Test(ast_equal, integration_test) {
-    ElDiagEngine diag = {0};
+    ElDiagEngine diag;
+    el_diag_engine_init(&diag, &arena);
+
     ElParser parser;
     ElLexer lexer;
 

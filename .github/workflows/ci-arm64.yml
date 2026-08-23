@@ -41,7 +41,7 @@ jobs:
             -e CCACHE_DIR="/ccache" \
             "ghcr.io/${{ github.repository_owner }}/elash-ci-arm64:latest" \
             sh -c "ccache -z && make libelash-static elc -j\$(nproc) && ccache -s && \
-            make unit-test && make test-e2e && make test-fuzz-1000"
+            make unit-test && make test-e2e && make test-unparser && make test-fuzz-1000"
 
       - name: Archive
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')

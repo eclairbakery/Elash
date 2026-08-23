@@ -72,6 +72,9 @@ jobs:
       - name: End-to-End tests
         run: make test-e2e
 
+      - name: Unparser tests
+        run: make test-unparser
+
       - name: Fuzz tests
         run: make test-fuzz
 

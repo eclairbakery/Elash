@@ -135,7 +135,7 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
             expanded    = _expand_expectations(expected.diags)
             _report_diag_mismatches(expanded, diagnostics)
 
-def _collect_test_cases() -> list[TestCase]:
+def collect_test_cases() -> list[TestCase]:
     def get_name(item: Path) -> str:
         return str(item.relative_to(script_dir)).removesuffix(".eu")
 
@@ -215,7 +215,7 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
     failed_count  = 0
     skipped_count = 0
 
-    test_cases = _collect_test_cases()
+    test_cases = collect_test_cases()
 
     tasks = []
     for case in test_cases:
