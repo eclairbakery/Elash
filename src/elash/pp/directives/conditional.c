@@ -38,7 +38,7 @@ static bool check_else(ElPreproc* pp, ElSourceSpan dspan) {
 }
 
 bool _el_pp_handle_if(ElPreproc* pp, ElSourceSpan dspan) {
-    bool cond;
+    bool cond = false;
     if (!eval_cond(pp, dspan, &cond)) {
         return false;
     }
@@ -152,7 +152,7 @@ bool _el_pp_skip_elif(ElPreproc* pp, ElSourceSpan dspan) {
         return true;
     }
 
-    bool cond;
+    bool cond = false; // default value to make the compiler happy
     if (!eval_cond(pp, dspan, &cond)) {
         return false;
     }
