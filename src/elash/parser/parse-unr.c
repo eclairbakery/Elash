@@ -112,10 +112,7 @@ static ElParseAmbig force_type_with_suffixes(ElParser* parser, ElParseAmbig node
 static ElParseAmbig parse_ambig_bracket_suffix(ElParser* parser, ElParseAmbig base) {
     el_parser_advance(parser); // [
 
-    ElParseAmbig index = _el_parser_parse_ambig(parser);
-    if (index.kind == EL_PARSE_AMBIG_TYPE && el_parser_has_errs(parser)) {
-        return base;
-    }
+    ElAstExpr* index_expr = el_parser_parse_expr(parser);
 
     ElToken rbracket = parser->current;
     el_parser_expect(parser, EL_TT_RBRACKET);
@@ -124,32 +121,16 @@ static ElParseAmbig parse_ambig_bracket_suffix(ElParser* parser, ElParseAmbig ba
     ElSourceSpan combined_span = el_srcspan_merge(base.span, rbracket.span);
 
     if (base.kind == EL_PARSE_AMBIG_TYPE) {
-        ElAstExpr* size = ambig_as_expr(parser->arena, index);
-        if (size == NULL) return base;
-
         ElAstType* type = el_ast_new_type_array(
-            parser->arena, combined_span, base.as.type, size
+            parser->arena, combined_span, base.as.type, index_expr
         );
         return ambig_type(type);
     }
 
     EL_ASSERT(base.kind == EL_PARSE_AMBIG_UNR, "bracket suffix base must be unresolved");
 
-    ElAstUnr*  index_unr  = NULL;
-    ElAstExpr* index_expr = NULL;
-    switch (index.kind) {
-    case EL_PARSE_AMBIG_UNR:
-        index_unr = index.as.unr;
-        break;
-    case EL_PARSE_AMBIG_EXPR:
-        index_expr = index.as.expr;
-        break;
-    case EL_PARSE_AMBIG_TYPE:
-        return base;
-    }
-
     return ambig_unr(el_ast_new_unr_index(
-        parser->arena, combined_span, base.as.unr, index_unr, index_expr
+        parser->arena, combined_span, base.as.unr, NULL, index_expr
     ));
 }
 
@@ -256,6 +237,14 @@ bool _el_parser_is_complex_expr(ElParser* parser) {
 }
 
 ElParseAmbig _el_parser_parse_ambig(ElParser* parser) {
+    if (_el_parser_is_type_literal(parser)) {
+        ElAstExpr* expr = _el_parser_parse_postfix(parser);
+        if (expr == NULL) {
+            return (ElParseAmbig) { .kind = EL_PARSE_AMBIG_EXPR, .as.expr = NULL };
+        }
+        return ambig_expr(expr);
+    }
+
     if (el_parser_check(parser, EL_TT_KW_STRUCT)) {
         ElAstType* type = _el_parser_parse_type(parser);
         if (type == NULL) {

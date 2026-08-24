@@ -2,15 +2,24 @@
 
 #include <elash/ast/tree/type.h>
 
-static bool lookahead_skip_balanced(ElParser* parser, usize* idx, ElTokenType open, ElTokenType close) {
-    uint depth = 0;
+static bool lookahead_skip_balanced(ElParser* parser, usize* idx) {
+    uint depth_paren = 0;
+    uint depth_brace = 0;
+    uint depth_bracket = 0;
+
     do {
         ElToken tok = el_parser_peek_at(parser, (*idx)++);
         if (tok.type == EL_TT_EOF) return false;
 
-        if (tok.type == open)  depth++;
-        if (tok.type == close) depth--;
-    } while (depth > 0);
+        if (tok.type == EL_TT_LPAREN)        depth_paren++;
+        else if (tok.type == EL_TT_RPAREN)   { if (depth_paren > 0) depth_paren--; }
+        else if (tok.type == EL_TT_LBRACE)   depth_brace++;
+        else if (tok.type == EL_TT_RBRACE)   { if (depth_brace > 0) depth_brace--; }
+        else if (tok.type == EL_TT_LBRACKET) depth_bracket++;
+        else if (tok.type == EL_TT_RBRACKET) { if (depth_bracket > 0) depth_bracket--; }
+
+        if (depth_paren == 0 && depth_brace == 0 && depth_bracket == 0) break;
+    } while (true);
 
     return true;
 }
@@ -29,10 +38,8 @@ static bool lookahead_skip_type_base(ElParser* parser, usize* idx) {
     (*idx)++;
 
     tok = el_parser_peek_at(parser, *idx);
-    if (tok.type == EL_TT_LPAREN)
-        return lookahead_skip_balanced(parser, idx, EL_TT_LPAREN, EL_TT_RPAREN);
-    if (tok.type == EL_TT_LBRACE)
-        return lookahead_skip_balanced(parser, idx, EL_TT_LBRACE, EL_TT_RBRACE);
+    if (tok.type == EL_TT_LPAREN || tok.type == EL_TT_LBRACE)
+        return lookahead_skip_balanced(parser, idx);
 
     return false;
 }
@@ -44,7 +51,7 @@ static bool lookahead_skip_type_suffixes(ElParser* parser, usize* idx) {
         if (tok.type == EL_TT_BITWISE_AND) {
             (*idx)++;
         } else if (tok.type == EL_TT_LBRACKET) {
-            if (!lookahead_skip_balanced(parser, idx, EL_TT_LBRACKET, EL_TT_RBRACKET))
+            if (!lookahead_skip_balanced(parser, idx))
                 return false;
         } else {
             break;
