@@ -26,6 +26,7 @@
 - [ ] Optional unwrap operator (`!`)
 - [ ] Optional member operator (`?.`)
 
+- [ ] Make string literals untyped
 - [x] Support passing types as function arguments (for builtins)
 
 ### Builtins
