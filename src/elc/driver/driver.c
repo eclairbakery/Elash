@@ -47,7 +47,7 @@ void elc_driver_free(ElcDriver* driver) {
 
 bool elc_driver_register_stages(ElcDriver* driver) {
     elc_pipeline_add_stage(&driver->pipeline, elc_make_lexer_stage());
-    elc_pipeline_add_stage(&driver->pipeline, elc_make_pp_stage());
+    elc_pipeline_add_stage(&driver->pipeline, elc_make_preproc_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_parser_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_binder_stage());
     elc_pipeline_add_stage(&driver->pipeline, elc_make_lowerer_stage());

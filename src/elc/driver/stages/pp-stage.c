@@ -2,7 +2,7 @@
 
 #include <elash/pp/preproc.h>
 
-bool elc_pp_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const ElcArtifact* input, ElcArtifact* output) {
+bool elc_preproc_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const ElcArtifact* input, ElcArtifact* output) {
     (void) stage;
 
     ElPreproc* pp = EL_DYNARENA_NEW(ctx->arena, ElPreproc);
@@ -27,10 +27,10 @@ bool elc_pp_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const Elc
     return true;
 }
 
-ElcStage elc_make_pp_stage() {
+ElcStage elc_make_preproc_stage() {
     return (ElcStage) {
         .name = EL_SV("Preprocessor"),
-        .execute = elc_pp_stage_exec,
+        .execute = elc_preproc_stage_exec,
 
         .input_kind = ELC_ART_TKS,
         .output_kind = ELC_ART_PPTKS,
