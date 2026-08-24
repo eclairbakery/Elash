@@ -29,7 +29,7 @@
 - [x] Support passing types as function arguments (for builtins)
 
 ### Builtins
-- [ ] Accept array types in len() function
+- [x] Support passing array types directly in len() function
 - [ ] Add `sizeof` function
 - [ ] Add `alignof` function
 - [ ] Add `offsetof` function
