@@ -1,5 +1,6 @@
 #include <elash/mir/type.h>
 #include <elash/util/assert.h>
+#include <elash/util/hashmix.h>
 
 static void stdio_wrapper(const char* s, void* ctx) {
     fputs(s, (FILE*)ctx);
@@ -116,4 +117,38 @@ bool el_mir_type_eql(const ElMirType* lhs, const ElMirType* rhs) {
         return true;
     }
     EL_UNREACHABLE_ENUM_VAL(ElMirTypeKind, lhs->kind);
+}
+
+uint64_t el_mir_type_hash(const ElMirType* type) {
+    uint64_t hash = (uint64_t)type->kind;
+    switch (type->kind) {
+    case EL_MIR_TYPE_INT:
+        hash = el_hash_mix(hash, (uint64_t)type->as.integer.width);
+        hash = el_hash_mix(hash, (uint64_t)type->as.integer.is_signed);
+        break;
+    case EL_MIR_TYPE_FLOAT:
+        hash = el_hash_mix(hash, (uint64_t)type->as.float_.width);
+        break;
+    case EL_MIR_TYPE_PTR:
+        hash = el_hash_mix(hash, el_mir_type_hash(type->as.ptr.base));
+        break;
+    case EL_MIR_TYPE_ARRAY:
+        hash = el_hash_mix(hash, (uint64_t)type->as.array.size);
+        hash = el_hash_mix(hash, el_mir_type_hash(type->as.array.base));
+        break;
+    case EL_MIR_TYPE_FUNC:
+        hash = el_hash_mix(hash, (uint64_t)type->as.func.param_count);
+        hash = el_hash_mix(hash, el_mir_type_hash(type->as.func.ret_type));
+        for (usize i = 0; i < type->as.func.param_count; ++i)
+            hash = el_hash_mix(hash, el_mir_type_hash(type->as.func.params[i]));
+        break;
+    case EL_MIR_TYPE_TUPLE:
+        hash = el_hash_mix(hash, (uint64_t)type->as.tuple.item_count);
+        for (usize i = 0; i < type->as.tuple.item_count; ++i)
+            hash = el_hash_mix(hash, el_mir_type_hash(type->as.tuple.items[i]));
+        break;
+    case EL_MIR_TYPE_VOID:
+        break;
+    }
+    return hash;
 }
