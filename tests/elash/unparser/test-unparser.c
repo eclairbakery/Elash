@@ -45,7 +45,7 @@ Test(el_unparser, null_span_float_literal) {
     bool success = el_unparser_unparse_expr(&unparser, lit);
     cr_assert(success);
 
-    double actual = atof(toks.data[0].lexeme.data);
+    double actual = strtod(toks.data[0].lexeme.data, NULL);
     cr_assert_eq(toks.data[0].type, EL_TT_FLOAT_LITERAL);
     cr_assert(fabs(actual - expected) < 1e-9, "Expected %f, got %s", expected, toks.data[0].lexeme.data);
 }

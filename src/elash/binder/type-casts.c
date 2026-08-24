@@ -113,6 +113,89 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
     return _el_binder_implicit_cast(binder, span, expr, to);
 }
 
+static ElHirExpr* implicit_cast_array(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to, bool* bad) {
+    ElHirType* from = expr->type;
+
+    *bad = false;
+    if (to->kind == EL_HIR_TYPE_SLICE) {
+        return el_hir_new_make_slice_intr(
+            binder->arena,
+            expr->span,
+            _el_binder_implicit_cast(binder, span, expr, el_hir_new_raw_slice_type(binder->arena, from->as.array.base)),
+            el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_usize, (int64_t)from->as.array.size)
+        );
+    } else if (to->kind == EL_HIR_TYPE_RWSLICE) {
+        if (type_eql(to->as.rwslice.base, from->as.array.base)) {
+            // &(expr)[0] as T[&]
+            ElHirType* base_type = from->as.array.base;
+            return el_hir_new_cast_expr(binder->arena, expr->span, to,
+                el_hir_new_unary_expr(
+                    binder->arena, expr->span,
+                    el_hir_new_ref_type(binder->arena, base_type),
+                    EL_SEMA_UNARY_OP_ADDROF,
+                    el_hir_new_bin_expr(binder->arena, EL_SRCSPAN_NULL, base_type, EL_SEMA_BIN_OP_INDEX,
+                        expr, el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_int, 0)
+            )));
+        }
+    } else if (to->kind == EL_HIR_TYPE_REF) {
+        // let's give the user some nice error message in this case
+        el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
+            "invalid cast from array type ${from} to ${to} pointer",
+            EL_DIAG_TYPE("from", from), EL_DIAG_TYPE("to", to),
+        );
+        el_diag_help(
+            binder->diag, "did you meant to use a raw slice ('${type}')?",
+            EL_DIAG_TYPE("type", el_hir_new_raw_slice_type(binder->arena, to->as.ref.base)),
+        );
+
+        *bad = true;
+        return NULL;
+    }
+
+    return NULL;
+}
+
+static ElHirExpr* implicit_cast_slice(ElBinder* binder, ElHirExpr* expr, ElHirType* to) {
+    if (to->kind == EL_HIR_TYPE_RWSLICE) {
+        if (type_eql(expr->type->as.slice.base, to->as.rwslice.base)) {
+            return el_hir_new_slice_data_intr(
+                binder->arena, expr->span,
+                to, expr
+            );
+        }
+    }
+
+    return NULL;
+}
+
+static ElHirExpr* implicit_cast_prim(ElBinder* binder, ElHirExpr* expr, ElHirType* to) {
+    ElHirType* from = expr->type;
+
+    if (from->as.prim.kind == EL_PRIMTYPE_INT && to->as.prim.kind == EL_PRIMTYPE_INT) {
+        // the type of these expressions is an anonymous union
+        // and using auto/typeof requires C23 which is not widely
+        // supported so let's stick to #define
+        #define from_itype (&from->as.prim.as.integral)
+        #define to_itype   (&to->as.prim.as.integral)
+        bool is_valid = from_itype->is_signed == to_itype->is_signed
+                    && (from_itype->width     == to_itype->width
+                    || (is_fixed_width(from_itype->width) && is_fixed_width(to_itype->width)
+                    &&  from_itype->width     <= to_itype->width));
+        if (is_valid) return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
+    } else if (from->as.prim.kind == EL_PRIMTYPE_FLOAT && to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
+        // same reason as before, don't blame me plz
+        #define from_fptype (&from->as.prim.as.fp)
+        #define to_fptype   (&to->as.prim.as.fp)
+        bool is_valid = from_fptype->width == to_fptype->width
+                    || (is_fixed_fp_width(from_fptype->width) && is_fixed_fp_width(to_fptype->width)
+                    &&  from_fptype->width < to_fptype->width);
+        if (is_valid) return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
+    }
+
+    return NULL;
+}
+
 ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
     ElHirType* from = expr->type;
     if (from == NULL)
@@ -121,73 +204,25 @@ ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
     if (type_eql(from, to)) return expr;
 
     if (from->kind == EL_HIR_TYPE_ARRAY) {
-        if (to->kind == EL_HIR_TYPE_SLICE) {
-            return el_hir_new_make_slice_intr(
-                binder->arena,
-                expr->span,
-                _el_binder_implicit_cast(binder, span, expr, el_hir_new_raw_slice_type(binder->arena, from->as.array.base)),
-                el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_usize, (int64_t)from->as.array.size)
-            );
-        } else if (to->kind == EL_HIR_TYPE_RWSLICE) {
-            if (type_eql(to->as.rwslice.base, from->as.array.base)) {
-                // &(expr)[0] as T[&]
-                ElHirType* base_type = from->as.array.base;
-                return el_hir_new_cast_expr(binder->arena, expr->span, to,
-                    el_hir_new_unary_expr(
-                        binder->arena, expr->span,
-                        el_hir_new_ref_type(binder->arena, base_type),
-                        EL_SEMA_UNARY_OP_ADDROF,
-                        el_hir_new_bin_expr(binder->arena, EL_SRCSPAN_NULL, base_type, EL_SEMA_BIN_OP_INDEX,
-                            expr, el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_int, 0)
-                )));
-            }
-        } else if (to->kind == EL_HIR_TYPE_REF) {
-            // let's give the user some nice error message in this case
-            el_diag_report(
-                binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
-                "invalid cast from array type ${from} to ${to} pointer",
-                EL_DIAG_TYPE("from", from), EL_DIAG_TYPE("to", to),
-            );
-            el_diag_help(
-                binder->diag, "did you meant to use a raw slice ('${type}')?",
-                EL_DIAG_TYPE("type", el_hir_new_raw_slice_type(binder->arena, to->as.ref.base)),
-            );
-
-            return NULL;
+        bool bad;
+        ElHirExpr* result = implicit_cast_array(binder, span, expr, to, &bad);
+        if (result != NULL) {
+            return result;
+        } else {
+            if (bad) return NULL;
         }
     }
+
     if (from->kind == EL_HIR_TYPE_SLICE) {
-        if (to->kind == EL_HIR_TYPE_RWSLICE) {
-            if (type_eql(from->as.slice.base, to->as.rwslice.base)) {
-                return el_hir_new_slice_data_intr(
-                    binder->arena, expr->span,
-                    to, expr
-                );
-            }
-        }
+        ElHirExpr* result = implicit_cast_slice(binder, expr, to);
+        if (result != NULL)
+            return result;
     }
 
     if (from->kind == EL_HIR_TYPE_PRIM && to->kind == EL_HIR_TYPE_PRIM) {
-        if (from->as.prim.kind == EL_PRIMTYPE_INT && to->as.prim.kind == EL_PRIMTYPE_INT) {
-            // the type of these expressions is an anonymous union
-            // and using auto/typeof requires C23 which is not widely
-            // supported so let's stick to #define
-            #define from_itype (&from->as.prim.as.integral)
-            #define to_itype   (&to->as.prim.as.integral)
-            bool is_valid = from_itype->is_signed == to_itype->is_signed
-                        && (from_itype->width     == to_itype->width
-                        || (is_fixed_width(from_itype->width) && is_fixed_width(to_itype->width)
-                        &&  from_itype->width     <= to_itype->width));
-            if (is_valid) return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
-        } else if (from->as.prim.kind == EL_PRIMTYPE_FLOAT && to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
-            // same reason as before, don't blame me plz
-            #define from_fptype (&from->as.prim.as.fp)
-            #define to_fptype   (&to->as.prim.as.fp)
-            bool is_valid = from_fptype->width == to_fptype->width
-                        || (is_fixed_fp_width(from_fptype->width) && is_fixed_fp_width(to_fptype->width)
-                        &&  from_fptype->width < to_fptype->width);
-            if (is_valid) return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
-        }
+        ElHirExpr* result = implicit_cast_prim(binder, expr, to);
+        if (result != NULL)
+            return result;
     }
 
     if (is_distinct_conv(from, to)) {

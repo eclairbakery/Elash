@@ -92,6 +92,24 @@ static ElAstStmt* _el_parser_parse_while(ElParser* parser, ElToken while_tok) {
     );
 }
 
+static bool match_compound_op(ElParser* parser, ElSemaBinOp* op) {
+    if      (el_parser_match(parser, EL_TT_ADD_ASSIGN))         { return *op = EL_SEMA_BIN_OP_ADD,    true; }
+    else if (el_parser_match(parser, EL_TT_SUB_ASSIGN))         { return *op = EL_SEMA_BIN_OP_SUB,    true; }
+    else if (el_parser_match(parser, EL_TT_MUL_ASSIGN))         { return *op = EL_SEMA_BIN_OP_MUL,    true; }
+    else if (el_parser_match(parser, EL_TT_DIV_ASSIGN))         { return *op = EL_SEMA_BIN_OP_DIV,    true; }
+    else if (el_parser_match(parser, EL_TT_MOD_ASSIGN))         { return *op = EL_SEMA_BIN_OP_MOD,    true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_AND_ASSIGN)) { return *op = EL_SEMA_BIN_OP_BW_AND, true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_OR_ASSIGN))  { return *op = EL_SEMA_BIN_OP_BW_OR,  true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_XOR_ASSIGN)) { return *op = EL_SEMA_BIN_OP_BW_XOR, true; }
+    else if (el_parser_match(parser, EL_TT_LOGICAL_AND_ASSIGN)) { return *op = EL_SEMA_BIN_OP_AND,    true; }
+    else if (el_parser_match(parser, EL_TT_LOGICAL_OR_ASSIGN))  { return *op = EL_SEMA_BIN_OP_OR,     true; }
+    else if (el_parser_match(parser, EL_TT_LOGICAL_IMP_ASSIGN)) { return *op = EL_SEMA_BIN_OP_IMP,    true; }
+    else if (el_parser_match(parser, EL_TT_BITWISE_IMP_ASSIGN)) { return *op = EL_SEMA_BIN_OP_BW_IMP, true; }
+    else if (el_parser_match(parser, EL_TT_SHL_ASSIGN))         { return *op = EL_SEMA_BIN_OP_SHL,    true; }
+    else if (el_parser_match(parser, EL_TT_SHR_ASSIGN))         { return *op = EL_SEMA_BIN_OP_SHR,    true; }
+    return false;
+}
+
 ElAstStmt* _el_parser_parse_expr_stmt(ElParser* parser) {
     ElAstExpr* expr = el_parser_parse_expr(parser);
     if (expr == NULL) return NULL;
@@ -107,21 +125,7 @@ ElAstStmt* _el_parser_parse_expr_stmt(ElParser* parser) {
     }
 
     ElSemaBinOp op;
-    bool is_compound = false;
-    if      (el_parser_match(parser, EL_TT_ADD_ASSIGN))         { op = EL_SEMA_BIN_OP_ADD;    is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_SUB_ASSIGN))         { op = EL_SEMA_BIN_OP_SUB;    is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_MUL_ASSIGN))         { op = EL_SEMA_BIN_OP_MUL;    is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_DIV_ASSIGN))         { op = EL_SEMA_BIN_OP_DIV;    is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_MOD_ASSIGN))         { op = EL_SEMA_BIN_OP_MOD;    is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_BITWISE_AND_ASSIGN)) { op = EL_SEMA_BIN_OP_BW_AND; is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_BITWISE_OR_ASSIGN))  { op = EL_SEMA_BIN_OP_BW_OR;  is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_BITWISE_XOR_ASSIGN)) { op = EL_SEMA_BIN_OP_BW_XOR; is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_LOGICAL_AND_ASSIGN)) { op = EL_SEMA_BIN_OP_AND;    is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_LOGICAL_OR_ASSIGN))  { op = EL_SEMA_BIN_OP_OR;     is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_LOGICAL_IMP_ASSIGN)) { op = EL_SEMA_BIN_OP_IMP;    is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_BITWISE_IMP_ASSIGN)) { op = EL_SEMA_BIN_OP_BW_IMP; is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_SHL_ASSIGN))         { op = EL_SEMA_BIN_OP_SHL;    is_compound = true; }
-    else if (el_parser_match(parser, EL_TT_SHR_ASSIGN))         { op = EL_SEMA_BIN_OP_SHR;    is_compound = true; }
+    bool is_compound = match_compound_op(parser, &op);
 
     if (is_compound) {
         ElAstInit* value = el_parser_parse_init(parser);

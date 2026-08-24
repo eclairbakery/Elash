@@ -38,8 +38,7 @@ void dump_constant(ElHirExpr* node, ElHirType* type, FILE* out) {
     EL_UNREACHABLE("unexpected literal type");
 }
 
-// TODO: split this shit into smaller helper functions
-//       clang-tidy: Function 'el_hir_dump_expr' has cognitive complexity of 33 (threshold 25)
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): the logic is flat, so it's ok.
 void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
     el_hir_dump_print_indent(indent, out);
     fputs("(", out);

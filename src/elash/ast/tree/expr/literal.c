@@ -2,12 +2,12 @@
 #include <elash/ast/tree/expr.h>
 
 static ElAstExpr* el_ast_new_literal_wrapper(ElDynArena* arena, ElSourceSpan span, ElAstLiteral lit) {
-    ElAstExpr* node = EL_DYNARENA_NEW(arena, ElAstExpr);
-    node->type = EL_AST_EXPR_LITERAL;
-    node->span = span;
-    node->as.literal = lit;
-    node->next = NULL;
-    return node;
+    return EL_DYNARENA_NEW_STRUCT(arena, ElAstExpr, {
+        .type = EL_AST_EXPR_LITERAL,
+        .span = span,
+        .as.literal = lit,
+        .next = NULL,
+    });
 }
 
 ElAstLiteral el_ast_int_literal(int64_t value) {

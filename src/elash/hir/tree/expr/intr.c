@@ -3,15 +3,15 @@
 
 #include <elash/util/assert.h>
 
-#define NICE_TO_HAVE_ASSERTIONS(slice) \
-    EL_ASSERT(el_hir_type_unwrap_distinct(slice->type)->kind == EL_HIR_TYPE_SLICE, "slice len intrinsic argument must be a slice"); \
+#define NICE_TO_HAVE_ASSERTIONS(SLICE_TYPE) \
+    EL_ASSERT(el_hir_type_unwrap_distinct((SLICE_TYPE)->type)->kind == EL_HIR_TYPE_SLICE, "slice len intrinsic argument must be a slice"); \
 
-#define ASSERT_USIZE(usize_type)                                          \
-    EL_ASSERT(                                                            \
-        usize_type->kind == EL_HIR_TYPE_PRIM                              \
-        && usize_type->as.prim.kind == EL_PRIMTYPE_INT                    \
-        && usize_type->as.prim.as.integral.width == EL_HIR_IWIDTH_NATIVE, \
-        "usize_type param must be instance of usize type"                 \
+#define ASSERT_USIZE(USIZE_TYPE)                                            \
+    EL_ASSERT(                                                              \
+        (USIZE_TYPE)->kind == EL_HIR_TYPE_PRIM                              \
+        && (USIZE_TYPE)->as.prim.kind == EL_PRIMTYPE_INT                    \
+        && (USIZE_TYPE)->as.prim.as.integral.width == EL_HIR_IWIDTH_NATIVE, \
+        "(USIZE_TYPE) param must be instance of usize type"                 \
     );
 
 ElHirExpr* el_hir_new_slice_len_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* usize_type, ElHirExpr* slice) {

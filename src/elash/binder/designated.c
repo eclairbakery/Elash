@@ -192,7 +192,6 @@ static ElHirExpr* bind_designated_elems(
             }
         }
 
-        // Add to the corresponding resolved bucket
         InitBucket* b = &buckets[idx];
         if (elem->head->next == NULL) {
             if (b->direct != NULL || b->sub_head != NULL) {

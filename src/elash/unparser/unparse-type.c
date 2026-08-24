@@ -1,6 +1,7 @@
 #include <elash/unparser/unparser.h>
 #include <elash/util/assert.h>
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): it is readable.
 bool _el_unparser_unparse_type_base(ElUnparser* unpar, ElAstType* type) {
     switch (type->kind) {
     case EL_AST_TYPE_NAME:
@@ -37,6 +38,7 @@ bool _el_unparser_unparse_type_base(ElUnparser* unpar, ElAstType* type) {
 
 #define MAX_SUFFIXES 0b110101011
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): it is readable.
 static bool unparse_type_suffixes(ElUnparser* unpar, ElAstType* type) {
     ElAstType* suffixes[MAX_SUFFIXES];
     usize count = 0;

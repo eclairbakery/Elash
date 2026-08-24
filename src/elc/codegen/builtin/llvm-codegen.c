@@ -119,55 +119,71 @@ LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant*
             LLVMSetInitializer(glob, LLVMConstNull(type));                            \
         }                                                                             \
     }
+static LLVMValueRef map_const_value(Context* ctx, ElMirValue* value) {
+    LLVMTypeRef type = elc_llvm_map_type(ctx, value->type);
+
+    if (value->type->kind == EL_MIR_TYPE_INT) {
+        return LLVMConstInt(type, (unsigned long long)value->as.constant.as.int_, true);
+    }
+    if (value->type->kind == EL_MIR_TYPE_FLOAT) {
+        return LLVMConstReal(type, value->as.constant.as.float_);
+    }
+
+    EL_UNREACHABLE("unhandled constant type in codegen");
+}
+
+static LLVMValueRef map_anonymous_global(Context* ctx, ElMirValue* value, ElMirSymbol* sym) {
+    EL_ASSERT(sym->id < ctx->globals_count, "anonymous symbol id out of range");
+    if (ctx->globals[sym->id] != NULL) {
+        return ctx->globals[sym->id];
+    }
+
+    EL_ASSERT(sym->kind == EL_MIR_SYM_VAR, "anonymous symbols should be variables");
+    LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.var.type);
+    LLVMValueRef glob = LLVMAddGlobal(ctx->current_mod, type, "");
+
+    SET_INIT(value->as.global.is_definition, glob, value, sym);
+    ctx->globals[sym->id] = glob;
+    return glob;
+}
+
+static LLVMValueRef map_named_global(Context* ctx, ElMirValue* value, ElMirSymbol* sym) {
+    char* name = el_dynarena_make_cstr(ctx->arena, sym->name);
+
+    LLVMValueRef glob = LLVMGetNamedFunction(ctx->current_mod, name);
+    if (glob != NULL) {
+        return glob;
+    }
+
+    if (sym->kind == EL_MIR_SYM_FUNC) {
+        LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.func.type);
+        return LLVMAddFunction(ctx->current_mod, name, type);
+    }
+
+    glob = LLVMGetNamedGlobal(ctx->current_mod, name);
+    if (glob != NULL) {
+        return glob;
+    }
+
+    LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.var.type);
+    glob = LLVMAddGlobal(ctx->current_mod, type, name);
+    SET_INIT(value->as.global.is_definition, glob, value, sym);
+    return glob;
+}
 
 LLVMValueRef elc_llvm_map_value(Context* ctx, FunctionContext* func, ElMirValue* value) {
     switch (value->kind) {
-    case EL_MIR_VAL_CONST: {
-        LLVMTypeRef type = elc_llvm_map_type(ctx, value->type);
-        if (value->type->kind == EL_MIR_TYPE_INT) {
-            return LLVMConstInt(type, (unsigned long long)value->as.constant.as.int_, true);
-        } else if (value->type->kind == EL_MIR_TYPE_FLOAT) {
-            return LLVMConstReal(type, value->as.constant.as.float_);
-        }
-        EL_UNREACHABLE("unhandled constant type in codegen");
-    }
+    case EL_MIR_VAL_CONST:
+        return map_const_value(ctx, value);
     case EL_MIR_VAL_ARG:
         return LLVMGetParam(func->llvm_fn, value->as.arg.idx);
     case EL_MIR_VAL_REG:
         return func->regs[value->as.reg.id];
     case EL_MIR_VAL_GLOBAL: {
         ElMirSymbol* sym = value->as.global.sym;
-
-        if (el_sv_is_null(sym->name)) {
-            EL_ASSERT(sym->id < ctx->globals_count, "anonymous symbol id out of range");
-            if (ctx->globals[sym->id] != NULL) {
-                return ctx->globals[sym->id];
-            }
-
-            EL_ASSERT(sym->kind == EL_MIR_SYM_VAR, "anonymous symbols should be variables");
-            LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.var.type);
-            LLVMValueRef glob = LLVMAddGlobal(ctx->current_mod, type, "");
-            SET_INIT(value->as.global.is_definition, glob, value, sym);
-            ctx->globals[sym->id] = glob;
-            return glob;
-        }
-
-        char* name = el_dynarena_make_cstr(ctx->arena, sym->name);
-        LLVMValueRef glob = LLVMGetNamedFunction(ctx->current_mod, name);
-        if (glob == NULL) {
-            if (sym->kind == EL_MIR_SYM_FUNC) {
-                LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.func.type);
-                glob = LLVMAddFunction(ctx->current_mod, name, type);
-            } else {
-                glob = LLVMGetNamedGlobal(ctx->current_mod, name);
-                if (glob == NULL) {
-                    LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.var.type);
-                    glob = LLVMAddGlobal(ctx->current_mod, type, name);
-                    SET_INIT(value->as.global.is_definition, glob, value, sym);
-                }
-            }
-        }
-        return glob;
+        return el_sv_is_null(sym->name)
+            ? map_anonymous_global(ctx, value, sym)
+            : map_named_global(ctx, value, sym);
     }
     }
     return NULL;
@@ -205,6 +221,7 @@ LLVMRealPredicate elc_llvm_get_fp_predicate_of(ElSemaBinOp op) {
     }
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): it is readable
 void elc_llvm_compile_bin_instr(Context* ctx, FunctionContext* func, ElMirInstr* instr) {
     ElMirBinInstr* bin = &instr->as.bin;
     LLVMValueRef lhs = elc_llvm_map_value(ctx, func, bin->lhs);

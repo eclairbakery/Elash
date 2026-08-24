@@ -3,6 +3,7 @@
 #include <elash/lexer/lexer.h>
 #include <elash/source/doc.h>
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 static void assert_lexer_error(const char* input, ElLexerErrorCode expected_error) {
     ElSourceDocument doc;
     el_srcdoc_init_from_str(&doc, el_sv_from_cstr(input), EL_SV("test.ela"));
