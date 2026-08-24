@@ -1,5 +1,7 @@
 #pragma once
 
+#include <elash/sema/backends.h>
+
 #include <elash/defs/semver.h>
 #include <elash/defs/sv.h>
 
@@ -21,6 +23,10 @@ typedef ElcCodegenResult ElcBackendCompileFn(
     const ElMirModule* input,
     ElcLirHandle* output
 );
+typedef ElBSQuery ElcBackendQueryFn(
+    ElcCodegenBackend* self
+);
+
 typedef void ElcBackendOptimizeFn(
     ElcCodegenBackend* self,
     ElcLirHandle* inout,
@@ -34,6 +40,7 @@ struct ElcCodegenBackend {
 
     void* ctx;
     ElcBackendCompileFn*  compile;  // always non-null
+    ElcBackendQueryFn*    query;    // always non-null
     ElcBackendOptimizeFn* optimize; // NULL if optimizations are unsupported
     ElcBackendCleanupFn*  cleanup;  // NULL if no cleanup is needed
 };

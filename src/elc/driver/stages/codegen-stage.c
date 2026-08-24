@@ -6,14 +6,9 @@
 bool elc_codegen_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const ElcArtifact* input, ElcArtifact* output) {
     (void) stage, (void) ctx;
 
-    // TODO: support multiple backends
-    ElcCodegenBackend* backend = EL_DYNARENA_NEW(ctx->arena, ElcCodegenBackend);
-    *backend = elc_make_llvm_codegen(ctx->arena);
-    ctx->backend = backend;
-
     ElcLirHandle handle = {0};
 
-    ElcCodegenResult result = backend->compile(backend, input->as.mir, &handle);
+    ElcCodegenResult result = ctx->backend->compile(ctx->backend, input->as.mir, &handle);
     if (result != ELC_CODEGEN_OK) {
         EL_TODO("error handling");
     }

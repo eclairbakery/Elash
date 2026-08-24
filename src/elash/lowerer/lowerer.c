@@ -16,14 +16,21 @@
 
 #include <stddef.h>
 
-void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElLowererBuiltins* builtins) {
-    lw->arena = arena;
-    lw->diag = diag;
+void el_lowerer_init(
+    ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag,
+    ElTypeCache* tcache, ElLowererBuiltins* builtins
+) {
+    lw->arena  = arena;
+    lw->diag   = diag;
+    lw->tcache = tcache;
+
     lw->builtins = builtins;
-    lw->symbol_map = NULL;
+
+    lw->symbol_map     = NULL;
     lw->mir_symbol_map = NULL;
-    lw->next_sym_id = 0;
-    lw->break_target_id = 0;
+
+    lw->next_sym_id        = 0;
+    lw->break_target_id    = 0;
     lw->continue_target_id = 0;
 
     el_mir_ibuf_init(&lw->ibuf);
@@ -64,7 +71,7 @@ ElMirValue* get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, ElHirType* type) 
             return lw->symbol_map[sym->id];
         }
 
-        ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
+        ElMirType* mir_type = el_tcache_get_mir(lw->tcache, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
         ElMirValue* glob = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL, true);
@@ -74,7 +81,7 @@ ElMirValue* get_symbol_lvalue(ElLowerer* lw, ElHirSymbol* sym, ElHirType* type) 
         return glob;
     }
     if (sym->kind == EL_SYM_FUNC) {
-        ElMirType* mir_type = el_lowerer_map_type(lw, type);
+        ElMirType* mir_type = el_tcache_get_mir(lw->tcache, type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
         return el_mir_new_global(lw->arena, mir_type, mir_sym, NULL, sym->as.func.is_defined);
     }
@@ -104,7 +111,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
             }
             ElMirValue* index = el_lowerer_lower_expr(lw, hir->as.binary.right);
 
-            ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+            ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
             ElMirType* result_ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
             ElMirValue* res_reg = el_mir_new_reg(lw->arena, result_ptr_type, lw->current_func->reg_count++);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, res_reg, ptr, index));
@@ -120,7 +127,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
         break;
 
     case EL_HIR_EXPR_AGGINIT: {
-        ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+        ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
         if (hir->as.agginit.scls == EL_STORAGECLS_STATIC) {
             return _el_lowerer_new_anon_global(lw, mir_type, _el_lowerer_lower_const(lw, hir));
         }
@@ -131,7 +138,7 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
     }
 
     case EL_HIR_EXPR_STRCONST: {
-        ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+        ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
         ElHirStringConst* strconst = &hir->as.strconst;
 
         ElMirConstant* mirconst = EL_DYNARENA_NEW(lw->arena, ElMirConstant);
@@ -171,10 +178,10 @@ ElMirSymbol* el_lowerer_map_symbol(ElLowerer* lw, ElHirSymbol* sym) {
 
     ElMirSymbol* mir_sym = NULL;
     if (sym->kind == EL_SYM_VAR) {
-        ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
+        ElMirType* mir_type = el_tcache_get_mir(lw->tcache, sym->as.var.type);
         mir_sym = el_mir_new_var_symbol(lw->arena, sym->id, sym->name, mir_type);
     } else if (sym->kind == EL_SYM_FUNC) {
-        ElMirType* ret_type = el_lowerer_map_type(lw, sym->as.func.type->as.func.ret_type);
+        ElMirType* ret_type = el_tcache_get_mir(lw->tcache, sym->as.func.type->as.func.ret_type);
         ElMirSymbol** params = EL_DYNARENA_NEW_ARR(lw->arena, ElMirSymbol*, sym->as.func.param_count);
         for (usize i = 0; i < sym->as.func.param_count; i++) {
             params[i] = el_lowerer_map_symbol(lw, sym->as.func.params[i]);

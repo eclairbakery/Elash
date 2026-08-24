@@ -165,11 +165,14 @@ void elc_llvm_optimize(ElcCodegenBackend* self, ElcLirHandle* lir, ElcOptLevel l
     LLVMDisposePassBuilderOptions(pbo);
 }
 
-ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
+ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache) {
     ElcLLVMBackendCtx* ctx = EL_DYNARENA_NEW(arena, ElcLLVMBackendCtx);
     ctx->context = LLVMContextCreate();
     ctx->builder = LLVMCreateBuilderInContext(ctx->context);
-    ctx->arena = arena;
+
+    ctx->arena  = arena;
+    ctx->tcache = tcache;
+
     ctx->globals = NULL;
     ctx->globals_count = 0;
 
@@ -181,6 +184,7 @@ ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena) {
         .version = EL_SEM_VER(0, 1, 0),
         .ctx = ctx,
         .compile  = elc_llvm_compile,
+        .query    = elc_llvm_query,
         .optimize = elc_llvm_optimize,
         .cleanup  = elc_llvm_cleanup,
     };

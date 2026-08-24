@@ -120,6 +120,8 @@ bool el_mir_type_eql(const ElMirType* lhs, const ElMirType* rhs) {
 }
 
 uint64_t el_mir_type_hash(const ElMirType* type) {
+    EL_ASSERT(type != NULL, "invalid argument");
+
     uint64_t hash = (uint64_t)type->kind;
     switch (type->kind) {
     case EL_MIR_TYPE_INT:

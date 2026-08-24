@@ -32,9 +32,9 @@ static bool el_hir_expr_is_lvalue(const ElHirExpr* hir) {
 
 ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
     ElMirValue* operand = el_lowerer_lower_expr(lw, hir->as.cast.expr);
-    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+    ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
 
-    ElMirType* from_type = el_lowerer_map_type(lw, hir->as.cast.expr->type);
+    ElMirType* from_type = el_tcache_get_mir(lw->tcache, hir->as.cast.expr->type);
     bool from_is_integral = is_int_or_char(from_type);
     bool to_is_integral = is_int_or_char(mir_type);
     bool from_is_float = from_type->kind == EL_MIR_TYPE_FLOAT;
@@ -57,7 +57,7 @@ ElMirValue* _el_lowerer_lower_cast_expr(ElLowerer* lw, ElHirExpr* hir) {
 }
 
 ElMirValue* el_lowerer_lower_symbol(ElLowerer* lw, ElHirSymbol* sym, const ElHirType* hir_type) {
-    ElMirType* type = el_lowerer_map_type(lw, hir_type);
+    ElMirType* type = el_tcache_get_mir(lw->tcache, hir_type);
     if (lw->symbol_map != NULL && lw->symbol_map[sym->id] != NULL) {
         ElMirValue* val = lw->symbol_map[sym->id];
         if (sym->kind == EL_SYM_VAR) {
@@ -101,7 +101,7 @@ static bool _el_lowerer_is_incdec(ElSemaUnaryOp op) {
 
 static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr) {
     ElMirValue* ptr = el_lowerer_get_lvalue(lw, expr->operand);
-    ElMirType*  val_type = el_lowerer_map_type(lw, expr->operand->type);
+    ElMirType*  val_type = el_tcache_get_mir(lw->tcache, expr->operand->type);
 
     ElMirValue* current = el_mir_new_reg(lw->arena, val_type, lw->current_func->reg_count++);
     el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, current, ptr));
@@ -128,7 +128,7 @@ static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr)
 }
 
 ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinExpr* bin) {
-    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+    ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
     if (bin->op == EL_SEMA_BIN_OP_INDEX) {
          ElMirValue* ptr = el_lowerer_get_lvalue(lw, hir);
          ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
@@ -184,7 +184,7 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
 }
 
 ElMirValue* _el_lowerer_lower_unary_expr(ElLowerer* lw, ElHirExpr* hir, ElHirUnaryExpr* unary) {
-    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+    ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
     if (unary->op == EL_SEMA_UNARY_OP_ADDROF) {
         return el_lowerer_get_lvalue(lw, unary->operand);
     }
@@ -216,7 +216,7 @@ ElMirValue* _el_lowerer_lower_call_expr(ElLowerer* lw, ElHirExpr* hir, ElHirCall
         args[i] = el_lowerer_lower_expr(lw, call->args[i]);
     }
 
-    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+    ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
     bool is_void = el_mir_type_eql(mir_type, lw->builtins->type_void);
     ElMirValue* result = is_void ? NULL : el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
     ElMirInstr* instr = el_mir_new_call_instr(lw->arena, result, callee, args, call->arg_count);
@@ -225,7 +225,7 @@ ElMirValue* _el_lowerer_lower_call_expr(ElLowerer* lw, ElHirExpr* hir, ElHirCall
 }
 
 ElMirValue* _el_lowerer_lower_agginit_expr(ElLowerer* lw, ElHirExpr* hir) {
-    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+    ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
 
     if (hir->as.agginit.scls == EL_STORAGECLS_STATIC) {
         return _el_lowerer_new_anon_global(lw, mir_type, _el_lowerer_lower_const(lw, hir));
@@ -253,7 +253,7 @@ ElMirValue* _el_lowerer_lower_intr_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_INTR_MAKE_SLICE: {
         ElMirValue* data = el_lowerer_lower_expr(lw, hir->as.intr.params.rwslice);
         ElMirValue* len = el_lowerer_lower_expr(lw, hir->as.intr.params.len);
-        ElMirType* slice_type = el_lowerer_map_type(lw, hir->type);
+        ElMirType* slice_type = el_tcache_get_mir(lw->tcache, hir->type);
         ElMirValue* fields[] = { data, len };
         return _el_lowerer_make_tuple(lw, slice_type, fields);
     }
@@ -262,7 +262,7 @@ ElMirValue* _el_lowerer_lower_intr_expr(ElLowerer* lw, ElHirExpr* hir) {
 }
 
 ElMirValue* _el_lowerer_lower_strconst_expr(ElLowerer* lw, ElHirExpr* hir) {
-    ElMirType* mir_type = el_lowerer_map_type(lw, hir->type);
+    ElMirType* mir_type = el_tcache_get_mir(lw->tcache, hir->type);
     ElHirStringConst* strconst = &hir->as.strconst;
 
     ElMirConstant* mirconst = EL_DYNARENA_NEW(lw->arena, ElMirConstant);
@@ -296,7 +296,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_TMEMBER: {
         if (el_hir_expr_is_lvalue(hir->as.tmember.expr)) {
             ElMirValue* field_ptr = el_lowerer_get_lvalue(lw, hir);
-            ElMirType* field_type = el_lowerer_map_type(lw, hir->type);
+            ElMirType* field_type = el_tcache_get_mir(lw->tcache, hir->type);
             ElMirValue* result = el_mir_new_reg(lw->arena, field_type, lw->current_func->reg_count++);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, result, field_ptr));
             return result;
@@ -308,7 +308,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_MEMBER: {
         if (el_hir_expr_is_lvalue(hir->as.member.expr)) {
             ElMirValue* field_ptr = el_lowerer_get_lvalue(lw, hir);
-            ElMirType* field_type = el_lowerer_map_type(lw, hir->type);
+            ElMirType* field_type = el_tcache_get_mir(lw->tcache, hir->type);
             ElMirValue* result = el_mir_new_reg(lw->arena, field_type, lw->current_func->reg_count++);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, result, field_ptr));
             return result;
@@ -320,7 +320,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_CONST: {
         ElHirType* type = el_hir_type_unwrap_distinct(hir->type);
 
-        ElMirType* mir_type = el_lowerer_map_type(lw, type);
+        ElMirType* mir_type = el_tcache_get_mir(lw->tcache, type);
         ElMirConstant mir_const;
 
         EL_ASSERT(type->kind == EL_HIR_TYPE_PRIM, "constant of non-primitive type");

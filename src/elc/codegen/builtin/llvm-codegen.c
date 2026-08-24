@@ -27,7 +27,11 @@ typedef ElcLLVMBackendCtx     Context;
         func->regs[(MIR_VALUE)->as.reg.id] = (LLVM_VALUE); \
     } while (0)
 
-LLVMTypeRef elc_llvm_map_type(Context* ctx, ElMirType* type) {
+static LLVMTypeRef map_type(Context* ctx, const ElMirType* type) {
+    return (LLVMTypeRef)el_tcache_get_bst_from_mir(ctx->tcache, (ElMirType*)type);
+}
+
+LLVMTypeRef elc_llvm_map_type(Context* ctx, const ElMirType* type) {
     switch (type->kind) {
     case EL_MIR_TYPE_VOID:
         return LLVMVoidTypeInContext(ctx->context);
@@ -36,13 +40,13 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElMirType* type) {
     case EL_MIR_TYPE_PTR:
         return LLVMPointerTypeInContext(ctx->context, 0);
     case EL_MIR_TYPE_ARRAY: {
-        LLVMTypeRef base_type = elc_llvm_map_type(ctx, type->as.array.base);
+        LLVMTypeRef base_type = map_type(ctx, type->as.array.base);
         return LLVMArrayType(base_type, (unsigned)type->as.array.size);
     }
     case EL_MIR_TYPE_TUPLE: {
         LLVMTypeRef* elem_types = malloc(sizeof(LLVMTypeRef) * type->as.tuple.item_count);
         for (usize i = 0; i < type->as.tuple.item_count; ++i) {
-            elem_types[i] = elc_llvm_map_type(ctx, type->as.tuple.items[i]);
+            elem_types[i] = map_type(ctx, type->as.tuple.items[i]);
         }
         LLVMTypeRef struct_type = LLVMStructTypeInContext(ctx->context, elem_types, (unsigned)type->as.tuple.item_count, false);
         free(elem_types);
@@ -60,10 +64,10 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElMirType* type) {
         }
         // NOLINTEND(readability-magic-numbers)
     case EL_MIR_TYPE_FUNC: {
-        LLVMTypeRef ret_type = elc_llvm_map_type(ctx, type->as.func.ret_type);
+        LLVMTypeRef ret_type = map_type(ctx, type->as.func.ret_type);
         LLVMTypeRef* param_types = malloc(sizeof(LLVMTypeRef) * type->as.func.param_count);
         for (usize i = 0; i < type->as.func.param_count; ++i) {
-            param_types[i] = elc_llvm_map_type(ctx, type->as.func.params[i]);
+            param_types[i] = map_type(ctx, type->as.func.params[i]);
         }
         LLVMTypeRef func_type = LLVMFunctionType(
             ret_type, param_types, type->as.func.param_count, /*IsVarArg=*/false
@@ -78,14 +82,14 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, ElMirType* type) {
 LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant* constant) {
     switch (constant->kind) {
     case EL_MIR_CONST_INT:
-        return LLVMConstInt(elc_llvm_map_type(ctx, type), (unsigned long long)constant->as.int_, true);
+        return LLVMConstInt(map_type(ctx, type), (unsigned long long)constant->as.int_, true);
     case EL_MIR_CONST_FLOAT:
-        return LLVMConstReal(elc_llvm_map_type(ctx, type), constant->as.float_);
+        return LLVMConstReal(map_type(ctx, type), constant->as.float_);
     case EL_MIR_CONST_STRING:
         return LLVMConstStringInContext(ctx->context, constant->as.str.val.data, (unsigned)constant->as.str.val.len, true);
     case EL_MIR_CONST_AGG: {
         if (type->kind == EL_MIR_TYPE_ARRAY) {
-            LLVMTypeRef element_llvm_type = elc_llvm_map_type(ctx, type->as.array.base);
+            LLVMTypeRef element_llvm_type = map_type(ctx, type->as.array.base);
             LLVMValueRef* elements = malloc(sizeof(LLVMValueRef) * constant->as.agg.count);
             for (usize i = 0; i < constant->as.agg.count; ++i) {
                 elements[i] = elc_llvm_map_constant(ctx, type->as.array.base, constant->as.agg.elements[i]);
@@ -98,7 +102,7 @@ LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant*
             for (usize i = 0; i < constant->as.agg.count; ++i) {
                 elements[i] = elc_llvm_map_constant(ctx, type->as.tuple.items[i], constant->as.agg.elements[i]);
             }
-            LLVMValueRef res = LLVMConstNamedStruct(elc_llvm_map_type(ctx, type), elements, (unsigned)constant->as.agg.count);
+            LLVMValueRef res = LLVMConstNamedStruct(map_type(ctx, type), elements, (unsigned)constant->as.agg.count);
             free(elements);
             return res;
         }
@@ -120,7 +124,7 @@ LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant*
         }                                                                             \
     }
 static LLVMValueRef map_const_value(Context* ctx, ElMirValue* value) {
-    LLVMTypeRef type = elc_llvm_map_type(ctx, value->type);
+    LLVMTypeRef type = map_type(ctx, value->type);
 
     if (value->type->kind == EL_MIR_TYPE_INT) {
         return LLVMConstInt(type, (unsigned long long)value->as.constant.as.int_, true);
@@ -139,7 +143,7 @@ static LLVMValueRef map_anonymous_global(Context* ctx, ElMirValue* value, ElMirS
     }
 
     EL_ASSERT(sym->kind == EL_MIR_SYM_VAR, "anonymous symbols should be variables");
-    LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.var.type);
+    LLVMTypeRef type = map_type(ctx, sym->as.var.type);
     LLVMValueRef glob = LLVMAddGlobal(ctx->current_mod, type, "");
 
     SET_INIT(value->as.global.is_definition, glob, value, sym);
@@ -156,7 +160,7 @@ static LLVMValueRef map_named_global(Context* ctx, ElMirValue* value, ElMirSymbo
     }
 
     if (sym->kind == EL_MIR_SYM_FUNC) {
-        LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.func.type);
+        LLVMTypeRef type = map_type(ctx, sym->as.func.type);
         return LLVMAddFunction(ctx->current_mod, name, type);
     }
 
@@ -165,7 +169,7 @@ static LLVMValueRef map_named_global(Context* ctx, ElMirValue* value, ElMirSymbo
         return glob;
     }
 
-    LLVMTypeRef type = elc_llvm_map_type(ctx, sym->as.var.type);
+    LLVMTypeRef type = map_type(ctx, sym->as.var.type);
     glob = LLVMAddGlobal(ctx->current_mod, type, name);
     SET_INIT(value->as.global.is_definition, glob, value, sym);
     return glob;
@@ -308,7 +312,7 @@ void elc_llvm_compile_call_instr(Context* ctx, FunctionContext* func, ElMirInstr
     ElMirCallInstr* call = &instr->as.call;
 
     LLVMValueRef callee    = elc_llvm_map_value(ctx, func, call->callee);
-    LLVMTypeRef  func_type = elc_llvm_map_type(ctx, call->callee->type);
+    LLVMTypeRef  func_type = map_type(ctx, call->callee->type);
 
     LLVMValueRef* args = calloc(call->arg_count, sizeof(LLVMValueRef));
     for (uint32_t i = 0; i < call->arg_count; ++i) {
@@ -338,7 +342,7 @@ void elc_llvm_compile_gep_instr(Context* ctx, FunctionContext* func, ElMirInstr*
     EL_ASSERT(ptr_type->kind == EL_MIR_TYPE_PTR, "gep source must be a pointer");
 
     ElMirType* base_type = ptr_type->as.ptr.base;
-    LLVMTypeRef llvm_base_type = elc_llvm_map_type(ctx, base_type);
+    LLVMTypeRef llvm_base_type = map_type(ctx, base_type);
 
     LLVMValueRef res;
     if (base_type->kind == EL_MIR_TYPE_ARRAY) {
@@ -364,7 +368,7 @@ void elc_llvm_compile_gfp_instr(Context* ctx, FunctionContext* func, ElMirInstr*
     ElMirType* base_type = ptr_type->as.ptr.base;
     EL_ASSERT(base_type->kind == EL_MIR_TYPE_TUPLE, "gfp source must be a pointer to a tuple");
 
-    LLVMTypeRef llvm_base_type = elc_llvm_map_type(ctx, base_type);
+    LLVMTypeRef llvm_base_type = map_type(ctx, base_type);
 
     LLVMValueRef res = LLVMBuildStructGEP2(ctx->builder, llvm_base_type, ptr, (unsigned)gfp->index, "");
 
@@ -378,7 +382,7 @@ void elc_llvm_compile_cast_instr(Context* ctx, FunctionContext* func, ElMirInstr
     else mir_operand = instr->as.bitcast.operand;
 
     LLVMValueRef operand = elc_llvm_map_value(ctx, func, mir_operand);
-    LLVMTypeRef  to_type = elc_llvm_map_type(ctx, instr->result->type);
+    LLVMTypeRef  to_type = map_type(ctx, instr->result->type);
 
     ElMirType* from_type = mir_operand->type;
     ElMirType* to_type_mir = instr->result->type;
@@ -455,13 +459,13 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
         return;
 
     case EL_MIR_INSTR_ALLOCA: {
-        LLVMTypeRef type = elc_llvm_map_type(ctx, instr->as.alloca.type);
+        LLVMTypeRef type = map_type(ctx, instr->as.alloca.type);
         LLVMValueRef res = LLVMBuildAlloca(ctx->builder, type, "");
         ASSIGN_REG(func, instr->result, res, "alloca");
         return;
     }
     case EL_MIR_INSTR_LOAD: {
-        LLVMTypeRef type = elc_llvm_map_type(ctx, instr->result->type);
+        LLVMTypeRef type = map_type(ctx, instr->result->type);
         LLVMValueRef ptr = elc_llvm_map_value(ctx, func, instr->as.load.ptr);
         LLVMValueRef res = LLVMBuildLoad2(ctx->builder, type, ptr, "");
         ASSIGN_REG(func, instr->result, res, "load");
@@ -498,7 +502,7 @@ void elc_llvm_compile_instr(Context* ctx, FunctionContext* func, ElMirInstr* ins
 }
 
 void elc_llvm_compile_func(Context* ctx, LLVMModuleRef module, ElMirFunc* mir_func) {
-    LLVMTypeRef func_type = elc_llvm_map_type(ctx, mir_func->symbol->as.func.type);
+    LLVMTypeRef func_type = map_type(ctx, mir_func->symbol->as.func.type);
 
     char* name = el_dynarena_make_cstr(ctx->arena, mir_func->symbol->name);
 

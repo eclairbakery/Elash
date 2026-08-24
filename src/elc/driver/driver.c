@@ -2,6 +2,7 @@
 #include <elash/util/todo.h>
 
 #include <elash/defs/platform.h>
+#include <elash/sema/tcache.h>
 
 #include <elash/diag/engine.h>
 #include <elash/diag/handle.h>
@@ -24,6 +25,8 @@
 #include <elc/driver/observers/dump-hir.h>
 #include <elc/driver/observers/dump-mir.h>
 #include <elc/driver/observers/dump-lir.h>
+
+#include <elc/codegen/builtin/llvm-backend.h>
 
 bool elc_driver_init(ElcDriver* driver) {
     if (!el_dynarena_init(&driver->arena)) return false;
@@ -145,7 +148,6 @@ static bool init_source_document(ElcDriver* driver, const ElcArgs* args, ElSourc
         .kind = ELC_ART_SRC,
         .as.src = src
     });
-
     return true;
 }
 
@@ -155,14 +157,32 @@ static ElcArtifactKind determine_target(const ElcArgs* args) {
     return ELC_ART_OBJ;
 }
 
+#define pctx pipeline.context
+
+static void init_backend(ElcDriver* driver) {
+    // TODO: multi backend compiler
+
+    ElcCodegenBackend* backend = EL_DYNARENA_NEW(&driver->arena, ElcCodegenBackend);
+    *backend = elc_make_llvm_codegen(&driver->arena, &driver->pctx.tcache);
+    driver->pctx.backend = backend;
+
+    ElBSQuery* query = EL_DYNARENA_NEW(&driver->arena, ElBSQuery);
+    *query = backend->query(backend);
+    driver->pctx.bsquery = query;
+
+    el_tcache_init(&driver->pctx.tcache, &driver->arena, driver->pctx.bsquery);
+}
+
 bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
-    driver->pipeline.context.optlevel = args->opt;
-    driver->pipeline.context.imap     = &args->imap;
+    driver->pctx.optlevel = args->opt;
+    driver->pctx.imap     = &args->imap;
 
     ElSourceDocument src;
     if (!init_source_document(driver, args, &src)) {
         return false;
     }
+
+    init_backend(driver);
 
     ElcArtifactKind target = determine_target(args);
 

@@ -107,7 +107,7 @@ void _el_lowerer_lower_assign(ElLowerer* lw, ElHirAssignStmt* assign) {
 
 void _el_lowerer_lower_cassign(ElLowerer* lw, ElHirCompoundAssignStmt* cassign) {
     ElMirValue* ptr = el_lowerer_get_lvalue(lw, cassign->target);
-    ElMirType* target_mir_type = el_lowerer_map_type(lw, cassign->target->type);
+    ElMirType* target_mir_type = el_tcache_get_mir(lw->tcache, cassign->target->type);
 
     if (cassign->op == EL_SEMA_BIN_OP_AND || cassign->op == EL_SEMA_BIN_OP_OR || cassign->op == EL_SEMA_BIN_OP_IMP) {
         ElMirValue* current_val = el_mir_new_reg(lw->arena, target_mir_type, lw->current_func->reg_count++);

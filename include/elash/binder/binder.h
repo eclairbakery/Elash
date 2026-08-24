@@ -21,6 +21,8 @@
 #include <elash/util/dynarena.h>
 #include <elash/diag/engine.h>
 
+#include <elash/sema/tcache.h>
+
 typedef struct ElBinderInitOpts {
     ElBinderBuiltins* builtins;
     ElDiagEngine* diag;
@@ -28,9 +30,10 @@ typedef struct ElBinderInitOpts {
 } ElBinderInitOpts;
 
 typedef struct ElBinder {
-    ElDynArena* arena;
-
+    ElDynArena*   arena;
     ElDiagEngine* diag;
+    ElTypeCache*  tcache;
+
     ElBinderBuiltins* builtins;
 
     ElScope* builtin_scope;
