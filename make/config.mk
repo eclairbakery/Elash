@@ -70,26 +70,36 @@ endif
 
 COMMON_CFLAGS := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
 
+IS_DEBUG := $(filter debug rel-debug debug-san rel-debug-san,$(BUILD))
+IS_SAN   := $(filter debug-san rel-debug-san,$(BUILD))
+
+DEFAULT_LDFLAGS :=
 ifeq ($(BUILD),debug)
-	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG
-	DEFAULT_LDFLAGS :=
+	DEFAULT_CFLAGS  := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG
 else ifeq ($(BUILD),debug-san)
-	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG -fsanitize=address,undefined
-	DEFAULT_LDFLAGS := -fsanitize=address,undefined
+	DEFAULT_CFLAGS  := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG
 else ifeq ($(BUILD),release)
-	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O3 -DNDEBUG
-	DEFAULT_LDFLAGS :=
+	DEFAULT_CFLAGS  := $(COMMON_CFLAGS) -O3 -DNDEBUG
 else ifeq ($(BUILD),rel-debug)
-	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG
-	DEFAULT_LDFLAGS :=
+	DEFAULT_CFLAGS  := $(COMMON_CFLAGS) -O3 -g -DNDEBUG
 else ifeq ($(BUILD),rel-debug-san)
-	DEFAULT_CFLAGS := $(COMMON_CFLAGS) -O3 -g -DNDEBUG -fsanitize=address,undefined
-	DEFAULT_LDFLAGS := -fsanitize=address,undefined
+	DEFAULT_CFLAGS  := $(COMMON_CFLAGS) -O3 -g -DNDEBUG
 else ifeq ($(BUILD),manual)
 	DEFAULT_CFLAGS  := $(COMMON_CFLAGS)
-	DEFAULT_LDFLAGS :=
 else
 	$(error Unknown BUILD=$(BUILD))
+endif
+
+ifneq ($(IS_DEBUG),)
+ifneq ($(filter gcc clang,$(strip $(CCKIND))),)
+	DEFAULT_CFLAGS += -ftrivial-auto-var-init=pattern
+endif
+endif
+
+ifneq ($(IS_SAN),)
+	SAN_FLAGS       := -fsanitize=address,undefined
+	DEFAULT_CFLAGS  += $(SAN_FLAGS)
+	DEFAULT_LDFLAGS += $(SAN_FLAGS)
 endif
 
 EXTRA_CFLAGS  ?=
