@@ -11,7 +11,7 @@ void _el_lowerer_lower_agginit(ElLowerer* lw, ElMirValue* ptr, ElHirAggInit* agg
     ElMirType* target_type = ptr->type->as.ptr.base;
 
     for (usize i = 0; i < agginit->count; ++i) {
-        ElMirType* elem_type = el_lowerer_map_type(lw, agginit->values[i]->type);
+        ElMirType* elem_type = el_tcache_get_mir(lw->tcache, agginit->values[i]->type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, elem_type);
         ElMirValue* elem_ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
 

@@ -54,7 +54,6 @@ typedef enum ElTokenType {
     EL_TT_KW_UNION,             // union
     EL_TT_KW_STRUCT,            // struct
     EL_TT_KW_TYPEDEF,           // typedef
-    EL_TT_KW_SIZEOF,            // sizeof
     EL_TT_KW_ALIAS,             // alias
 
     // Group enumerator - DO NOT USE as a token type. Marks the end of the keyword group.

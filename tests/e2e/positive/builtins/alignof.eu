@@ -1,0 +1,56 @@
+bool flag = false;
+uint8 sideeffect() {
+    flag = true;
+    return 99;
+}
+
+int main() {
+    ///////// basic checks ///////
+    // Fixed-width scalar type alignment guarantees
+    if (alignof(uint8) != 1)
+        return 1;
+
+    uint32 u32;
+    if (alignof(u32) > sizeof(u32))
+        return 2;
+
+    if (alignof(u32 as uint16 + 20) != alignof(uint16))
+        return 3;
+
+    if (alignof(usize) != alignof(bool&))
+        return 4;
+
+    ////////// arrays ////////////
+    float32[99] array;
+    if (alignof(array) != alignof(float32))
+        return 5;
+
+    /////// structs and tuples ///////
+    typedef Point as struct {
+        int x; int y;
+    };
+
+    if (alignof(Point) != alignof(int))
+        return 6;
+
+    if (alignof(struct { int x; int y; }) != alignof(Point))
+        return 7;
+
+    if (alignof(struct(int, int)) != alignof(Point))
+        return 8;
+
+    //////// side effects ////////
+    if (alignof(sideeffect()) != alignof(uint8))
+        return 9;
+
+    // expression passed to sizeof should not be evaluated
+    if (flag)
+        return 10;
+
+    //////// compile time evaluation ///////
+    int[alignof(int64)] test;
+    if (len(test) != alignof(int64))
+        return 11;
+
+    return 0;
+}

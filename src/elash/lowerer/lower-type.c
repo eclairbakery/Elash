@@ -4,22 +4,23 @@
 #include <elash/util/todo.h>
 #include <elash/mir/type.h>
 
-static ElMirType* make_slice_type(ElLowerer* lw, const ElHirSliceType* slice) {
-    ElMirType** items = EL_DYNARENA_NEW_ARR(lw->arena, ElMirType*, 2);
-    items[EL_MIR_SLICE_FIELD_DATA] = el_mir_new_ptr_type(lw->arena, el_lowerer_map_type(lw, slice->base));
-    items[EL_MIR_SLICE_FIELD_LEN]  = lw->builtins->type_usize;
-    return el_mir_new_tuple_type(lw->arena, items, 2);
+static ElMirType* make_slice_type(ElDynArena* arena, ElTypeCache* tcache, const ElHirSliceType* slice) {
+    ElMirType** items = EL_DYNARENA_NEW_ARR(arena, ElMirType*, 2);
+    ElMirType*  base   = el_tcache_get_mir(tcache, slice->base);
+    items[EL_MIR_SLICE_FIELD_DATA] = el_mir_new_ptr_type(arena, base);
+    items[EL_MIR_SLICE_FIELD_LEN]  = tcache->usize_type;
+    return el_mir_new_tuple_type(arena, items, 2);
 }
 
-ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
+ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type) {
     if (type == NULL) return NULL;
     switch (type->kind) {
     case EL_HIR_TYPE_PRIM:
         switch (type->as.prim.kind) {
         case EL_PRIMTYPE_VOID:
-            return el_mir_new_void_type(lw->arena);
+            return el_mir_new_void_type(tcache->arena);
         case EL_PRIMTYPE_BOOL:
-            return el_mir_new_int_type(lw->arena, 1, false);
+            return el_mir_new_int_type(tcache->arena, 1, false);
         case EL_PRIMTYPE_INT: {
             uint32_t width = 0;
             // TODO: actually map native and efficient ints to correct width
@@ -34,7 +35,7 @@ ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
             case EL_HIR_IWIDTH_128:       width = 128; break;
             }
             // NOLINTEND(readability-magic-numbers)
-            return el_mir_new_int_type(lw->arena, width, type->as.prim.as.integral.is_signed);
+            return el_mir_new_int_type(tcache->arena, width, type->as.prim.as.integral.is_signed);
         }
         case EL_PRIMTYPE_FLOAT: {
             uint32_t width = 0;
@@ -48,44 +49,48 @@ ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
             case EL_HIR_FPWIDTH_128:       width = 128; break;
             }
             // NOLINTEND(readability-magic-numbers)
-            return el_mir_new_float_type(lw->arena, width);
+            return el_mir_new_float_type(tcache->arena, width);
         }
         }
         EL_UNREACHABLE("unknown prim type kind");
     case EL_HIR_TYPE_FUNC: {
-        ElMirType* ret_type = el_lowerer_map_type(lw, type->as.func.ret_type);
-        ElMirType** params = EL_DYNARENA_NEW_ARR(lw->arena, ElMirType*, type->as.func.param_count);
+        ElMirType* ret_type = el_tcache_get_mir(tcache, type->as.func.ret_type);
+        ElMirType** params = EL_DYNARENA_NEW_ARR(tcache->arena, ElMirType*, type->as.func.param_count);
         for (usize i = 0; i < type->as.func.param_count; ++i) {
-            params[i] = el_lowerer_map_type(lw, type->as.func.params[i]);
+            params[i] = el_tcache_get_mir(tcache, type->as.func.params[i]);
         }
-        return el_mir_new_func_type(lw->arena, ret_type, params, type->as.func.param_count);
+        return el_mir_new_func_type(tcache->arena, ret_type, params, type->as.func.param_count);
     }
     case EL_HIR_TYPE_ARRAY: {
-        ElMirType* base = el_lowerer_map_type(lw, type->as.array.base);
-        return el_mir_new_array_type(lw->arena, base, type->as.array.size);
+        ElMirType* base = el_tcache_get_mir(tcache, type->as.array.base);
+        return el_mir_new_array_type(tcache->arena, base, type->as.array.size);
     }
     case EL_HIR_TYPE_STRUCT: {
-        ElMirType** elements = EL_DYNARENA_NEW_ARR(lw->arena, ElMirType*, type->as.struct_.count);
+        ElMirType** elements = EL_DYNARENA_NEW_ARR(tcache->arena, ElMirType*, type->as.struct_.count);
         for (usize i = 0; i < type->as.struct_.count; ++i) {
-            elements[i] = el_lowerer_map_type(lw, type->as.struct_.fields[i].type);
+            elements[i] = el_tcache_get_mir(tcache, type->as.struct_.fields[i].type);
         }
-        return el_mir_new_tuple_type(lw->arena, elements, type->as.struct_.count);
+        return el_mir_new_tuple_type(tcache->arena, elements, type->as.struct_.count);
     }
     case EL_HIR_TYPE_TUPLE: {
-        ElMirType** elements = EL_DYNARENA_NEW_ARR(lw->arena, ElMirType*, type->as.tuple.count);
+        ElMirType** elements = EL_DYNARENA_NEW_ARR(tcache->arena, ElMirType*, type->as.tuple.count);
         for (usize i = 0; i < type->as.tuple.count; ++i) {
-            elements[i] = el_lowerer_map_type(lw, type->as.tuple.elements[i]);
+            elements[i] = el_tcache_get_mir(tcache, type->as.tuple.elements[i]);
         }
-        return el_mir_new_tuple_type(lw->arena, elements, type->as.tuple.count);
+        return el_mir_new_tuple_type(tcache->arena, elements, type->as.tuple.count);
     }
     case EL_HIR_TYPE_REF:
-        return el_mir_new_ptr_type(lw->arena, el_lowerer_map_type(lw, type->as.ref.base));
+        return el_mir_new_ptr_type(tcache->arena, el_tcache_get_mir(tcache, type->as.ref.base));
     case EL_HIR_TYPE_RWSLICE:
-        return el_mir_new_ptr_type(lw->arena, el_lowerer_map_type(lw, type->as.rwslice.base));
+        return el_mir_new_ptr_type(tcache->arena, el_tcache_get_mir(tcache, type->as.rwslice.base));
     case EL_HIR_TYPE_SLICE:
-        return make_slice_type(lw, &type->as.slice);
+        return make_slice_type(tcache->arena, tcache, &type->as.slice);
     case EL_HIR_TYPE_DISTINCT:
-        return el_lowerer_map_type(lw, type->as.distinct.orig);
+        return el_tcache_get_mir(tcache, type->as.distinct.orig);
     }
     EL_UNREACHABLE("unknown hir type kind");
+}
+
+ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
+    return el_tcache_get_mir(lw->tcache, type);
 }

@@ -73,7 +73,7 @@ void el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
     switch (decl->kind) {
     case EL_HIR_DECL_VAR_DEF: {
         ElHirSymbol* sym = decl->as.var_def.var;
-        ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
+        ElMirType* mir_type = el_tcache_get_mir(lw->tcache, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
 
@@ -87,7 +87,7 @@ void el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
     }
     case EL_HIR_DECL_VAR_DECL: {
         ElHirSymbol* sym = decl->as.var_decl.var;
-        ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
+        ElMirType* mir_type = el_tcache_get_mir(lw->tcache, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
         lw->symbol_map[sym->id] = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL, false);
@@ -118,7 +118,7 @@ void el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
         }
 
         ElHirSymbol* sym = decl->as.var_def.var;
-        ElMirType* type = el_lowerer_map_type(lw, sym->as.var.type);
+        ElMirType* type = el_tcache_get_mir(lw->tcache, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, type);
         ElMirValue* ptr_reg = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
 
@@ -137,7 +137,7 @@ void el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
     }
     case EL_HIR_DECL_VAR_DECL: {
         ElHirSymbol* sym = decl->as.var_decl.var;
-        ElMirType* mir_type = el_lowerer_map_type(lw, sym->as.var.type);
+        ElMirType* mir_type = el_tcache_get_mir(lw->tcache, sym->as.var.type);
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirSymbol* mir_sym = el_lowerer_map_symbol(lw, sym);
         lw->symbol_map[sym->id] = el_mir_new_global(lw->arena, ptr_type, mir_sym, NULL, false);

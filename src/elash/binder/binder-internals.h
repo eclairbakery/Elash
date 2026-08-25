@@ -1,5 +1,6 @@
 #pragma once
 #include <elash/binder/binder.h> // IWYU pragma: export
+#include <elash/util/assert.h>   // IWYU pragma: export
 
 ElScope* _el_binder_push_scope(ElBinder* binder);
 ElScope* _el_binder_pop_scope(ElBinder* binder);
@@ -21,3 +22,15 @@ bool _el_binder_is_const(ElBinder* binder, ElHirExpr* expr);
 
 bool _el_binder_stmt_always_returns(ElBinder* binder, ElHirStmt* stmt);
 bool _el_binder_block_always_returns(ElBinder* binder, ElHirBlockStmt block);
+
+////////////// builtins //////////////
+typedef ElHirExpr* BuiltinHandler(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call);
+
+BuiltinHandler _el_binder_bind_len_call;
+BuiltinHandler _el_binder_bind_mkslice_call;
+
+BuiltinHandler _el_binder_bind_sizeof;
+BuiltinHandler _el_binder_bind_alignof;
+
+bool _el_binder_ensure_params(ElBinder* binder, ElAstExpr* in, usize count, ElStringView bname);
+ElHirToE* _el_binder_ensure_toe(ElBinder* binder, ElAstToI* toi, ElStringView bname);

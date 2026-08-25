@@ -1,7 +1,7 @@
 #include <elash/pp/scope.h>
 
 #include <elash/defs/int-types.h>
-#include <elash/util/strhash.h>
+#include <elash/util/hash.h>
 
 #include <stdlib.h>
 

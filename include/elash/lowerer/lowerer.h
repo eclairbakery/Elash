@@ -20,10 +20,12 @@
 
 #include <elash/util/dynarena.h>
 #include <elash/diag/engine.h>
+#include <elash/sema/tcache.h>
 
 typedef struct ElLowerer {
     ElDynArena*   arena;
     ElDiagEngine* diag;
+    ElTypeCache*  tcache;
 
     ElLowererBuiltins* builtins;
 
@@ -40,7 +42,10 @@ typedef struct ElLowerer {
     uint32_t continue_target_id;
 } ElLowerer;
 
-void el_lowerer_init(ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag, ElLowererBuiltins* builtins);
+void el_lowerer_init(
+    ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag,
+    ElTypeCache* tcache, ElLowererBuiltins* builtins
+);
 void el_lowerer_free(ElLowerer* lw);
 
 bool el_lowerer_has_terminator(ElLowerer* lw);
@@ -53,6 +58,8 @@ void         el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl);
 ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir);
 void         el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir);
 ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir);
+
+ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type);
 
 ElMirType*   el_lowerer_map_type(ElLowerer* lw, const ElHirType* type);
 ElMirSymbol* el_lowerer_map_symbol(ElLowerer* lw, ElHirSymbol* sym);

@@ -13,9 +13,17 @@ static void register_builtin_func(ElBinder* binder, ElStringView name, ElBuiltin
 }
 
 void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
+    EL_ASSERT(opts.diag != NULL, "should not be null");
+    EL_ASSERT(opts.arena != NULL, "should not be null");
+    EL_ASSERT(opts.tcache != NULL, "should not be null");
+    EL_ASSERT(opts.bsquery != NULL, "should not be null");
+
     binder->builtins = opts.builtins;
     binder->arena    = opts.arena;
     binder->diag     = opts.diag;
+
+    binder->tcache  = opts.tcache;
+    binder->bsquery = opts.bsquery;
 
     binder->loop_depth = 0;
     binder->sym_id_counter = 0;
@@ -49,6 +57,9 @@ void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
 
     register_builtin_func(binder, EL_SV("len"), EL_BUILTIN_LEN);
     register_builtin_func(binder, EL_SV("mkslice"), EL_BUILTIN_MKSLICE);
+
+    register_builtin_func(binder, EL_SV("sizeof"), EL_BUILTIN_SIZEOF);
+    register_builtin_func(binder, EL_SV("alignof"), EL_BUILTIN_ALIGNOF);
 
     binder->global_scope = el_hir_scope_new(binder->builtin_scope);
     binder->current_scope = binder->global_scope;
