@@ -5,6 +5,8 @@
 #include <elash/sema/tcache.h>
 
 #include <llvm-c/Core.h>
+
+#include <llvm-c/TargetMachine.h>
 #include <llvm-c/Target.h>
 
 typedef struct ElcLLVMBackendFuncCtx {
@@ -12,6 +14,13 @@ typedef struct ElcLLVMBackendFuncCtx {
     LLVMValueRef*      regs;
     LLVMBasicBlockRef* blocks;
 } ElcLLVMBackendFuncCtx;
+
+typedef struct ElcLLVMTargetData {
+    LLVMTargetMachineRef machine;
+    LLVMTargetDataRef    data;
+
+    char* triple;
+} ElcLLVMTargetData;
 
 typedef struct ElcLLVMBackendCtx {
     LLVMContextRef context;
@@ -25,10 +34,13 @@ typedef struct ElcLLVMBackendCtx {
     LLVMModuleRef current_mod;
     LLVMValueRef* globals;
     uint32_t      globals_count;
+
+    ElcLLVMTargetData target;
 } ElcLLVMBackendCtx;
 
 typedef struct {
-    LLVMModuleRef module;
+    LLVMModuleRef      module;
+    ElcLLVMTargetData* target;
 } ElcLLVMLir;
 
 ElBSQuery _elc_llvm_query(ElcLLVMBackendCtx* ctx);
@@ -40,3 +52,4 @@ ElcLirHandle elc_llvm_make_lir_handle(ElcLLVMLir* data);
 ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache);
 
 LLVMTypeRef elc_llvm_map_type(ElcLLVMBackendCtx* ctx, const ElMirType* type);
+void elc_llvm_setup_module_layout(LLVMModuleRef module, LLVMTargetDataRef target_data, const char* triple);

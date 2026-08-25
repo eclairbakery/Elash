@@ -8,16 +8,15 @@ static ElBSType* query_map(const ElBSQuery* self, const ElMirType* mtype) {
 }
 
 static usize query_sizeof(const ElBSQuery* self, const ElBSType* type) {
-    (void) self, (void) type;
-    EL_TODO("sizeof unimplemented");
+    Context* ctx = self->ctx;
+    return LLVMABISizeOfType(ctx->target.data, (LLVMTypeRef)type);
 }
 static usize query_alignof(const ElBSQuery* self, const ElBSType* type) {
-    (void) self, (void) type;
-    EL_TODO("alignof unimplemented");
+    Context* ctx = self->ctx;
+    return LLVMABIAlignmentOfType(ctx->target.data, (LLVMTypeRef)type);
 }
 
-
-ElBSQuery _elc_llvm_query(ElcLLVMBackendCtx* ctx) {
+ElBSQuery _elc_llvm_query(Context* ctx) {
     if (ctx->cached_query) {
         return ctx->query;
     }

@@ -534,12 +534,17 @@ ElcCodegenResult elc_llvm_compile(
     ElcLirHandle* output
 ) {
     Context* ctx = self->ctx;
+
     ctx->current_mod = LLVMModuleCreateWithNameInContext("elash-module", ctx->context);
+    elc_llvm_setup_module_layout(ctx->current_mod, ctx->target.data, ctx->target.triple);
+
     ctx->globals_count = input->sym_count;
     ctx->globals = EL_DYNARENA_NEW_ARR_ZEROED(ctx->arena, LLVMValueRef, input->sym_count);
 
     ElcLLVMLir* lir_data = EL_DYNARENA_NEW(ctx->arena, ElcLLVMLir);
     lir_data->module = ctx->current_mod;
+    lir_data->target = &ctx->target;
+
     for (ElMirFunc* func = input->first_func; func != NULL; func = func->next) {
         elc_llvm_compile_func(ctx, lir_data->module, func);
     }

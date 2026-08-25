@@ -32,7 +32,7 @@ void elc_llvm_lir_dump(const ElcLirHandle* handle, FILE* out) {
     LLVMDisposeMessage(ir);
 }
 
-LLVMTargetMachineRef elc_llvm_create_target_machine(char** out_triple) {
+static LLVMTargetMachineRef create_target_machine(char** out_triple) {
     char* triple = LLVMGetDefaultTargetTriple();
     LLVMTargetRef target;
     char* error = NULL;
@@ -56,27 +56,22 @@ LLVMTargetMachineRef elc_llvm_create_target_machine(char** out_triple) {
     return machine;
 }
 
-void elc_llvm_setup_module_layout(LLVMModuleRef module, LLVMTargetMachineRef machine, const char* triple) {
+void elc_llvm_setup_module_layout(LLVMModuleRef module, LLVMTargetDataRef target_data, const char* triple) {
+    EL_ASSERT(module != NULL && target_data != NULL, "should not be null");
     LLVMSetTarget(module, triple);
-    LLVMTargetDataRef target_data = LLVMCreateTargetDataLayout(machine);
+
     char* layout_str = LLVMCopyStringRepOfTargetData(target_data);
     LLVMSetDataLayout(module, layout_str);
     LLVMDisposeMessage(layout_str);
-    LLVMDisposeTargetData(target_data);
 }
 
 ElcCodegenBuffer elc_llvm_lir_emit_to_buffer(const ElcLirHandle* handle, LLVMCodeGenFileType file_type) {
     ElcLLVMLir* data = handle->data;
-    char* triple = NULL;
-    LLVMTargetMachineRef machine = elc_llvm_create_target_machine(&triple);
-    if (machine == NULL) EL_TODO("Handle error");
-
-    elc_llvm_setup_module_layout(data->module, machine, triple);
 
     LLVMMemoryBufferRef buffer_ref;
     char* error = NULL;
-    if (LLVMTargetMachineEmitToMemoryBuffer(machine, data->module, file_type, &error, &buffer_ref)) {
-        EL_TODO("Handle error");
+    if (LLVMTargetMachineEmitToMemoryBuffer(data->target->machine, data->module, file_type, &error, &buffer_ref)) {
+        EL_TODO("error handling");
     }
 
     ElcCodegenBuffer buffer = {
@@ -91,9 +86,6 @@ ElcCodegenBuffer elc_llvm_lir_emit_to_buffer(const ElcLirHandle* handle, LLVMCod
     }
 
     LLVMDisposeMemoryBuffer(buffer_ref);
-    LLVMDisposeTargetMachine(machine);
-    LLVMDisposeMessage(triple);
-
     return buffer;
 }
 
@@ -111,6 +103,13 @@ void elc_llvm_lir_free_buffer(const ElcLirHandle* handle, ElcCodegenBuffer buffe
 
 void elc_llvm_cleanup(ElcCodegenBackend* self) {
     ElcLLVMBackendCtx* ctx = self->ctx;
+
+    if (ctx->target.triple != NULL) {
+        LLVMDisposeMessage(ctx->target.triple);
+    }
+    LLVMDisposeTargetMachine(ctx->target.machine);
+    LLVMDisposeTargetData(ctx->target.data);
+
     LLVMDisposeBuilder(ctx->builder);
     LLVMContextDispose(ctx->context);
 }
@@ -166,9 +165,19 @@ void elc_llvm_optimize(ElcCodegenBackend* self, ElcLirHandle* lir, ElcOptLevel l
 }
 
 ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache) {
+    LLVMInitializeNativeTarget();
+    LLVMInitializeNativeAsmPrinter();
+
     ElcLLVMBackendCtx* ctx = EL_DYNARENA_NEW(arena, ElcLLVMBackendCtx);
     ctx->context = LLVMContextCreate();
     ctx->builder = LLVMCreateBuilderInContext(ctx->context);
+
+    ctx->target.machine = create_target_machine(&ctx->target.triple);
+    if (!ctx->target.machine) {
+        EL_TODO("error handling");
+    }
+
+    ctx->target.data    = LLVMCreateTargetDataLayout(ctx->target.machine);
 
     ctx->arena  = arena;
     ctx->tcache = tcache;
@@ -176,13 +185,11 @@ ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache) 
     ctx->globals = NULL;
     ctx->globals_count = 0;
 
-    LLVMInitializeNativeTarget();
-    LLVMInitializeNativeAsmPrinter();
-
     return (ElcCodegenBackend) {
         .name = EL_SV("llvm"),
         .version = EL_SEM_VER(0, 1, 0),
         .ctx = ctx,
+
         .compile  = elc_llvm_compile,
         .query    = elc_llvm_query,
         .optimize = elc_llvm_optimize,
