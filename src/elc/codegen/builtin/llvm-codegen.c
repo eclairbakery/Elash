@@ -423,7 +423,28 @@ void elc_llvm_compile_cast_instr(Context* ctx, FunctionContext* func, ElMirInstr
                             : LLVMBuildUIToFP(ctx->builder, operand, to_type, "");
         }
     } else {
-        res = LLVMBuildBitCast(ctx->builder, operand, to_type, "");
+        LLVMTypeKind from_kind = LLVMGetTypeKind(LLVMTypeOf(operand));
+        LLVMTypeKind to_kind   = LLVMGetTypeKind(to_type);
+
+        bool hasAggregates =
+            from_kind == LLVMStructTypeKind || from_kind == LLVMArrayTypeKind ||
+            to_kind   == LLVMStructTypeKind || to_kind == LLVMArrayTypeKind;
+
+        // for WHATEVER reason llvm's bitcast doesn't work on pointers and aggregate types
+        // for pointer-to-int and vice versa we need to use ptrtoint/inttoptr
+        // for aggregates it seems the only option is to store and then load as other type
+        // so we're basically doing type punning manually
+        if (from_kind == LLVMPointerTypeKind && to_kind == LLVMIntegerTypeKind) {
+            res = LLVMBuildPtrToInt(ctx->builder, operand, to_type, "");
+        } else if (from_kind == LLVMIntegerTypeKind && to_kind == LLVMPointerTypeKind) {
+            res = LLVMBuildIntToPtr(ctx->builder, operand, to_type, "");
+        } else if (hasAggregates) {
+            LLVMValueRef slot = LLVMBuildAlloca(ctx->builder, LLVMTypeOf(operand), "");
+            LLVMBuildStore(ctx->builder, operand, slot);
+            res = LLVMBuildLoad2(ctx->builder, to_type, slot, "");
+        } else {
+            res = LLVMBuildBitCast(ctx->builder, operand, to_type, "");
+        }
     }
 
     if (instr->kind == EL_MIR_INSTR_INTCAST) {

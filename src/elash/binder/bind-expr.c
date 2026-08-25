@@ -254,10 +254,22 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
 
     if (expr == NULL || type == NULL) return NULL;
 
+    expr = _el_binder_apply_default_type(binder, expr);
+
     if (cast->kind == EL_SEMCAST) {
         return _el_binder_explicit_cast(binder, in->span, expr, type);
     } else {
-        EL_TODO("implement bitcast");
+        usize ssize = _el_binder_sizeof(binder, expr->type);
+        usize dsize = _el_binder_sizeof(binder, type);
+        if (ssize != dsize) {
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.invalid-bitcast",
+                expr->span, "bitcast source size does not match destination size (${source} vs ${dest} bytes)",
+                EL_DIAG_INT("source", ssize), EL_DIAG_INT("dest", dsize),
+            );
+        }
+
+        return el_hir_new_bitcast_expr(binder->arena, expr->span, type, expr);
     }
 }
 

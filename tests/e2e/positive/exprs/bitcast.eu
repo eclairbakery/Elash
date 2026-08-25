@@ -1,0 +1,54 @@
+int main() {
+    //////////// signedness //////////
+    int32 negative = -1;
+    uint32 unsigned = negative bitcast uint32;
+    if (unsigned != 4294967295)
+        return 1;
+
+    //////////// references //////////
+    int32& ref = &negative;
+    usize ptrAsInt = ref bitcast usize;
+    int32& recoveredRef = ptrAsInt bitcast int32&;
+
+    if (recoveredRef != &negative)
+        return 2;
+    if (recoveredRef^ != -1)
+        return 3;
+
+    ///////////// floats ////////////
+    float32 flt = 3.14;
+    int32 i32 = flt bitcast int32;
+    if (i32 != 1078523331)
+        return 4;
+
+    float32 floatRecovered = i32 bitcast float32;
+    if (floatRecovered != 3.14)
+        return 5;
+
+    /////////// arrays /////////////
+    uint64 whole = 858993459300;
+    uint32[2] parts = whole bitcast uint32[2];
+
+    bool isInvalid =
+        (parts[0] != 100 || parts[1] != 200) &&
+        (parts[0] != 200 || parts[1] != 100);
+
+    if (isInvalid)
+        return 6;
+
+    /////////// structs ///////////
+    typedef Parts as struct {
+        int a;
+        int b;
+    };
+
+    Parts parts2 = whole bitcast Parts;
+    isInvalid =
+        (parts2.a != 100 || parts2.b != 200) &&
+        (parts2.a != 200 || parts2.b != 100);
+
+    if (isInvalid)
+        return 7;
+
+    return 0;
+}

@@ -18,11 +18,12 @@
 
 void el_lowerer_init(
     ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag,
-    ElTypeCache* tcache, ElLowererBuiltins* builtins
+    ElTypeCache* tcache, ElBSQuery* bsquery, ElLowererBuiltins* builtins
 ) {
-    lw->arena  = arena;
-    lw->diag   = diag;
-    lw->tcache = tcache;
+    lw->arena   = arena;
+    lw->diag    = diag;
+    lw->tcache  = tcache;
+    lw->bsquery = bsquery;
 
     lw->builtins = builtins;
 
@@ -196,4 +197,14 @@ ElMirSymbol* el_lowerer_map_symbol(ElLowerer* lw, ElHirSymbol* sym) {
         lw->mir_symbol_map[sym->id] = mir_sym;
     }
     return mir_sym;
+}
+
+usize _el_lowerer_sizeof(ElLowerer* lw, ElMirType* type) {
+    ElBSType* bstype = el_tcache_get_bst_from_mir(lw->tcache, type);
+    return lw->bsquery->get_size(lw->bsquery, bstype);
+}
+
+usize _el_lowerer_alignof(ElLowerer* lw, ElMirType* type) {
+    ElBSType* bstype = el_tcache_get_bst_from_mir(lw->tcache, type);
+    return lw->bsquery->get_align(lw->bsquery, bstype);
 }

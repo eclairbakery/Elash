@@ -1,0 +1,1 @@
+3:error[sema.invalid-bitcast]

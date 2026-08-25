@@ -100,7 +100,7 @@ static ElAstExpr* gen_expr(ElDynArena* arena, int depth) {
     case 3: return el_ast_new_unary_expr(arena, NSPAN, rand() % 8, gen_expr(arena, depth - 1));
     case 4: return el_ast_new_typedinit(arena, NSPAN, EL_STORAGECLS_LOCAL, gen_type(arena, depth - 1), gen_brace_init(arena, depth - 1));
     case 5: return el_ast_new_call_expr(arena, NSPAN, gen_expr(arena, depth - 1), gen_toi(arena, depth - 1), 1);
-    case 6: return el_ast_new_cast_expr(arena, NSPAN, gen_expr(arena, depth - 1), gen_type(arena, depth - 1));
+    case 6: return el_ast_new_cast_expr(arena, NSPAN, rand() % 2, gen_expr(arena, depth - 1), gen_type(arena, depth - 1));
     case 7: return el_ast_new_member_expr(arena, NSPAN, gen_expr(arena, depth - 1), gen_ident(arena)->name);
     case 8: return el_ast_new_tmember_expr(arena, NSPAN, gen_expr(arena, depth - 1), rand() % 5, NSPAN);
     }
