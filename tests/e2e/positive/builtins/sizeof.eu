@@ -1,0 +1,57 @@
+
+bool flag = false;
+uint8 sideeffect() {
+    flag = true;
+    return 99;
+}
+
+int main() {
+    ///////// basic checks ///////
+    if (sizeof(uint32) != 4)
+        return 1;
+
+    uint32 u32;
+    if (sizeof(u32) != 4)
+        return 2;
+
+    if (sizeof(u32 as uint16 + 20) != 2)
+        return 3;
+
+    if (sizeof(usize) != sizeof(int&))
+        return 4;
+
+    ////////// arrays ////////////
+    float32[99] array;
+    if (sizeof(array) != sizeof(float32) * len(array))
+        return 5;
+
+    /////// structs and tuples ///////
+    typedef Point as struct {
+        int x; int y;
+    };
+
+    if (sizeof(Point) < sizeof(int) * 2)
+        return 6;
+
+    if (sizeof(struct { int x; int y; }) != sizeof(Point))
+        return 7;
+
+    if (sizeof(struct(int, int)) != sizeof(Point))
+        return 8;
+
+
+    //////// side effects ////////
+    if (sizeof(sideeffect()) != 1)
+        return 9;
+
+    // expression passed to sizeof should not be evaluated
+    if (flag)
+        return 10;
+
+    //////// compile time evaluation ///////
+    int[sizeof(int64)] test;
+    if (len(test) != 8)
+        return 11;
+
+    return 0;
+}
