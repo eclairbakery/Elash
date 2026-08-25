@@ -24,7 +24,7 @@ ifdef TEST_PARALLELISM
 	TEST_PARALLEL_FLAG := -j$(TEST_PARALLELISM)
 endif
 
-.PHONY: test-dirs unit-test test clean-tests clean-test
+.PHONY: test-dirs unit-test test test-verbose clean-tests clean-test
 
 test-dirs:
 	@$(call CMD_MKDIR_P,$(TESTS_OUT_DIR))
@@ -33,6 +33,9 @@ unit-test: test-elash test-elc
 	@echo "All tests passed."
 
 test: test-elash test-elc test-e2e test-unparser
+	@echo "All tests passed."
+
+test-verbose: test-elash test-elc test-e2e-verbose test-unparser-verbose
 	@echo "All tests passed."
 
 clean-test: clean-tests
@@ -64,11 +67,16 @@ test-elc: $(ELC_TESTS_BINS)
 	) true
 
 ############## e2e tests ###############
-.PHONY: test-e2e
+.PHONY: test-e2e test-e2e-verbose
 test-e2e: $(ELC_BIN)
 	@$(call CMD_MKDIR_P,$(TESTS_OUT_DIR)/e2e)
 	@echo "Running End-To-End tests"
 	@$(PY) $(E2E_TEST_RUNNER) $(ELC_BIN) $(TESTS_OUT_DIR)/e2e $(TEST_PARALLEL_FLAG)
+
+test-e2e-verbose: $(ELC_BIN)
+	@$(call CMD_MKDIR_P,$(TESTS_OUT_DIR)/e2e)
+	@echo "Running End-To-End tests"
+	@$(PY) $(E2E_TEST_RUNNER) $(ELC_BIN) $(TESTS_OUT_DIR)/e2e $(TEST_PARALLEL_FLAG) --verbose
 
 ############# fuzzing #################
 $(FUZZ_BINARY): $(FUZZ_SRC) $(LIBELASH_STATIC) $(LIBELC_STATIC) | test-dirs
@@ -90,7 +98,11 @@ $(UNPARSER_RUNNER_BIN): $(UNPARSER_RUNNER_SRC) $(LIBELASH_STATIC) | test-dirs
 	@$(ECHO) "CC $@"
 	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELASH_STATIC) $(TESTS_LDFLAGS) -o $@
 
-.PHONY: test-unparser
+.PHONY: test-unparser test-unparser-verbose
 test-unparser: $(UNPARSER_RUNNER_BIN)
 	@echo "Running unparser integration tests"
 	@$(PY) $(UNPARSER_RUNNER) $(UNPARSER_RUNNER_BIN) $(TEST_PARALLEL_FLAG)
+
+test-unparser-verbose: $(UNPARSER_RUNNER_BIN)
+	@echo "Running unparser integration tests"
+	@$(PY) $(UNPARSER_RUNNER) $(UNPARSER_RUNNER_BIN) $(TEST_PARALLEL_FLAG) --verbose

@@ -16,6 +16,8 @@ class CliArgs(argparse.Namespace):
     work_dir:        Path
     parallel:        Optional[int]
 
+    verbose:         bool
+
     compile_timeout: float
     link_timeout:    float
     runtime_timeout: float
@@ -38,6 +40,8 @@ def main():
     parser.add_argument('--link-timeout',    type=float, help='link stage timeout (default: 5s * timeout)')
     parser.add_argument('--runtime-timeout', type=float, help='runtime stage timeout (default: 3s * timeout)')
 
+    parser.add_argument('-v', '--verbose', action='store_true', help='verbose mode: print all passing test cases')
+
     #very advanced static typing
     args: CliArgs = typing.cast(CliArgs, parser.parse_args())
 
@@ -53,7 +57,7 @@ def main():
     if not work_dir.exists():
         os.makedirs(str(work_dir), exist_ok=True)
 
-    if not run_suite(elc_bin, work_dir, args.parallel, timeouts):
+    if not run_suite(elc_bin, work_dir, args.parallel, timeouts, args.verbose):
         sys.exit(1)
 
 if __name__ == '__main__':

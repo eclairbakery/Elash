@@ -26,16 +26,19 @@ def run_test(runner_bin: Path, case) -> tuple[int, str]:
 
 class CliArgs(argparse.Namespace):
     runner:   Path
+    verbose:  bool
     parallel: Optional[int]
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('runner', type=Path, help='Path to the unparser runner binary')
+    parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument(
         '-j', '--parallel', nargs='?',
         const=None, default=1, type=int,
         help='run in parallel with optional N workers limit'
     )
+
     args: CliArgs = typing.cast(CliArgs, parser.parse_args())
 
     test_cases = [c for c in collect_test_cases() if c.type == 'positive']
@@ -55,7 +58,8 @@ def main():
 
             if exitcode == 0:
                 passed_count += 1
-                print_pass(case.name)
+                if args.verbose:
+                    print_pass(case.name)
             else:
                 print_fail(case.name)
                 if exitcode < 0:

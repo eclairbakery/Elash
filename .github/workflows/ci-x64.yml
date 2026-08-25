@@ -48,10 +48,10 @@ jobs:
         run: make unit-test
 
       - name: End-to-End tests
-        run: make test-e2e
+        run: make test-e2e-verbose
 
       - name: Unparser tests
-        run: make test-unparser
+        run: make test-unparser-verbose
 
       - name: Fuzz tests
         run: make test-fuzz-500

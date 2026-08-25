@@ -210,7 +210,7 @@ def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
 
     assert False
 
-def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Timeouts) -> bool:
+def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Timeouts, verbose: bool) -> bool:
     passed_count  = 0
     failed_count  = 0
     skipped_count = 0
@@ -227,7 +227,8 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
             print_skip(name)
             skipped_count += 1
         elif _is_success(expected, actual):
-            print_pass(name)
+            if verbose:
+                print_pass(name)
             passed_count += 1
         else:
             report_failure(name, expected, actual)
