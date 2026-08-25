@@ -51,12 +51,26 @@ ElHirExpr* el_hir_new_float_lit(ElDynArena* arena, ElSourceSpan span, double val
     });
 }
 
+
+ElHirExpr* el_hir_new_str_lit(ElDynArena* arena, ElSourceSpan span, ElStringView value) {
+    return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
+        .kind = EL_HIR_EXPR_LITERAL,
+        .type = NULL,
+        .span = span,
+        .as.literal = {
+            .kind = EL_HIR_LITERAL_STRING,
+            .of.str_ = value,
+        },
+    });
+}
+
 ElStringView el_hir_literal_kind_to_string(ElHirLiteralKind lit) {
     switch (lit) {
-    case EL_HIR_LITERAL_INT:   return EL_SV("integer");
-    case EL_HIR_LITERAL_CHAR:  return EL_SV("character");
-    case EL_HIR_LITERAL_BOOL:  return EL_SV("boolean");
-    case EL_HIR_LITERAL_FLOAT: return EL_SV("float");
+    case EL_HIR_LITERAL_INT:    return EL_SV("integer");
+    case EL_HIR_LITERAL_CHAR:   return EL_SV("character");
+    case EL_HIR_LITERAL_BOOL:   return EL_SV("boolean");
+    case EL_HIR_LITERAL_FLOAT:  return EL_SV("float");
+    case EL_HIR_LITERAL_STRING: return EL_SV("string");
     }
 
     EL_UNREACHABLE_ENUM_VAL(ElHirLiteralKind, lit);

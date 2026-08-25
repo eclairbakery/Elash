@@ -298,44 +298,63 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
         return el_hir_new_cast_expr(binder->arena, expr->span, to, casted);
     }
 
-    // Untyped compounds (e.g. 'a' + 1, 1 / 0, --1) also have type == NULL.
-    // Only literals may be cast via the literal path below.
     if (expr->kind != EL_HIR_EXPR_LITERAL)
         return cast_untyped_compound(binder, span, expr, to);
 
+    ElHirLiteral* lit = &expr->as.literal;
+
     if (to->kind == EL_HIR_TYPE_PRIM) {
-        switch (expr->as.literal.kind) {
+        ElHirPrimType* prim = &to->as.prim;
+        switch (lit->kind) {
         case EL_HIR_LITERAL_INT:
-            if (to->as.prim.kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->arena, expr->span, to, expr->as.literal.of.int_);
-            } else if (to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
-                return el_hir_new_float_constant(binder->arena, expr->span, to, (double)expr->as.literal.of.int_);
+            if (prim->kind == EL_PRIMTYPE_INT) {
+                return el_hir_new_int_constant(binder->arena, expr->span, to, lit->of.int_);
+            } else if (prim->kind == EL_PRIMTYPE_FLOAT) {
+                return el_hir_new_float_constant(binder->arena, expr->span, to, (double)lit->of.int_);
             }
             break;
         case EL_HIR_LITERAL_CHAR:
-            if (to->as.prim.kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->arena, expr->span, to, (int64_t)expr->as.literal.of.char_);
+            if (prim->kind == EL_PRIMTYPE_INT) {
+                return el_hir_new_int_constant(binder->arena, expr->span, to, (int64_t)lit->of.char_);
             }
             break;
         case EL_HIR_LITERAL_BOOL:
-            if (to->as.prim.kind == EL_PRIMTYPE_BOOL) {
-                return el_hir_new_bool_constant(binder->arena, expr->span, to, expr->as.literal.of.bool_);
+            if (prim->kind == EL_PRIMTYPE_BOOL) {
+                return el_hir_new_bool_constant(binder->arena, expr->span, to, lit->of.bool_);
             }
             break;
         case EL_HIR_LITERAL_FLOAT:
-            if (to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
-                return el_hir_new_float_constant(binder->arena, expr->span, to, expr->as.literal.of.float_);
-            } else if (to->as.prim.kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->arena, expr->span, to, (int64_t)expr->as.literal.of.float_);
+            if (prim->kind == EL_PRIMTYPE_FLOAT) {
+                return el_hir_new_float_constant(binder->arena, expr->span, to, lit->of.float_);
+            } else if (prim->kind == EL_PRIMTYPE_INT) {
+                return el_hir_new_int_constant(binder->arena, expr->span, to, (int64_t)lit->of.float_);
             }
             break;
+        case EL_HIR_LITERAL_STRING:
+            break; // handled below
+        }
+    }
+
+    if (lit->kind == EL_HIR_LITERAL_STRING) {
+        if (to->kind == EL_HIR_TYPE_ARRAY) {
+            if (el_hir_type_eql(to->as.array.base, binder->builtins->type_char) && to->as.array.size == lit->of.str_.len) {
+                return el_hir_new_string_const(binder->arena, expr->span, to, lit->of.str_, EL_STORAGECLS_STATIC);
+            }
+        } else if (to->kind == EL_HIR_TYPE_SLICE && el_hir_type_eql(to->as.slice.base, binder->builtins->type_char)) {
+            return _el_binder_implicit_cast(
+                binder, expr->span,
+                el_hir_new_string_const(binder->arena, expr->span,
+                    el_hir_new_array_type(binder->arena, binder->builtins->type_char, lit->of.str_.len),
+                    lit->of.str_, EL_STORAGECLS_STATIC),
+                to
+            );
         }
     }
 
     return el_diag_report(
         binder->diag, EL_DIAG_ERROR, "sema.invalid-cast",
         span, "untyped ${of} literal cannot be converted to type ${to}",
-        EL_DIAG_STRING("of", el_hir_literal_kind_to_string(expr->as.literal.kind)),
+        EL_DIAG_STRING("of", el_hir_literal_kind_to_string(lit->kind)),
         EL_DIAG_TYPE("to", to),
     );
 }
@@ -343,16 +362,22 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
 ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr) {
     if (expr->type != NULL) return expr;
     if (expr->kind == EL_HIR_EXPR_LITERAL) {
-        switch (expr->as.literal.kind) {
-        case EL_HIR_LITERAL_INT:
-            return el_hir_new_int_constant(binder->arena, expr->span, binder->builtins->type_int, expr->as.literal.of.int_);
-        case EL_HIR_LITERAL_CHAR:
-            return el_hir_new_char_constant(binder->arena, expr->span, binder->builtins->type_char, expr->as.literal.of.char_);
-        case EL_HIR_LITERAL_BOOL:
-            return el_hir_new_bool_constant(binder->arena, expr->span, binder->builtins->type_bool, expr->as.literal.of.bool_);
-        case EL_HIR_LITERAL_FLOAT:
-            return el_hir_new_float_constant(binder->arena, expr->span, binder->builtins->type_float, expr->as.literal.of.float_);
+        ElHirLiteral* lit = &expr->as.literal;
+        switch (lit->kind) {
+        case EL_HIR_LITERAL_STRING: {
+            ElHirType* type = el_hir_new_array_type(binder->arena, binder->builtins->type_char, lit->of.str_.len);
+            return el_hir_new_string_const(binder->arena, expr->span, type, lit->of.str_, EL_STORAGECLS_STATIC);
         }
+        case EL_HIR_LITERAL_INT:
+            return el_hir_new_int_constant(binder->arena, expr->span, binder->builtins->type_int, lit->of.int_);
+        case EL_HIR_LITERAL_CHAR:
+            return el_hir_new_char_constant(binder->arena, expr->span, binder->builtins->type_char, lit->of.char_);
+        case EL_HIR_LITERAL_BOOL:
+            return el_hir_new_bool_constant(binder->arena, expr->span, binder->builtins->type_bool, lit->of.bool_);
+        case EL_HIR_LITERAL_FLOAT:
+            return el_hir_new_float_constant(binder->arena, expr->span, binder->builtins->type_float, lit->of.float_);
+        }
+        EL_UNREACHABLE_ENUM_VAL(ElHirLiteralKind, lit->kind);
     }
     return expr;
 }

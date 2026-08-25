@@ -32,6 +32,7 @@ ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallEx
 
     ElHirExpr* earg = toe->as.expr;
     if (earg == NULL) return NULL;
+    earg = _el_binder_apply_default_type(binder, earg);
 
     ElHirType* type = el_hir_type_unwrap_distinct(earg->type);
 

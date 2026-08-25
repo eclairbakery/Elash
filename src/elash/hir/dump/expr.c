@@ -118,10 +118,11 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
 
     case EL_HIR_EXPR_LITERAL:
         switch (node->as.literal.kind) {
-            case EL_HIR_LITERAL_INT:   fprintf(out, "%"PRId64, node->as.literal.of.int_);        break;
-            case EL_HIR_LITERAL_FLOAT: fprintf(out, "%lf", node->as.literal.of.float_);          break;
-            case EL_HIR_LITERAL_CHAR:  fprintf(out, "'%c'", node->as.literal.of.char_);          break;
-            case EL_HIR_LITERAL_BOOL:  fputs(node->as.literal.of.bool_ ? "true" : "false", out); break;
+            case EL_HIR_LITERAL_INT:    fprintf(out, "%"PRId64, node->as.literal.of.int_);        break;
+            case EL_HIR_LITERAL_FLOAT:  fprintf(out, "%lf", node->as.literal.of.float_);          break;
+            case EL_HIR_LITERAL_CHAR:   fprintf(out, "'%c'", node->as.literal.of.char_);          break;
+            case EL_HIR_LITERAL_BOOL:   fputs(node->as.literal.of.bool_ ? "true" : "false", out); break;
+            case EL_HIR_LITERAL_STRING: el_sv_print(node->as.literal.of.str_, out);               break;
         }
         break;
 

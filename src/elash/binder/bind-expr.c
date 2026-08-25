@@ -163,10 +163,8 @@ ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral
         return el_hir_new_bool_lit(binder->arena, in->span, lit->of.bool_.value);
     case EL_AST_LIT_FLOAT:
         return el_hir_new_float_lit(binder->arena, in->span, lit->of.float_.value);
-    case EL_AST_LIT_STRING: {
-        ElHirType* type = el_hir_new_array_type(binder->arena, binder->builtins->type_char, lit->of.str_.value.len);
-        return el_hir_new_string_const(binder->arena, in->span, type, lit->of.str_.value, EL_STORAGECLS_STATIC);
-    }
+    case EL_AST_LIT_STRING:
+        return el_hir_new_str_lit(binder->arena, in->span, lit->of.str_.value);
     default:
         EL_TODO("support all literal types");
     }
