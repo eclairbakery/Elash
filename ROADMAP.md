@@ -31,8 +31,8 @@
 
 ### Builtins
 - [x] Support passing array types directly in len() function
-- [ ] Add `sizeof` function
-- [ ] Add `alignof` function
+- [x] Add `sizeof` function
+- [x] Add `alignof` function
 - [ ] Add `offsetof` function
 
 ### Driver/CLI
