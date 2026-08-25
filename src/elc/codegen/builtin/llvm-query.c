@@ -21,6 +21,7 @@ ElBSQuery _elc_llvm_query(Context* ctx) {
         return ctx->query;
     }
 
+    ctx->cached_query = true;
     return ctx->query = (ElBSQuery) {
         .ctx = ctx,
 

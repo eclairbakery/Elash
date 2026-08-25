@@ -185,6 +185,8 @@ ElcCodegenBackend elc_make_llvm_codegen(ElDynArena* arena, ElTypeCache* tcache) 
     ctx->globals = NULL;
     ctx->globals_count = 0;
 
+    ctx->cached_query = false;
+
     return (ElcCodegenBackend) {
         .name = EL_SV("llvm"),
         .version = EL_SEM_VER(0, 1, 0),
