@@ -100,6 +100,27 @@ def _report_diag_mismatches(expanded: list[DiagExpectation], diagnostics: list[d
             lines_str = ','.join(map(str, actual_lines))  + ':'
             print_info(f'  unexpected diag: {CLR_BOLD}{lines_str}{diag["severity"]}[{diag["category"]}]: {diag["formatted"]}{CLR_RESET}')
 
+def report_compilation_failure(actual: FinishedResult):
+    print_info(f'  Error during {CLR_BOLD}{actual.stage}{CLR_RESET} stage (exitcode {actual.exitcode})')
+
+    # printing raw json to the console is not a great idea, so let's format diagnotics manually
+    if actual.stage == 'compilation' and (diagnostics := _parse_jsonl_diagnostics(actual)):
+        for diag in diagnostics:
+            actual_lines = [r['start']['line'] + 1 for r in diag['span']['ranges']]
+            lines_str = ','.join(map(str, actual_lines))  + ':'
+            print_info(f'  {CLR_BOLD}{lines_str}{diag["severity"]}[{diag["category"]}]: {diag["formatted"]}{CLR_RESET}')
+    else:
+        if actual.stdout:
+            print_info(f'  stdout:')
+            for line in actual.stdout.splitlines():
+                print_info(f'    {line}')
+        if actual.stderr:
+            print_info(f'  stderr:')
+            for line in actual.stderr.splitlines():
+                print_info(f'    {line}')
+
+    return
+
 def report_failure(name: str, expected: TestExpectation, actual: TestResult):
     if isinstance(actual, TimedOutResult):
         print_timeout(name)
@@ -119,8 +140,7 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
 
     elif isinstance(expected, PositiveTestExpectation):
         if actual.stage != 'runtime':
-             print_info(f'  Error during {CLR_BOLD}{actual.stage}{CLR_RESET} stage (exitcode {actual.exitcode})')
-             return
+            report_compilation_failure(actual)
 
         if actual.exitcode != expected.exitcode:
             print_info(f'  exitcode: expected {expected.exitcode}, actual {actual.exitcode}')
