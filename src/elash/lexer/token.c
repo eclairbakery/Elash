@@ -43,7 +43,8 @@ static struct {
     [EL_TT_KW_INTERNAL] = F("KW_INTERNAL", "internal"),
     [EL_TT_KW_STATIC]   = F("KW_STATIC", "static"),
 
-    [EL_TT_KW_AS] = F("KW_AS", "as"),
+    [EL_TT_KW_AS]      = F("KW_AS", "as"),
+    [EL_TT_KW_BITCAST] = F("KW_BITCAST", "bitcast"),
 
     [EL_TT_KW_VOLATILE] = F("KW_VOLATILE", "volatile"),
     [EL_TT_KW_CONST] = F("KW_CONST", "const"),

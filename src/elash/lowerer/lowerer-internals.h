@@ -14,3 +14,6 @@ ElMirValue*    _el_lowerer_new_anon_global(ElLowerer* lw, ElMirType* type, ElMir
 ElMirValue*    _el_lowerer_create_alloca(ElLowerer* lw, ElMirType* type);
 void           _el_lowerer_copy_str_to_ptr(ElLowerer* lw, ElMirValue* ptr, ElMirStrConst str);
 void           _el_lowerer_lower_agginit(ElLowerer* lw, ElMirValue* ptr, ElHirAggInit* agginit);
+
+usize _el_lowerer_sizeof(ElLowerer* lw, ElMirType* type);
+usize _el_lowerer_alignof(ElLowerer* lw, ElMirType* type);

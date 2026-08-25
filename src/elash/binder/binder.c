@@ -113,3 +113,13 @@ bool _el_binder_eval_const_index(ElBinder* binder, ElAstExpr* expr, usize* out_i
     }
     return false;
 }
+
+usize _el_binder_sizeof(ElBinder* binder, ElHirType* type) {
+    ElBSType* bstype = el_tcache_get_bst_from_hir(binder->tcache, type);
+    return binder->bsquery->get_size(binder->bsquery, bstype);
+}
+
+usize _el_binder_alignof(ElBinder* binder, ElHirType* type) {
+    ElBSType* bstype = el_tcache_get_bst_from_hir(binder->tcache, type);
+    return binder->bsquery->get_align(binder->bsquery, bstype);
+}

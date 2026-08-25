@@ -94,10 +94,10 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
 
     if (to->kind == EL_HIR_TYPE_DISTINCT) {
         ElHirExpr* casted = _el_binder_implicit_cast(binder, span, expr, to->as.distinct.orig);
-        if (casted != NULL) return el_hir_new_cast_expr(binder->arena, expr->span, to, casted);
+        if (casted != NULL) return el_hir_new_semcast_expr(binder->arena, expr->span, to, casted);
     }
     if (from->kind == EL_HIR_TYPE_DISTINCT) {
-        expr = el_hir_new_cast_expr(binder->arena, expr->span, from->as.distinct.orig, expr);
+        expr = el_hir_new_semcast_expr(binder->arena, expr->span, from->as.distinct.orig, expr);
         from = expr->type;
     }
 
@@ -106,7 +106,7 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
         bool is_float_conv = (from->as.prim.kind == EL_PRIMTYPE_FLOAT || from->as.prim.kind == EL_PRIMTYPE_INT)
                             && (to->as.prim.kind == EL_PRIMTYPE_FLOAT || to->as.prim.kind == EL_PRIMTYPE_INT);
         if (is_int_conv || is_float_conv) {
-            return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
+            return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
         }
     }
 
@@ -128,7 +128,7 @@ static ElHirExpr* implicit_cast_array(ElBinder* binder, ElSourceSpan span, ElHir
         if (type_eql(to->as.rwslice.base, from->as.array.base)) {
             // &(expr)[0] as T[&]
             ElHirType* base_type = from->as.array.base;
-            return el_hir_new_cast_expr(binder->arena, expr->span, to,
+            return el_hir_new_bitcast_expr(binder->arena, expr->span, to,
                 el_hir_new_unary_expr(
                     binder->arena, expr->span,
                     el_hir_new_ref_type(binder->arena, base_type),
@@ -182,7 +182,7 @@ static ElHirExpr* implicit_cast_prim(ElBinder* binder, ElHirExpr* expr, ElHirTyp
                     && (from_itype->width     == to_itype->width
                     || (is_fixed_width(from_itype->width) && is_fixed_width(to_itype->width)
                     &&  from_itype->width     <= to_itype->width));
-        if (is_valid) return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
+        if (is_valid) return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
     } else if (from->as.prim.kind == EL_PRIMTYPE_FLOAT && to->as.prim.kind == EL_PRIMTYPE_FLOAT) {
         // same reason as before, don't blame me plz
         #define from_fptype (&from->as.prim.as.fp)
@@ -190,7 +190,7 @@ static ElHirExpr* implicit_cast_prim(ElBinder* binder, ElHirExpr* expr, ElHirTyp
         bool is_valid = from_fptype->width == to_fptype->width
                     || (is_fixed_fp_width(from_fptype->width) && is_fixed_fp_width(to_fptype->width)
                     &&  from_fptype->width < to_fptype->width);
-        if (is_valid) return el_hir_new_cast_expr(binder->arena, expr->span, to, expr);
+        if (is_valid) return el_hir_new_semcast_expr(binder->arena, expr->span, to, expr);
     }
 
     return NULL;
@@ -290,12 +290,13 @@ static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElH
     }
 }
 
+// TODO: split this function into smaller helpers
 ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
     (void) span;
     if (to->kind == EL_HIR_TYPE_DISTINCT) {
         ElHirExpr* casted = _cast_untyped(binder, span, expr, to->as.distinct.orig);
         if (casted == NULL) return NULL;
-        return el_hir_new_cast_expr(binder->arena, expr->span, to, casted);
+        return el_hir_new_semcast_expr(binder->arena, expr->span, to, casted);
     }
 
     if (expr->kind != EL_HIR_EXPR_LITERAL)

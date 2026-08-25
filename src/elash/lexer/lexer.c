@@ -123,6 +123,7 @@ ElTokenType get_keyword_or_ident_type(ElStringView lexeme) {
         { EL_SV("static"),   EL_TT_KW_STATIC     },
         { EL_SV("struct"),   EL_TT_KW_STRUCT     },
         { EL_SV("switch"),   EL_TT_KW_SWITCH     },
+        { EL_SV("bitcast"),  EL_TT_KW_BITCAST    },
         { EL_SV("default"),  EL_TT_KW_DEFAULT    },
         { EL_SV("typedef"),  EL_TT_KW_TYPEDEF    },
         { EL_SV("internal"), EL_TT_KW_INTERNAL   },

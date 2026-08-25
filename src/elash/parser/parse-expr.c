@@ -293,10 +293,19 @@ ElAstExpr* _el_parser_parse_cast(ElParser* parser) {
     ElAstExpr* expr = _el_parser_parse_unary(parser);
     if (el_parser_has_errs(parser)) return NULL;
 
-    while (el_parser_match(parser, EL_TT_KW_AS)) {
+    while (true) {
+        ElCastKind kind;
+        if (el_parser_match(parser, EL_TT_KW_AS)) {
+            kind = EL_SEMCAST;
+        } else if (el_parser_match(parser, EL_TT_KW_BITCAST)) {
+            kind = EL_BITCAST;
+        } else {
+            break;
+        }
+
         ElAstType* type = _el_parser_parse_type(parser);
         if (type == NULL) return NULL;
-        expr = el_ast_new_cast_expr(parser->arena, el_srcspan_merge(expr->span, type->span), expr, type);
+        expr = el_ast_new_cast_expr(parser->arena, el_srcspan_merge(expr->span, type->span), kind, expr, type);
     }
     return expr;
 }

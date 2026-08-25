@@ -18,6 +18,8 @@
 #include <elash/mir/symbol.h>
 #include <elash/mir/type.h>
 
+#include <elash/sema/backends.h>
+
 #include <elash/util/dynarena.h>
 #include <elash/diag/engine.h>
 #include <elash/sema/tcache.h>
@@ -26,6 +28,7 @@ typedef struct ElLowerer {
     ElDynArena*   arena;
     ElDiagEngine* diag;
     ElTypeCache*  tcache;
+    ElBSQuery*    bsquery;
 
     ElLowererBuiltins* builtins;
 
@@ -44,7 +47,7 @@ typedef struct ElLowerer {
 
 void el_lowerer_init(
     ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag,
-    ElTypeCache* tcache, ElLowererBuiltins* builtins
+    ElTypeCache* tcache, ElBSQuery* bsquery, ElLowererBuiltins* builtins
 );
 void el_lowerer_free(ElLowerer* lw);
 

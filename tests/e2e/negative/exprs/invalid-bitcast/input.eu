@@ -1,0 +1,4 @@
+int main() {
+    int32 i32;
+    return i32 bitcast int64; // size doesn't match
+}

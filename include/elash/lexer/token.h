@@ -49,6 +49,7 @@ typedef enum ElTokenType {
     EL_TT_KW_WONLY,             // wonly
 
     EL_TT_KW_AS,                // as
+    EL_TT_KW_BITCAST,           // bitcast
 
     EL_TT_KW_ENUM,              // enum
     EL_TT_KW_UNION,             // union
