@@ -1,5 +1,5 @@
 #include <elash/hir/scope.h>
-#include <elash/util/strhash.h>
+#include <elash/util/hash.h>
 
 #include <stdlib.h>
 
@@ -57,7 +57,7 @@ bool el_hir_scope_insert_ex(ElScope* scope, ElStringView name, ElHirSymbol* symb
         if (!resize(scope)) return false;
     }
 
-    ulong hash = el_hash_string(name);
+    uhash hash = el_hash_string(name);
     usize index = hash % scope->capacity;
 
     while (scope->entries[index].symbol != NULL) {
@@ -80,7 +80,7 @@ bool el_hir_scope_insert(ElScope* scope, ElHirSymbol* symbol) {
 ElHirSymbol* el_hir_scope_lookup_local(ElScope* scope, ElStringView name) {
     if (scope->count == 0) return NULL;
 
-    ulong hash = el_hash_string(name);
+    uhash hash = el_hash_string(name);
     usize index = hash % scope->capacity;
 
     while (scope->entries[index].symbol != NULL) {

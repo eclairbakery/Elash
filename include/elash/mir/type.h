@@ -42,4 +42,4 @@ void el_mir_dump_type(const ElMirType* type, FILE* out);
 void el_mir_format_type(const ElMirType* type, ElStringBuf* sb);
 
 bool el_mir_type_eql(const ElMirType* lhs, const ElMirType* rhs);
-uint64_t el_mir_type_hash(const ElMirType* type);
+uhash el_mir_type_hash(const ElMirType* type);

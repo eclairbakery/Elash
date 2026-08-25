@@ -1,7 +1,6 @@
 #include <elash/hir/type.h>
 #include <elash/util/assert.h>
-#include <elash/util/strhash.h>
-#include <elash/util/hashmix.h>
+#include <elash/util/hash.h>
 
 #include <stdint.h>
 
@@ -178,18 +177,18 @@ bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
     EL_UNREACHABLE_ENUM_VAL(ElHirTypeKind, lhs->kind);
 }
 
-uint64_t el_hir_type_hash(const ElHirType* type) {
+uhash el_hir_type_hash(const ElHirType* type) {
     EL_ASSERT(type != NULL, "invalid argument");
 
-    uint64_t hash = (uint64_t)type->kind;
+    uhash hash = (uhash)type->kind;
     switch (type->kind) {
     case EL_HIR_TYPE_PRIM:
-        hash = el_hash_mix(hash, (uint64_t)type->as.prim.kind);
+        hash = el_hash_mix(hash, (uhash)type->as.prim.kind);
         if (type->as.prim.kind == EL_PRIMTYPE_INT) {
-            hash = el_hash_mix(hash, (uint64_t)type->as.prim.as.integral.width);
-            hash = el_hash_mix(hash, (uint64_t)type->as.prim.as.integral.is_signed);
+            hash = el_hash_mix(hash, (uhash)type->as.prim.as.integral.width);
+            hash = el_hash_mix(hash, (uhash)type->as.prim.as.integral.is_signed);
         } else if (type->as.prim.kind == EL_PRIMTYPE_FLOAT) {
-            hash = el_hash_mix(hash, (uint64_t)type->as.prim.as.fp.width);
+            hash = el_hash_mix(hash, (uhash)type->as.prim.as.fp.width);
         }
         break;
     case EL_HIR_TYPE_REF:
@@ -202,29 +201,29 @@ uint64_t el_hir_type_hash(const ElHirType* type) {
         hash = el_hash_mix(hash, el_hir_type_hash(type->as.rwslice.base));
         break;
     case EL_HIR_TYPE_ARRAY:
-        hash = el_hash_mix(hash, (uint64_t)type->as.array.size);
+        hash = el_hash_mix(hash, (uhash)type->as.array.size);
         hash = el_hash_mix(hash, el_hir_type_hash(type->as.array.base));
         break;
     case EL_HIR_TYPE_FUNC:
-        hash = el_hash_mix(hash, (uint64_t)type->as.func.param_count);
+        hash = el_hash_mix(hash, (uhash)type->as.func.param_count);
         hash = el_hash_mix(hash, el_hir_type_hash(type->as.func.ret_type));
         for (usize i = 0; i < type->as.func.param_count; i++)
             hash = el_hash_mix(hash, el_hir_type_hash(type->as.func.params[i]));
         break;
     case EL_HIR_TYPE_STRUCT:
-        hash = el_hash_mix(hash, (uint64_t)type->as.struct_.count);
+        hash = el_hash_mix(hash, (uhash)type->as.struct_.count);
         for (usize i = 0; i < type->as.struct_.count; i++) {
             hash = el_hash_mix(hash, el_hash_string(type->as.struct_.fields[i].name));
             hash = el_hash_mix(hash, el_hir_type_hash(type->as.struct_.fields[i].type));
         }
         break;
     case EL_HIR_TYPE_TUPLE:
-        hash = el_hash_mix(hash, (uint64_t)type->as.tuple.count);
+        hash = el_hash_mix(hash, (uhash)type->as.tuple.count);
         for (usize i = 0; i < type->as.tuple.count; i++)
             hash = el_hash_mix(hash, el_hir_type_hash(type->as.tuple.elements[i]));
         break;
     case EL_HIR_TYPE_DISTINCT:
-        hash = el_hash_mix(hash, (uint64_t)(uintptr_t)type);
+        hash = el_hash_mix(hash, (uhash)(uintptr_t)type);
         break;
     }
     return hash;

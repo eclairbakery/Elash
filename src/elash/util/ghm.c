@@ -20,7 +20,7 @@ typedef struct ElGHMEntry {
 
 // returns -1 if not found (if !for_insertion)
 static isize find_index(ElGHM* ghm, const void* key, bool for_insertion) {
-    uint64_t hash = ghm->hash(key);
+    uhash hash = ghm->hash(key);
     usize mask = ghm->capacity - 1;
     usize index = hash & mask;
     isize first_tombstone = -1;

@@ -1,14 +1,16 @@
 #include <criterion/criterion.h>
+
 #include <elash/util/ghm.h>
-#include <elash/util/strhash.h>
+#include <elash/util/hash.h>
 #include <elash/defs/sv.h>
+
 #include <stdlib.h>
 #include <string.h>
 
 static bool seql(const void* a, const void* b) {
     return strcmp(a, b) == 0;
 }
-static uint64_t shash(const void* a) {
+static uhash shash(const void* a) {
     return el_hash_string(el_sv_from_cstr(a));
 }
 

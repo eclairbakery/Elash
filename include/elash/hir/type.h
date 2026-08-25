@@ -47,6 +47,6 @@ void el_sema_dump_type(const ElHirType* type, FILE* out);
 void el_sema_format_type(const ElHirType* type, ElStringBuf* sb);
 
 bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs);
-uint64_t el_hir_type_hash(const ElHirType* type);
+uhash el_hir_type_hash(const ElHirType* type);
 
 ElHirType* el_hir_type_unwrap_distinct(ElHirType* type);

@@ -6,7 +6,7 @@
 typedef struct ElGHMEntry ElGHMEntry;
 
 typedef bool ElGHMEqualFn(const void*, const void*);
-typedef uint64_t ElGHMHashFn(const void*);
+typedef uhash ElGHMHashFn(const void*);
 
 // GHM - Generic Hash Map
 // Only for storing pointers (applies to both key and value)
