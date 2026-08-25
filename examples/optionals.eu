@@ -21,4 +21,13 @@ int main() {
 
     //int value = ref2^; // error: cannot directly dereference optional type
     int value = ref2!^; // unwrap then dereference
+
+    // more fancy operators
+    int? opt3 = null;
+    int? opt4 = opt3 ?: 999; // "if opt3 is null then null, else 999"
+
+    struct { int field; }? q = null;
+    int fieldValue = q?.field; // "if q is non null then q.field, else null"
+                               // equivalent to q ?: q.field
+    return 0;
 }

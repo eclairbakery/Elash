@@ -6,10 +6,13 @@
 - [ ] Post-iteration statement in `while` loop
 - [x] Initializers as `return` values
 - [ ] Warn when the result or an expression without side effects is ignored
+- [ ] Support `if let` and `while let` for optionals
 
 ### Declarations
 - [ ] Make function parameter definitions semicolon-separated and represent them as decl AST mode
 - [ ] Support unnamed function params in declarations
+- [ ] Multiple declarators in a single declaration (comma separated, e.g. `int x, y;`)
+- [ ] Forward-declared typedefs / opaque types (e.g. `typedef Name;`), better incomplete types semantics
 
 ### Type system
 - [ ] Enum types
