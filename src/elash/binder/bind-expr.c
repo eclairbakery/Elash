@@ -253,7 +253,12 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
     ElHirType* type = _el_binder_bind_type(binder, cast->type);
 
     if (expr == NULL || type == NULL) return NULL;
-    return _el_binder_explicit_cast(binder, in->span, expr, type);
+
+    if (cast->kind == EL_SEMCAST) {
+        return _el_binder_explicit_cast(binder, in->span, expr, type);
+    } else {
+        EL_TODO("implement bitcast");
+    }
 }
 
 ElHirExpr* _el_binder_bind_typedinit(ElBinder* binder, ElAstExpr* in, ElAstTypedInit* tinit) {
