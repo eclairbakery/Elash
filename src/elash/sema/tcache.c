@@ -3,6 +3,8 @@
 #include <elash/lowerer/lowerer.h>
 #include <elash/mir/type.h>
 
+#include <elash/util/assert.h>
+
 static uint64_t htype_hash(const void* key) { return el_hir_type_hash(key); }
 static bool htype_eql(const void* key1, const void* key2) { return el_hir_type_eql(key1, key2); }
 
@@ -24,16 +26,23 @@ void el_tcache_free(ElTypeCache* cache) {
     el_ghm_free(&cache->mir_to_bst);
 }
 
+// TODO: handle recursive types (currenly will cause infinite recursion,
+//       but the binder doesn't support recursive types anyway),
+//       update this function once recursive types are added to the binder!!!
 ElMirType* el_tcache_get_mir(ElTypeCache* cache, const ElHirType* htype) {
+    EL_ASSERT(htype != NULL, "should not be null");
+
     ElMirType* cached = el_ghm_lookup(&cache->hir_to_mir, htype);
     if (cached != NULL) return cached;
 
-    ElMirType* mapped = el_lowerer_map_type_raw(cache->arena, cache->usize_type, htype);
+    ElMirType* mapped = el_lowerer_map_type_raw(cache, htype);
     el_ghm_insert(&cache->hir_to_mir, htype, mapped);
     return mapped;
 }
 
 ElBSType* el_tcache_get_bst_from_mir(ElTypeCache* cache, const ElMirType* mtype) {
+    EL_ASSERT(mtype != NULL, "should not be null");
+
     ElBSType* bst = el_ghm_lookup(&cache->mir_to_bst, mtype);
     if (bst != NULL) return bst;
 

@@ -59,7 +59,7 @@ ElMirValue*  el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir);
 void         el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir);
 ElMirModule* el_lowerer_lower_module(ElLowerer* lw, ElHirModule* hir);
 
-ElMirType* el_lowerer_map_type_raw(ElDynArena* arena, ElMirType* usize_type, const ElHirType* type);
+ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type);
 
 ElMirType*   el_lowerer_map_type(ElLowerer* lw, const ElHirType* type);
 ElMirSymbol* el_lowerer_map_symbol(ElLowerer* lw, ElHirSymbol* sym);
