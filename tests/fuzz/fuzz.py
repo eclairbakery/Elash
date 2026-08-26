@@ -9,7 +9,7 @@ import signal
 import random
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from threading import Lock
+from threading import Lock, Event
 from pathlib import Path
 
 CLR_BLUE   = '\033[0;34m'
@@ -58,7 +58,7 @@ class CliArgs(argparse.Namespace):
 
     jobs: int | None
 
-def do_fuzzing_stuff(args: CliArgs, i: int) -> int:
+def do_fuzzing_stuff(args: CliArgs, i: int, shutdown: Event) -> int:
     seed = random.randint(0, 2**31 - 1)
     tmp: str
     with tempfile.NamedTemporaryFile(delete=False) as f:
@@ -68,20 +68,29 @@ def do_fuzzing_stuff(args: CliArgs, i: int) -> int:
         if args.verbose:
             print_fuzz(i, seed)
 
+        if shutdown.is_set(): return 0
         code = run_fuzzer(args.fuzzer, tmp, seed)
         if code != 0:
-            report_failure("fuzzer", code, i, seed)
+            if not shutdown.is_set():
+                report_failure("fuzzer", code, i, seed)
             return code
 
+        if shutdown.is_set(): return 0
         code = run_elc(args.elc, tmp, 'ast')
         if code != 0:
-            report_failure("parser check", code, i, seed)
+            if not shutdown.is_set():
+                report_failure("parser check", code, i, seed)
             return code
 
+        if shutdown.is_set(): return 0
         code = run_elc(args.elc, tmp, 'lir')
         if code < 0:
-            report_failure("elc", code, i, seed)
+            if not shutdown.is_set():
+                report_failure("elc", code, i, seed)
             return code
+    except KeyboardInterrupt:
+        # just in case
+        return 0
     finally:
         os.unlink(tmp)
 
@@ -96,19 +105,27 @@ def main() -> int:
     parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
     args = typing.cast(CliArgs, parser.parse_args());
 
+    shutdown = Event()
+
     with ThreadPoolExecutor(max_workers=args.jobs) as executor:
         futures = {
-            executor.submit(do_fuzzing_stuff, args, i): i
+            executor.submit(do_fuzzing_stuff, args, i, shutdown): i
             for i in range(args.count)
         }
 
         exit_code = 0
-        for future in as_completed(futures):
-            res = future.result()
-            if res != 0:
-                exit_code = res
-                executor.shutdown(wait=False, cancel_futures=True)
-                break
+        try:
+            for future in as_completed(futures):
+                res = future.result()
+                if res != 0:
+                    exit_code = res
+                    shutdown.set()
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    break
+        except KeyboardInterrupt:
+            shutdown.set()
+            executor.shutdown(wait=False, cancel_futures=True)
+            return 130
 
     return exit_code
 
