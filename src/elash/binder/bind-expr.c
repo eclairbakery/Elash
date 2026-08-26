@@ -289,10 +289,20 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
     if (type != NULL) type = el_hir_type_unwrap_distinct(type);
 
     if (type == NULL || type->kind != EL_HIR_TYPE_STRUCT) {
-        return el_diag_report(
+        el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.not-struct",
             member->expr->span, "member access requires a struct value"
         );
+        if (type != NULL && type->kind == EL_HIR_TYPE_REF) {
+            const ElHirType* base = el_hir_type_unwrap_distinct(type->as.ref.base);
+            if (base != NULL && base->kind == EL_HIR_TYPE_STRUCT) {
+                el_diag_help(
+                    binder->diag, "got reference type '${type}', did you mean to dereference it?",
+                    EL_DIAG_TYPE("type", type),
+                );
+            }
+        }
+        return NULL;
     }
 
     const ElHirStructType* stype = &type->as.struct_;
@@ -323,10 +333,20 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
     if (type != NULL) type = el_hir_type_unwrap_distinct(type);
 
     if (type == NULL || type->kind != EL_HIR_TYPE_TUPLE) {
-        return el_diag_report(
+        el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.not-tuple",
             tmember->expr->span, "tuple element access requires a tuple value",
         );
+        if (type != NULL && type->kind == EL_HIR_TYPE_REF) {
+            const ElHirType* base = el_hir_type_unwrap_distinct(type->as.ref.base);
+            if (base != NULL && base->kind == EL_HIR_TYPE_TUPLE) {
+                el_diag_help(
+                    binder->diag, "got reference type '${type}', did you mean to dereference it?",
+                    EL_DIAG_TYPE("type", type),
+                );
+            }
+        }
+        return NULL;
     }
 
     ElHirTupleType* ttype = &type->as.tuple;
