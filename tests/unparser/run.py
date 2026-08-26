@@ -76,10 +76,10 @@ def main():
 
     tested_count = passed_count + failed_count + crashed_count
     print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')
-    print(f'Tested: {CLR_BLUE}{tested_count}{CLR_RESET}{CLR_BOLD} ', end='')
-    print(f'| Passing: {CLR_GREEN}{passed_count}{CLR_RESET}{CLR_BOLD} ', end='')
-    print(f'| Failing: {CLR_RED}{failed_count}{CLR_RESET}{CLR_BOLD} ', end='')
-    print(f'| Crashed: {CLR_ORANGE}{crashed_count}{CLR_RESET}{CLR_ORANGE}', end='')
+    print(f'Tested: {stat(tested_count, CLR_BLUE)}{CLR_BOLD} ', end='')
+    print(f'| Passing: {stat(passed_count, CLR_GREEN)}{CLR_BOLD} ', end='')
+    print(f'| Failing: {stat(failed_count, CLR_RED)}{CLR_BOLD} ', end='')
+    print(f'| Crashed: {stat(crashed_count, CLR_ORANGE)}', end='')
     print(CLR_RESET)
 
     return 1 if (failed_count + crashed_count) > 0 else 0

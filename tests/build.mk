@@ -14,7 +14,7 @@ E2E_TEST_RUNNER := $(TESTS_DIR)/e2e/runner.py
 
 FUZZ_SRC    := $(TESTS_DIR)/fuzz/fuzzer.c
 FUZZ_BINARY := $(TESTS_OUT_DIR)/fuzz/fuzzer$(EXE_EXT)
-FUZZ_RUNNER := $(TESTS_DIR)/fuzz/fuzz.py
+FUZZ_RUNNER := -m tests.fuzz.fuzz
 
 UNPARSER_RUNNER_SRC := $(TESTS_DIR)/unparser/unparse.c
 UNPARSER_RUNNER_BIN := $(TESTS_OUT_DIR)/unparser/unparse$(EXE_EXT)
@@ -24,18 +24,22 @@ ifdef TEST_PARALLELISM
 	TEST_PARALLEL_FLAG := -j$(TEST_PARALLELISM)
 endif
 
-.PHONY: test-dirs unit-test test test-verbose clean-tests clean-test
+.PHONY: test-dirs unit-test clean-tests clean-test
+.PHONY: test test-verbose test-all test-all-verbose
 
 test-dirs:
 	@$(call CMD_MKDIR_P,$(TESTS_OUT_DIR))
-
 unit-test: test-elash test-elc
 	@echo "All tests passed."
 
 test: test-elash test-elc test-e2e test-unparser
 	@echo "All tests passed."
-
 test-verbose: test-elash test-elc test-e2e-verbose test-unparser-verbose
+	@echo "All tests passed."
+
+test-all: test-elash test-elc test-e2e test-unparser test-fuzz
+	@echo "All tests passed."
+test-all-verbose: test-elash test-elc test-e2e-verbose test-unparser-verbose test-fuzz
 	@echo "All tests passed."
 
 clean-test: clean-tests
@@ -85,11 +89,12 @@ $(FUZZ_BINARY): $(FUZZ_SRC) $(LIBELASH_STATIC) $(LIBELC_STATIC) | test-dirs
 	$(Q)$(CC) $(TESTS_CFLAGS) $< $(LIBELASH_STATIC) $(LIBELC_STATIC) $(LDFLAGS) -o $@
 
 .PHONY: test-fuzz-% test-fuzz
-test-fuzz-%: $(FUZZ_BINARY)
+test-fuzz-%: $(FUZZ_BINARY) $(ELC_BIN)
 	@echo "Running fuzz with count $*"
 	@$(PY) $(FUZZ_RUNNER) $(FUZZ_BINARY) $(ELC_BIN) $*
 
-test-fuzz: $(FUZZ_BINARY)
+test-fuzz: $(FUZZ_BINARY) $(ELC_BIN)
+	@echo "Running fuzzer"
 	@$(PY) $(FUZZ_RUNNER) $(FUZZ_BINARY) $(ELC_BIN) $(or $(FUZZ_COUNT),200)
 
 ############ unparser tests ############

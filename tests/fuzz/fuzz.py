@@ -8,15 +8,14 @@ import os
 import signal
 import random
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import (
+    ThreadPoolExecutor, as_completed, CancelledError
+)
+
 from threading import Lock, Event
 from pathlib import Path
 
-CLR_BLUE   = '\033[0;34m'
-CLR_RED    = '\033[0;31m'
-CLR_RESET  = '\033[0m'
-
-print_lock = Lock()
+from tests.e2e.runner.console import *
 
 def report_failure(stage: str, returncode: int, i: int, seed: int):
     if returncode == 0:
@@ -30,12 +29,10 @@ def report_failure(stage: str, returncode: int, i: int, seed: int):
     else:
         msg = f"status {returncode}"
 
-    with print_lock:
-        print(f'[{CLR_RED}FAIL{CLR_RESET}] {stage} failed with {msg} on iteration #{i + 1}, with seed = {seed}', file=sys.stderr)
+    print(f'[{CLR_RED}FAIL{CLR_RESET}] {stage} failed with {msg} on iteration #{i + 1}, with seed = {seed}', file=sys.stderr)
 
 def print_fuzz(i: int, seed: int):
-    with print_lock:
-        print(f'[{CLR_BLUE}FUZZ{CLR_RESET}] iteration {i + 1}, seed {seed}')
+    print(f'[{CLR_BLUE}FUZZ{CLR_RESET}] iteration {i + 1}, seed {seed}')
 
 def run_fuzzer(fuzzer: Path, out_path: str, seed: int) -> int:
     with open(out_path, 'wb') as fout:
@@ -78,15 +75,13 @@ def do_fuzzing_stuff(args: CliArgs, i: int, shutdown: Event) -> int:
         if shutdown.is_set(): return 0
         code = run_elc(args.elc, tmp, 'ast')
         if code != 0:
-            if not shutdown.is_set():
-                report_failure("parser check", code, i, seed)
+            report_failure("parser check", code, i, seed)
             return code
 
         if shutdown.is_set(): return 0
         code = run_elc(args.elc, tmp, 'lir')
         if code < 0:
-            if not shutdown.is_set():
-                report_failure("elc", code, i, seed)
+            report_failure("elc", code, i, seed)
             return code
     except KeyboardInterrupt:
         # just in case
@@ -107,25 +102,48 @@ def main() -> int:
 
     shutdown = Event()
 
-    with ThreadPoolExecutor(max_workers=args.jobs) as executor:
-        futures = {
-            executor.submit(do_fuzzing_stuff, args, i, shutdown): i
-            for i in range(args.count)
-        }
+    executor = ThreadPoolExecutor(max_workers=args.jobs)
+    futures = [
+        executor.submit(do_fuzzing_stuff, args, i, shutdown)
+        for i in range(args.count)
+    ]
 
-        exit_code = 0
-        try:
-            for future in as_completed(futures):
+    exit_code = 0
+    try:
+        for future in as_completed(futures):
+            try:
                 res = future.result()
                 if res != 0:
-                    exit_code = res
+                    if exit_code == 0:
+                        exit_code = res
                     shutdown.set()
-                    executor.shutdown(wait=False, cancel_futures=True)
                     break
-        except KeyboardInterrupt:
-            shutdown.set()
-            executor.shutdown(wait=False, cancel_futures=True)
-            return 130
+            except Exception:
+                pass
+    except KeyboardInterrupt:
+        shutdown.set()
+        executor.shutdown(wait=False, cancel_futures=True)
+        return 130
+
+    executor.shutdown(wait=True, cancel_futures=True)
+
+    succeeded = failed = 0
+    for f in futures:
+        if f.done() and not f.cancelled():
+            try:
+                res = f.result()
+                if res != 0:
+                    failed += 1
+                else:
+                    succeeded += 1
+            except Exception:
+                failed += 1
+
+    print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')
+    print(f'Iterations: {stat(succeeded + failed, CLR_BLUE)}{CLR_BOLD} ', end='')
+    print(f'| Passing: {stat(succeeded, CLR_GREEN)}{CLR_BOLD} ', end='')
+    print(f'| Failing: {stat(failed, CLR_RED)}{CLR_BOLD} ', end='')
+    print(CLR_RESET)
 
     return exit_code
 

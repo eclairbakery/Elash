@@ -272,9 +272,9 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
     tested_count = passed_count + failed_count + skipped_count
     print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')
     print(f'Tested: {CLR_BLUE}{tested_count}{CLR_RESET}{CLR_BOLD} ', end='')
-    print(f'| Passing: {CLR_GREEN}{passed_count}{CLR_RESET}{CLR_BOLD} ', end='')
-    print(f'| Failing: {CLR_RED}{failed_count}{CLR_RESET}{CLR_BOLD} ', end='')
-    print(f'| Skipped: {CLR_BLUE}{skipped_count}{CLR_RESET}{CLR_BOLD}', end='')
+    print(f'| Passing: {stat(passed_count, CLR_GREEN)}{CLR_BOLD} ', end='')
+    print(f'| Failing: {stat(failed_count, CLR_RED)}{CLR_BOLD} ', end='')
+    print(f'| Skipped: {stat(skipped_count, CLR_BLUE)}{CLR_BOLD}', end='')
     print(CLR_RESET)
 
     return failed_count == 0

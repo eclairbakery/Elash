@@ -50,3 +50,6 @@ def print_diff(expected: str, actual: str, stream_name: Optional[str] = None):
             if line.startswith("---") or line.startswith("+++"):
                 continue
         print_info(f'  {line.rstrip()}')
+
+def stat(value: int, color: str) -> str:
+    return f'{color}{value}{CLR_RESET}' if value > 0 else f'{value}'
