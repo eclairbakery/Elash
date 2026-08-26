@@ -141,6 +141,8 @@ def run_test_case(elc_bin: Path, work_dir: Path, case: TestCase, timeouts: Timeo
         if use_jsonl:
             cmd.append('--jsonl')
         result = _run_stage(cmd, stage='compilation', timeout=timeouts.compile, cwd=script_dir)
+        if isinstance(result, FinishedResult):
+            result.jsonl = use_jsonl
         if isinstance(result, TimedOutResult) or result.exitcode != 0:
             return result
         if has_diags_file:

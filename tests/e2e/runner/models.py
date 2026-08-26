@@ -48,6 +48,7 @@ class FinishedResult:
     stderr:      str
     stage:       TestStage
     compilation_result: Optional['FinishedResult'] = None
+    jsonl: bool = False
 
 @dataclass
 class TimedOutResult:

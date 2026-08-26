@@ -104,7 +104,7 @@ def report_compilation_failure(actual: FinishedResult):
     print_info(f'  Error during {CLR_BOLD}{actual.stage}{CLR_RESET} stage (exitcode {actual.exitcode})')
 
     # printing raw json to the console is not a great idea, so let's format diagnotics manually
-    if actual.stage == 'compilation' and (diagnostics := _parse_jsonl_diagnostics(actual)):
+    if actual.stage == 'compilation' and actual.jsonl and (diagnostics := _parse_jsonl_diagnostics(actual)):
         for diag in diagnostics:
             actual_lines = [r['start']['line'] + 1 for r in diag['span']['ranges']]
             lines_str = ','.join(map(str, actual_lines))  + ':'
@@ -141,6 +141,7 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
     elif isinstance(expected, PositiveTestExpectation):
         if actual.stage != 'runtime':
             report_compilation_failure(actual)
+            return
 
         if actual.exitcode != expected.exitcode:
             print_info(f'  exitcode: expected {expected.exitcode}, actual {actual.exitcode}')
