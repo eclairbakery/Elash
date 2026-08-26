@@ -8,7 +8,8 @@
 
 static ElHirType* bind_array_type(ElBinder* binder, ElAstArrayType* array) {
     ElHirType* base = _el_binder_bind_type(binder, array->base);
-    if (base == NULL) return NULL;
+    if (!_el_binder_ensure_complete(binder, array->base->span, base))
+        return NULL;
 
     ElHirExpr* size_hir = el_binder_bind_expr(binder, array->size);
     if (size_hir == NULL) return NULL;
@@ -46,9 +47,11 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
         switch (field->type) {
         case EL_AST_DECL_VAR_DEF: {
             ElHirType* type = _el_binder_bind_type(binder, field->as.var_def.type);
+            _el_binder_ensure_complete(binder, field->span, type);
+
             fields[i] = (ElHirStructField) {
                 .name = field->as.var_def.name->name,
-                .type = type ? type : binder->builtins->type_void,
+                .type = type,
             };
             break;
         }
@@ -108,7 +111,7 @@ static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {
     usize i = 0;
     for (ElAstType* type = tuple->head; type != NULL; ++i, type = type->next) {
         elements[i] = _el_binder_bind_type(binder, type);
-        if (elements[i] == NULL) {
+        if (!_el_binder_ensure_complete(binder, type->span, elements[i])) {
             // again, for better error reporting
             elements[i] = binder->builtins->type_void;
         }

@@ -33,7 +33,9 @@ static bool bind_param_types(
 
     for (ElAstFuncParam* param = params->head; param != NULL; param = param->next) {
         param_types[i] = _el_binder_bind_type(binder, param->type);
-        if (param_types[i] == NULL) has_error = true;
+        if (!_el_binder_ensure_complete(binder, param->span, param_types[i]))
+            has_error = true;
+
         i++;
     }
 
@@ -79,6 +81,10 @@ static bool _el_binder_create_param_symbols(
 static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
     ElHirType* ret_type = _el_binder_bind_type(binder, sig->ret_type);
     if (ret_type == NULL) return NULL;
+
+    if (!el_hir_type_eql(ret_type, binder->builtins->type_void))
+        if (!_el_binder_ensure_complete(binder, sig->ret_type->span, ret_type))
+            return NULL;
 
     ElHirType** param_types = NULL;
     usize param_count = 0;
@@ -127,15 +133,8 @@ static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
 
 static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var) {
     ElHirType* type = _el_binder_bind_type(binder, var->type);
-    if (type == NULL) return NULL;
-
-    if (type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_PRIMTYPE_VOID) {
-        return el_diag_report(
-            binder->diag, EL_DIAG_ERROR, "sema.incomplete-type",
-            var->type->span,
-            "cannot declare variable of incomplete type 'void'"
-        );
-    }
+    if (!_el_binder_ensure_complete(binder, var->type->span, type))
+        return NULL;
 
     ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, var->name->name, type);
     if (!el_hir_scope_insert(binder->current_scope, sym)) {
@@ -157,15 +156,8 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
 
 static ElHirDecl* bind_var_decl(ElBinder* binder, ElAstDecl* in, ElAstVarDecl* var) {
     ElHirType* type = _el_binder_bind_type(binder, var->type);
-    if (!type) return NULL;
-
-    if (type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_PRIMTYPE_VOID) {
-        return el_diag_report(
-            binder->diag, EL_DIAG_ERROR, "sema.incomplete-type",
-            var->type->span,
-            "cannot declare variable of incomplete type 'void'"
-        );
-    }
+    if (!_el_binder_ensure_complete(binder, var->type->span, type))
+        return NULL;
 
     ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, var->name->name, type);
     if (!el_hir_scope_insert(binder->current_scope, sym)) {
@@ -255,24 +247,37 @@ static ElHirDecl* bind_alias(ElBinder* binder, ElAstDecl* in, ElAstAlias* alias)
 }
 
 static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* typedef_) {
-    ElHirType* target = _el_binder_bind_type(binder, typedef_->target);
-    if (target == NULL) return NULL;
+    ElHirSymbol* existing = el_hir_scope_lookup_local(binder->current_scope, typedef_->name);
 
-    // TODO: This is boilerplate and will break once we introduce actual
-    //       forward declarations, so we probably need to introduce some
-    //       helper functions like is_incomplete() and ensure_is_complete()
-    if (el_hir_type_eql(target, binder->builtins->type_void)) {
-        return el_diag_report(
-            binder->diag, EL_DIAG_ERROR, "sema.incomplete-type",
-            in->span, "incomplete type 'void' cannot be used in a typedef"
-        );
+    if (existing) {
+        if (existing->kind != EL_SYM_TYPE || !el_hir_type_is_incomplete(existing->as.type.type)) {
+            return REPORT_REDEFINITION(binder, in->span, typedef_->name);
+        }
+
+        if (typedef_->target == NULL) {
+            return el_hir_decl_none(binder->arena, in->span);
+        }
+
+        ElHirType* target = _el_binder_bind_type(binder, typedef_->target);
+        if (target == NULL) return NULL;
+
+        ElHirType* incomplete = el_hir_type_unwrap_distinct(existing->as.type.type);
+        incomplete->as.distinct.orig = target;
+        return el_hir_decl_none(binder->arena, in->span);
     }
 
-    ElHirType* distinct = el_hir_new_distinct_type(binder->arena, target, typedef_->name);
+    ElHirType* distinct = el_hir_new_distinct_type(binder->arena, NULL, typedef_->name);
     ElHirSymbol* the_symbol = el_hir_new_type_symbol(binder->arena, binder->sym_id_counter++, typedef_->name, distinct);
 
     if (!el_hir_scope_insert(binder->current_scope, the_symbol))
         return REPORT_REDEFINITION(binder, in->span, typedef_->name);
+
+    if (typedef_->target != NULL) {
+        ElHirType* target = _el_binder_bind_type(binder, typedef_->target);
+        if (target == NULL) return NULL;
+
+        distinct->as.distinct.orig = target;
+    }
 
     return el_hir_decl_none(binder->arena, in->span);
 }
@@ -287,10 +292,10 @@ ElHirDecl* el_binder_bind_decl(ElBinder* binder, ElAstDecl* in) {
         return bind_func_def(binder, in, &in->as.func_def);
     case EL_AST_DECL_FUNC_DECL:
         return bind_func_decl(binder, in, &in->as.func_decl);
-    case EL_AST_DECL_ALIAS:
-        return bind_alias(binder, in, &in->as.alias);
     case EL_AST_DECL_TYPEDEF:
         return bind_typedef(binder, in, &in->as.typedef_);
+    case EL_AST_DECL_ALIAS:
+        return bind_alias(binder, in, &in->as.alias);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstDeclType, in->type);
 }

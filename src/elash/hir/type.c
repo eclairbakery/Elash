@@ -231,7 +231,17 @@ uhash el_hir_type_hash(const ElHirType* type) {
 
 ElHirType* el_hir_type_unwrap_distinct(ElHirType* type) {
     while (type->kind == EL_HIR_TYPE_DISTINCT) {
+        if (type->as.distinct.orig == NULL) {
+            break;
+        }
         type = type->as.distinct.orig;
     }
     return type;
+}
+
+bool el_hir_type_is_incomplete(const ElHirType* type) {
+    type = el_hir_type_unwrap_distinct((ElHirType*)type);
+    return type->kind == EL_HIR_TYPE_DISTINCT
+        || type->kind == EL_HIR_TYPE_FUNC
+        || (type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_PRIMTYPE_VOID);
 }
