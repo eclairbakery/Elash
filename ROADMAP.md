@@ -31,6 +31,7 @@
 
 - [x] Make string literals untyped
 - [x] Support passing types as function arguments (for builtins)
+- [ ] Support escape sequences in string and char literals
 
 ### Builtins
 - [x] Support passing array types directly in len() function
