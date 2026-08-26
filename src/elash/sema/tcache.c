@@ -4,12 +4,13 @@
 #include <elash/mir/type.h>
 
 #include <elash/util/assert.h>
+#include <elash/util/hash.h>
 
-static uint64_t htype_hash(const void* key) { return el_hir_type_hash(key); }
+static uhash htype_hash(const void* key) { return el_hir_type_hash(key); }
 static bool htype_eql(const void* key1, const void* key2) { return el_hir_type_eql(key1, key2); }
 
-static uint64_t mtype_hash(const void* key) { return el_mir_type_hash(key); }
-static bool mtype_eql(const void* key1, const void* key2) { return el_mir_type_eql(key1, key2); }
+static uhash mtype_hash(const void* key) { return el_hash_ptr(key); }
+static bool mtype_eql(const void* key1, const void* key2) { return key1 == key2; }
 
 void el_tcache_init(ElTypeCache* cache, ElDynArena* arena, ElBSQuery* query) {
     el_ghm_init(&cache->hir_to_mir, htype_hash, htype_eql);
@@ -26,16 +27,30 @@ void el_tcache_free(ElTypeCache* cache) {
     el_ghm_free(&cache->mir_to_bst);
 }
 
-// TODO: handle recursive types (currenly will cause infinite recursion,
-//       but the binder doesn't support recursive types anyway),
-//       update this function once recursive types are added to the binder!!!
 ElMirType* el_tcache_get_mir(ElTypeCache* cache, const ElHirType* htype) {
     EL_ASSERT(htype != NULL, "should not be null");
 
     ElMirType* cached = el_ghm_lookup(&cache->hir_to_mir, htype);
     if (cached != NULL) return cached;
 
+    bool is_aggregate = (htype->kind == EL_HIR_TYPE_STRUCT ||
+                         htype->kind == EL_HIR_TYPE_TUPLE);
+
+    ElMirType* placeholder = NULL;
+    if (is_aggregate) {
+        placeholder = EL_DYNARENA_NEW_STRUCT(cache->arena, ElMirType, {
+            .kind = EL_MIR_TYPE_TUPLE,
+        });
+        el_ghm_insert(&cache->hir_to_mir, htype, placeholder);
+    }
+
     ElMirType* mapped = el_lowerer_map_type_raw(cache, htype);
+    if (is_aggregate) {
+        ElMirType* not_placeholder_anymore = placeholder;
+        *not_placeholder_anymore = *mapped;
+        return not_placeholder_anymore;
+    }
+
     el_ghm_insert(&cache->hir_to_mir, htype, mapped);
     return mapped;
 }

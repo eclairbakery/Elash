@@ -253,6 +253,8 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
     ElHirType* type = _el_binder_bind_type(binder, cast->type);
 
     if (expr == NULL || type == NULL) return NULL;
+    if (!_el_binder_ensure_complete(binder, cast->type->span, type))
+        return NULL;
 
     expr = _el_binder_apply_default_type(binder, expr);
 

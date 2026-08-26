@@ -14,8 +14,7 @@ static ElBSType* process(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call, E
         ? toe->as.type
         : toe->as.expr->type;
 
-    // TODO: add some helper like el_hir_type_is_incomplete()
-    if (el_hir_type_eql(ttype, binder->builtins->type_void)) {
+    if (el_hir_type_is_incomplete(ttype)) {
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.incomplete-type",
             arg->span, "an incomplete type passed to builtin '${bname}' function",

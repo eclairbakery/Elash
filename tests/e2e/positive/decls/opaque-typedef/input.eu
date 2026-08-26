@@ -1,0 +1,24 @@
+// It's 2026. Don't use void anymore.
+// Use our revolutionary VoidButBetter, that
+// is 100x better than old legacy void type.
+typedef VoidButBetter;
+
+int main() {
+    int value = 47;
+
+    int& ref = &value;
+    VoidButBetter& opaque =
+        ref bitcast VoidButBetter&;
+
+    if (opaque bitcast usize != ref bitcast usize)
+        return 1;
+
+    int& recovered = opaque bitcast int&;
+    if (recovered != ref)
+        return 2;
+
+    return 0;
+}
+
+// VoidButBetter is never defined so it stays incomplete here
+

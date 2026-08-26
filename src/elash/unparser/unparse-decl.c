@@ -44,10 +44,12 @@ static bool unparse_alias(ElUnparser* unpar, ElAstDecl* decl) {
 }
 
 static bool unparse_typedef(ElUnparser* unpar, ElAstDecl* decl) {
-    if (!el_unparser_push_kw(unpar, EL_TT_KW_TYPEDEF))              return false;
-    if (!el_unparser_push_ident(unpar, decl->as.typedef_.name))     return false;
-    if (!el_unparser_push_kw(unpar, EL_TT_KW_AS))                   return false;
-    if (!el_unparser_unparse_type(unpar, decl->as.typedef_.target)) return false;
+    if (!el_unparser_push_kw(unpar, EL_TT_KW_TYPEDEF))          return false;
+    if (!el_unparser_push_ident(unpar, decl->as.typedef_.name)) return false;
+    if (decl->as.typedef_.target != NULL) {
+        if (!el_unparser_push_kw(unpar, EL_TT_KW_AS))                   return false;
+        if (!el_unparser_unparse_type(unpar, decl->as.typedef_.target)) return false;
+    }
     return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 }
 

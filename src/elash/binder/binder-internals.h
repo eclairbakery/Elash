@@ -23,6 +23,8 @@ bool _el_binder_is_const(ElBinder* binder, ElHirExpr* expr);
 bool _el_binder_stmt_always_returns(ElBinder* binder, ElHirStmt* stmt);
 bool _el_binder_block_always_returns(ElBinder* binder, ElHirBlockStmt block);
 
+bool _el_binder_ensure_complete(ElBinder* binder, ElSourceSpan span, ElHirType* type);
+
 usize _el_binder_sizeof(ElBinder* binder, ElHirType* type);
 usize _el_binder_alignof(ElBinder* binder, ElHirType* type);
 

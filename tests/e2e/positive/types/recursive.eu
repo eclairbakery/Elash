@@ -1,0 +1,64 @@
+typedef Node as struct {
+    uint value;
+    Node[] children;
+};
+
+uint sumTree(Node node) {
+    uint total = node.value;
+    usize i = 0;
+    while (i < len(node.children)) {
+        total = total + sumTree(node.children[i]);
+        i++;
+    }
+    return total;
+}
+
+uint treeDepth(Node node) {
+    uint maxChildDepth = 0;
+    usize i = 0;
+    while (i < len(node.children)) {
+        uint d = treeDepth(node.children[i]);
+        if (d > maxChildDepth) {
+            maxChildDepth = d;
+        }
+        i++;
+    }
+    return maxChildDepth + 1;
+}
+
+int main() {
+    Node root = { 10,
+        Node[2] {
+            { 20,
+                Node[2] {
+                    { 40, Node[0] {} },
+                    { 50, Node[0] {} },
+                },
+            },
+            { 30,
+                Node[0] {},
+            },
+        },
+    };
+
+    if (sumTree(root) != 150)
+        return 1;
+
+    if (treeDepth(root) != 3)
+        return 2;
+
+
+    root.children[0].children[1].value = 100;
+    if (sumTree(root) != 200)
+        return 3;
+
+
+    Node standalone = { 99, Node[0] {} };
+    if (sumTree(standalone) != 99)
+        return 4;
+
+    if (treeDepth(standalone) != 1)
+        return 5;
+
+    return 0;
+}

@@ -184,11 +184,11 @@ static ElAstDecl* parse_typedef_decl(ElParser* parser, ElToken typedef_tok) {
     ElToken name_tok = el_parser_expect(parser, EL_TT_IDENT);
     if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
-    el_parser_expect(parser, EL_TT_KW_AS);
-    if (el_parser_has_errs(parser)) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
-
-    ElAstType* target = _el_parser_parse_type(parser);
-    if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+    ElAstType* target = NULL;
+    if (el_parser_match(parser, EL_TT_KW_AS)) {
+        target = _el_parser_parse_type(parser);
+        if (target == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
+    }
 
     ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
 

@@ -1,0 +1,19 @@
+typedef Foo;
+
+void foo(Foo& foo);
+Foo& bar();
+
+int main() {
+    foo(bar());
+    return 0;
+}
+
+typedef Foo as struct(int, int);
+Foo& bar() {
+    return &static Foo { 31, 88 };
+}
+
+void exit(int status);
+void foo(Foo& foo) {
+    exit(foo^.0);
+}

@@ -86,6 +86,8 @@ ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type) {
     case EL_HIR_TYPE_SLICE:
         return make_slice_type(tcache->arena, tcache, &type->as.slice);
     case EL_HIR_TYPE_DISTINCT:
+        if (type->as.distinct.orig == NULL)
+            return el_mir_new_void_type(tcache->arena);
         return el_tcache_get_mir(tcache, type->as.distinct.orig);
     }
     EL_UNREACHABLE("unknown hir type kind");

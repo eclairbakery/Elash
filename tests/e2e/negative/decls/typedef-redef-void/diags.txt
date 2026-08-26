@@ -1,0 +1,2 @@
+1:error[sema.redefinition]
+2:error[sema.incomplete-type]

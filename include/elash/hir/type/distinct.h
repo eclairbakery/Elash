@@ -6,7 +6,7 @@
 typedef struct ElHirType ElHirType;
 
 typedef struct ElHirDistinctType {
-    ElHirType* orig;
+    ElHirType*   orig; // null if it's forward declared typedef
     ElStringView name;
 } ElHirDistinctType;
 

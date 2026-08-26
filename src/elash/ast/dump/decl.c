@@ -34,8 +34,10 @@ void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
         el_ast_dump_print_indent(indent + 1, out);
         fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(node->as.typedef_.name));
         el_ast_dump_print_indent(indent + 1, out);
-        fprintf(out, "target:\n");
-        el_ast_dump_type(node->as.typedef_.target, indent + 2, out);
+        if (node->as.typedef_.target != NULL) {
+            fprintf(out, "target:\n");
+            el_ast_dump_type(node->as.typedef_.target, indent + 2, out);
+        }
         break;
 
     case EL_AST_DECL_VAR_DEF:

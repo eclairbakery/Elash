@@ -50,3 +50,4 @@ bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs);
 uhash el_hir_type_hash(const ElHirType* type);
 
 ElHirType* el_hir_type_unwrap_distinct(ElHirType* type);
+bool el_hir_type_is_incomplete(const ElHirType* type);
