@@ -3,7 +3,7 @@
 static ElHirToE* resolve_toe_by_kind(ElBinder* binder, ElAstUnr* in, bool is_type) {
     if (is_type) {
         ElAstType* ast_type = el_ast_unr_as_type(binder->arena, in);
-        ElHirType* hir_type = _el_binder_bind_type(binder, ast_type);
+        ElHirType* hir_type = el_binder_bind_type(binder, ast_type);
         if (hir_type == NULL) return NULL;
         return el_hir_new_toe_type(binder->arena, hir_type);
     } else {

@@ -2,6 +2,9 @@
 
 #include <elash/util/assert.h>
 
+#include <elash/sema/backends.h>
+#include <elash/sema/tcache.h>
+
 static void register_builtin_type(ElBinder* binder, ElStringView name, ElHirType* type) {
     ElHirSymbol* sym = el_hir_new_type_symbol(binder->arena, binder->sym_id_counter++, name, type);
     (void) el_hir_scope_insert(binder->builtin_scope, sym);

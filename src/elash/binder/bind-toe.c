@@ -11,7 +11,7 @@ ElHirToE* el_binder_bind_toe(ElBinder* binder, ElAstToE* in) {
 
     switch (in->kind) {
     case EL_AST_TOE_TYPE: {
-        ElHirType* type = _el_binder_bind_type(binder, in->as.type);
+        ElHirType* type = el_binder_bind_type(binder, in->as.type);
         if (type == NULL) return NULL;
         return el_hir_new_toe_type(binder->arena, type);
     }

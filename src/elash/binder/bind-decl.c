@@ -32,7 +32,7 @@ static bool bind_param_types(
     usize i = 0;
 
     for (ElAstFuncParam* param = params->head; param != NULL; param = param->next) {
-        param_types[i] = _el_binder_bind_type(binder, param->type);
+        param_types[i] = el_binder_bind_type(binder, param->type);
         if (!_el_binder_ensure_complete(binder, param->span, param_types[i]))
             has_error = true;
 
@@ -79,7 +79,7 @@ static bool _el_binder_create_param_symbols(
 }
 
 static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
-    ElHirType* ret_type = _el_binder_bind_type(binder, sig->ret_type);
+    ElHirType* ret_type = el_binder_bind_type(binder, sig->ret_type);
     if (ret_type == NULL) return NULL;
 
     if (!el_hir_type_eql(ret_type, binder->builtins->type_void))
@@ -132,7 +132,7 @@ static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
 }
 
 static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var) {
-    ElHirType* type = _el_binder_bind_type(binder, var->type);
+    ElHirType* type = el_binder_bind_type(binder, var->type);
     if (!_el_binder_ensure_complete(binder, var->type->span, type))
         return NULL;
 
@@ -155,7 +155,7 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
 }
 
 static ElHirDecl* bind_var_decl(ElBinder* binder, ElAstDecl* in, ElAstVarDecl* var) {
-    ElHirType* type = _el_binder_bind_type(binder, var->type);
+    ElHirType* type = el_binder_bind_type(binder, var->type);
     if (!_el_binder_ensure_complete(binder, var->type->span, type))
         return NULL;
 
@@ -263,7 +263,7 @@ static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* ty
             return el_hir_decl_none(binder->arena, in->span);
         }
 
-        ElHirType* target = _el_binder_bind_type(binder, typedef_->target);
+        ElHirType* target = el_binder_bind_type(binder, typedef_->target);
         if (target == NULL) return NULL;
 
         ElHirType* incomplete = el_hir_type_unwrap_distinct(existing->as.type.type);
@@ -278,7 +278,7 @@ static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* ty
         return REPORT_REDEFINITION(binder, in->span, typedef_->name);
 
     if (typedef_->target != NULL) {
-        ElHirType* target = _el_binder_bind_type(binder, typedef_->target);
+        ElHirType* target = el_binder_bind_type(binder, typedef_->target);
         if (target == NULL) return NULL;
 
         distinct->as.distinct.orig = target;

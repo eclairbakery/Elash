@@ -7,7 +7,7 @@
 #include <elash/hir/type.h>
 
 static ElHirType* bind_array_type(ElBinder* binder, ElAstArrayType* array) {
-    ElHirType* base = _el_binder_bind_type(binder, array->base);
+    ElHirType* base = el_binder_bind_type(binder, array->base);
     if (!_el_binder_ensure_complete(binder, array->base->span, base))
         return NULL;
 
@@ -46,7 +46,7 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
     for (ElAstDecl* field = struct_->fields; field != NULL; ++i, field = field->next) {
         switch (field->type) {
         case EL_AST_DECL_VAR_DEF: {
-            ElHirType* type = _el_binder_bind_type(binder, field->as.var_def.type);
+            ElHirType* type = el_binder_bind_type(binder, field->as.var_def.type);
             if (!_el_binder_ensure_complete(binder, field->span, type))
                 type = binder->builtins->type_void;
 
@@ -63,7 +63,7 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
             );
 
             // just for better error reporting
-            ElHirType* type = _el_binder_bind_type(binder, field->as.var_decl.type);
+            ElHirType* type = el_binder_bind_type(binder, field->as.var_decl.type);
             fields[i] = (ElHirStructField) {
                 .name = field->as.var_decl.name->name,
                 .type = type ? type : binder->builtins->type_void,
@@ -111,7 +111,7 @@ static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {
 
     usize i = 0;
     for (ElAstType* type = tuple->head; type != NULL; ++i, type = type->next) {
-        elements[i] = _el_binder_bind_type(binder, type);
+        elements[i] = el_binder_bind_type(binder, type);
         if (!_el_binder_ensure_complete(binder, type->span, elements[i])) {
             // again, for better error reporting
             elements[i] = binder->builtins->type_void;
@@ -121,26 +121,26 @@ static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {
     return el_hir_new_tuple_type(binder->arena, elements, tuple->count);
 }
 
-ElHirType* _el_binder_bind_type(ElBinder* binder, ElAstType* type) {
-    switch (type->kind) {
+ElHirType* el_binder_bind_type(ElBinder* binder, ElAstType* in) {
+    switch (in->kind) {
     case EL_AST_TYPE_REF: {
-        ElHirType* base = _el_binder_bind_type(binder ,type->as.ref.base);
+        ElHirType* base = el_binder_bind_type(binder ,in->as.ref.base);
         if (base == NULL) return NULL;
         return el_hir_new_ref_type(binder->arena, base);
     }
     case EL_AST_TYPE_SLICE: {
-        ElHirType* base = _el_binder_bind_type(binder, type->as.slice.base);
+        ElHirType* base = el_binder_bind_type(binder, in->as.slice.base);
         if (base == NULL) return NULL;
-        return (type->as.slice.is_raw ? el_hir_new_raw_slice_type : el_hir_new_slice_type)(binder->arena, base);
+        return (in->as.slice.is_raw ? el_hir_new_raw_slice_type : el_hir_new_slice_type)(binder->arena, base);
     }
     case EL_AST_TYPE_NAME: {
-        ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, type->as.name->name);
+        ElHirSymbol* sym = el_hir_scope_lookup(binder->current_scope, in->as.name->name);
         if (sym == NULL) return NULL;
 
         if (sym->kind != EL_SYM_TYPE)
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.unexpected-symbol-kind",
-                type->span, "${type} ${name} used as a type",
+                in->span, "${type} ${name} used as a type",
                 EL_DIAG_STRING("type", sym->kind == EL_SYM_VAR ? EL_SV("variable") : EL_SV("function")),
                 EL_DIAG_STRING("name", sym->name),
             );
@@ -148,12 +148,12 @@ ElHirType* _el_binder_bind_type(ElBinder* binder, ElAstType* type) {
         return sym->as.type.type;
     }
     case EL_AST_TYPE_STRUCT:
-        return bind_struct_type(binder, &type->as.struct_);
+        return bind_struct_type(binder, &in->as.struct_);
     case EL_AST_TYPE_TUPLE:
-        return bind_tuple_type(binder, &type->as.tuple);
+        return bind_tuple_type(binder, &in->as.tuple);
     case EL_AST_TYPE_ARRAY:
-        return bind_array_type(binder, &type->as.array);
+        return bind_array_type(binder, &in->as.array);
     }
 
-    EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, type->kind);
+    EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, in->kind);
 }

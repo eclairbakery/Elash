@@ -9,7 +9,7 @@ ElHirToE* el_binder_bind_toi(ElBinder* binder, ElAstToI* in, ElHirType* expected
     ElHirToE* toe = NULL;
     switch (in->kind) {
     case EL_AST_TOI_TYPE: {
-        ElHirType* type = _el_binder_bind_type(binder, in->as.type);
+        ElHirType* type = el_binder_bind_type(binder, in->as.type);
         if (type == NULL) return NULL;
         return el_hir_new_toe_type(binder->arena, type);
     }

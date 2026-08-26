@@ -250,7 +250,7 @@ ElHirExpr* _el_binder_bind_call(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* 
 
 ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* cast) {
     ElHirExpr* expr = el_binder_bind_expr(binder, cast->expr);
-    ElHirType* type = _el_binder_bind_type(binder, cast->type);
+    ElHirType* type = el_binder_bind_type(binder, cast->type);
 
     if (expr == NULL || type == NULL) return NULL;
     if (!_el_binder_ensure_complete(binder, cast->type->span, type))
@@ -275,9 +275,9 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
     }
 }
 
-ElHirExpr* _el_binder_bind_typedinit(ElBinder* binder, ElAstExpr* in, ElAstTypedInit* tinit) {
+ElHirExpr* el_binder_bind_typedinit(ElBinder* binder, ElAstExpr* in, ElAstTypedInit* tinit) {
     (void) in;
-    ElHirType* type = _el_binder_bind_type(binder, tinit->type);
+    ElHirType* type = el_binder_bind_type(binder, tinit->type);
     if (type == NULL) return NULL;
 
     return el_binder_bind_init(binder, tinit->init, type, tinit->scls);
@@ -380,7 +380,7 @@ ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
     case EL_AST_EXPR_IDENT:     return _el_binder_bind_ident(binder, in, &in->as.ident);
     case EL_AST_EXPR_CALL:      return _el_binder_bind_call(binder, in, &in->as.call);
     case EL_AST_EXPR_CAST:      return _el_binder_bind_cast(binder, in, &in->as.cast);
-    case EL_AST_EXPR_TYPEDINIT: return _el_binder_bind_typedinit(binder, in, &in->as.typedinit);
+    case EL_AST_EXPR_TYPEDINIT: return el_binder_bind_typedinit(binder, in, &in->as.typedinit);
     case EL_AST_EXPR_MEMBER:    return _el_binder_bind_member_expr(binder, in, &in->as.member);
     case EL_AST_EXPR_TMEMBER:   return _el_binder_bind_tmember_expr(binder, in, &in->as.tmember);
     }
