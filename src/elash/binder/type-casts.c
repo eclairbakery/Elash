@@ -93,10 +93,14 @@ ElHirExpr* _el_binder_explicit_cast(ElBinder* binder, ElSourceSpan span, ElHirEx
     if (type_eql(from, to)) return expr;
 
     if (to->kind == EL_HIR_TYPE_DISTINCT) {
+        if (!_el_binder_ensure_complete(binder, span, to))
+            return NULL;
         ElHirExpr* casted = _el_binder_implicit_cast(binder, span, expr, to->as.distinct.orig);
         if (casted != NULL) return el_hir_new_semcast_expr(binder->arena, expr->span, to, casted);
     }
     if (from->kind == EL_HIR_TYPE_DISTINCT) {
+        if (!_el_binder_ensure_complete(binder, span, from))
+            return NULL;
         expr = el_hir_new_semcast_expr(binder->arena, expr->span, from->as.distinct.orig, expr);
         from = expr->type;
     }
@@ -292,8 +296,9 @@ static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElH
 
 // TODO: split this function into smaller helpers
 ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
-    (void) span;
     if (to->kind == EL_HIR_TYPE_DISTINCT) {
+        if (!_el_binder_ensure_complete(binder, span, to))
+            return NULL;
         ElHirExpr* casted = _cast_untyped(binder, span, expr, to->as.distinct.orig);
         if (casted == NULL) return NULL;
         return el_hir_new_semcast_expr(binder->arena, expr->span, to, casted);

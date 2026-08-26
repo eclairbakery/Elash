@@ -47,7 +47,8 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
         switch (field->type) {
         case EL_AST_DECL_VAR_DEF: {
             ElHirType* type = _el_binder_bind_type(binder, field->as.var_def.type);
-            _el_binder_ensure_complete(binder, field->span, type);
+            if (!_el_binder_ensure_complete(binder, field->span, type))
+                type = binder->builtins->type_void;
 
             fields[i] = (ElHirStructField) {
                 .name = field->as.var_def.name->name,
