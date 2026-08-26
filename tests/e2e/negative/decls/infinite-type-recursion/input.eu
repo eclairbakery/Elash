@@ -1,0 +1,6 @@
+typedef Shit as struct {
+    Shit noShitSherlock;
+    Shit[10] keepYourselfSafe;
+    struct(Shit) helloMars;
+    struct { Shit shit; } fine;
+};
