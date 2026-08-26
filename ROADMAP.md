@@ -15,14 +15,14 @@
 - [ ] Forward-declared typedefs / opaque types (e.g. `typedef Name;`), better incomplete types semantics
 
 ### Type system
-- [ ] Enum types
+- [ ] ~~Enum types~~ *(moved to 0.3.0)*
 - [ ] ~~Union types~~ *(moved to 0.3.0)*
 - [ ] Optional types
 - [ ] Read-only types
 - [ ] Write-only types
 
 ### Expressions
-- [ ] Bitcast operator (`bitcast`)
+- [x] Bitcast operator (`bitcast`)
 
 - [ ] Optional fallback operator (`??`)
 - [ ] Optional map operator (`?:`)
