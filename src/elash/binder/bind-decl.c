@@ -247,10 +247,15 @@ static ElHirDecl* bind_alias(ElBinder* binder, ElAstDecl* in, ElAstAlias* alias)
 }
 
 static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* typedef_) {
-    ElHirSymbol* existing = el_hir_scope_lookup_local(binder->current_scope, typedef_->name);
+    ElHirSymbol* existing = el_hir_scope_lookup(binder->current_scope, typedef_->name);
 
     if (existing) {
-        if (existing->kind != EL_SYM_TYPE || !el_hir_type_is_incomplete(existing->as.type.type)) {
+        ElHirType* etype = existing->as.type.type;
+        if (0
+         || existing->kind != EL_SYM_TYPE
+         || etype->kind != EL_HIR_TYPE_DISTINCT
+         || etype->as.distinct.orig != NULL
+        ) {
             return REPORT_REDEFINITION(binder, in->span, typedef_->name);
         }
 
