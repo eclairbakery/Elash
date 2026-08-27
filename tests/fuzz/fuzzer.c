@@ -160,13 +160,28 @@ static ElAstBlockStmt* gen_block(ElDynArena* arena, int depth) {
     });
 }
 
+static ElAstDeclarator* gen_declarators(ElDynArena* arena, int depth, bool allow_init) {
+    ElAstType* type = gen_type(arena, depth > 0 ? depth - 1 : 0);
+    usize count = (rand() % 3) + 1;
+
+    ElAstDeclarator* head = NULL;
+    ElAstDeclarator* tail = NULL;
+
+    for (usize i = 0; i < count; i++)
+        el_ast_append_declarator(&head, &tail, el_ast_new_declarator(
+            arena, type, gen_ident(arena),
+                allow_init && (rand() % 2 == 0) ? gen_init(arena, depth > 0 ? depth - 1 : 0) : NULL));
+
+    return head;
+}
+
 static ElAstDecl* gen_decl(ElDynArena* arena, int depth) {
-    if (depth <= 0) return el_ast_new_var_decl(arena, NSPAN, gen_type(arena, depth > 0 ? depth - 1 : 0), gen_ident(arena));
+    if (depth <= 0) return el_ast_new_var_decl(arena, NSPAN, gen_declarators(arena, depth, false));
     switch (rand() % 6) {
         case 0: return el_ast_new_alias(arena, NSPAN, gen_ident(arena)->name, *gen_toe(arena, depth > 0 ? depth - 1 : 0));
         case 1: return el_ast_new_typedef(arena, NSPAN, gen_ident(arena)->name, gen_type(arena, depth > 0 ? depth - 1 : 0));
-        case 2: return el_ast_new_var_def(arena, NSPAN, gen_type(arena, depth > 0 ? depth - 1 : 0), gen_ident(arena), gen_init(arena, depth > 0 ? depth - 1 : 0), rand() % 2 == 0);
-        case 3: return el_ast_new_var_decl(arena, NSPAN, gen_type(arena, depth > 0 ? depth - 1 : 0), gen_ident(arena));
+        case 2: return el_ast_new_var_def(arena, NSPAN, gen_declarators(arena, depth, true), rand() % 2 == 0);
+        case 3: return el_ast_new_var_decl(arena, NSPAN, gen_declarators(arena, depth, false));
         case 4:
             return el_ast_new_func_def(arena, NSPAN, (ElAstFuncSignature) {
                 NSPAN, gen_type(arena, depth > 0 ? depth - 1 : 0), gen_ident(arena), el_ast_make_func_param_list()

@@ -109,13 +109,14 @@ Test(ast_equal, declarations) {
     ElAstType* type = el_ast_new_type_name(&arena, span, el_ast_new_ident_raw(&arena, span, el_sv_from_cstr("int")));
     ElAstIdent* name = el_ast_new_ident_raw(&arena, span, el_sv_from_cstr("x"));
 
-    ElAstDecl* v1 = el_ast_new_var_def(&arena, span, type, name, NULL, false);
-    ElAstDecl* v2 = el_ast_new_var_def(&arena, span, type, name, NULL, false);
+    ElAstDeclarator d1 = { .type = type, .name = name, .init = NULL, .next = NULL };
+    ElAstDecl* v1 = el_ast_new_var_def(&arena, span, &d1, false);
+    ElAstDecl* v2 = el_ast_new_var_def(&arena, span, &d1, false);
 
     cr_assert(el_ast_equal_decl(v1, v2));
 
     // different static flag
-    ElAstDecl* v3 = el_ast_new_var_def(&arena, span, type, name, NULL, true);
+    ElAstDecl* v3 = el_ast_new_var_def(&arena, span, &d1, true);
     cr_assert(!el_ast_equal_decl(v1, v3));
 
     // alias

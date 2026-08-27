@@ -7,7 +7,9 @@ ElHirModule* el_binder_bind_module(ElBinder* binder, ElAstModule* in) {
         ElHirDecl* binded = el_binder_bind_decl(binder, node);
         if (binded == NULL) continue;
 
-        el_hir_module_append(mod, binded);
+        for (ElHirDecl* d = binded; d != NULL; d = d->next) {
+            el_hir_module_append(mod, d);
+        }
     }
     mod->sym_count = binder->sym_id_counter;
     return mod;

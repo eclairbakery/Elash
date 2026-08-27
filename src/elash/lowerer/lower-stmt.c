@@ -193,7 +193,11 @@ void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir) {
 
     case EL_HIR_STMT_ASSIGN:  return _el_lowerer_lower_assign(lw, &hir->as.assign);
     case EL_HIR_STMT_RETURN:  return _el_lowerer_lower_return(lw, &hir->as.return_);
-    case EL_HIR_STMT_DECL:    return el_lowerer_lower_local_decl(lw, hir->as.decl);
+    case EL_HIR_STMT_DECL:
+        for (ElHirDecl* d = hir->as.decl; d != NULL; d = d->next) {
+            el_lowerer_lower_local_decl(lw, d);
+        }
+        return;
 
     case EL_HIR_STMT_COMPOUND_ASSIGN: return _el_lowerer_lower_cassign(lw, &hir->as.cassign);
 

@@ -36,24 +36,45 @@ static ElHirType* bind_array_type(ElBinder* binder, ElAstArrayType* array) {
     return el_hir_new_array_type(binder->arena, base, (usize)size_val);
 }
 
+static usize count_struct_fields(ElAstStructType* struct_) {
+    usize field_count = 0;
+    for (ElAstDecl* field = struct_->fields; field != NULL; field = field->next) {
+        if (field->type == EL_AST_DECL_VAR_DEF) {
+            for (ElAstDeclarator* d = field->as.var_def.declarators; d != NULL; d = d->next) {
+                field_count++;
+            }
+        } else if (field->type == EL_AST_DECL_VAR_DECL) {
+            for (ElAstDeclarator* d = field->as.var_decl.declarators; d != NULL; d = d->next) {
+                field_count++;
+            }
+        } else if (field->type == EL_AST_DECL_FUNC_DECL || field->type == EL_AST_DECL_FUNC_DEF) {
+            field_count++;
+        }
+    }
+    return field_count;
+}
+
 static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
+    usize field_capacity = count_struct_fields(struct_);
     ElHirStructField* fields = EL_DYNARENA_NEW_ARR(
-        binder->arena, ElHirStructField, struct_->count);
+        binder->arena, ElHirStructField, field_capacity);
 
     _el_binder_push_scope(binder);
 
     usize i = 0;
-    for (ElAstDecl* field = struct_->fields; field != NULL; ++i, field = field->next) {
+    for (ElAstDecl* field = struct_->fields; field != NULL; field = field->next) {
         switch (field->type) {
         case EL_AST_DECL_VAR_DEF: {
-            ElHirType* type = el_binder_bind_type(binder, field->as.var_def.type);
-            if (!_el_binder_ensure_complete(binder, field->span, type))
-                type = binder->builtins->type_void;
+            for (ElAstDeclarator* d = field->as.var_def.declarators; d != NULL; d = d->next) {
+                ElHirType* type = el_binder_bind_type(binder, d->type);
+                if (!_el_binder_ensure_complete(binder, field->span, type))
+                    type = binder->builtins->type_void;
 
-            fields[i] = (ElHirStructField) {
-                .name = field->as.var_def.name->name,
-                .type = type,
-            };
+                fields[i++] = (ElHirStructField) {
+                    .name = d->name->name,
+                    .type = type,
+                };
+            }
             break;
         }
         case EL_AST_DECL_VAR_DECL: {
@@ -63,11 +84,13 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
             );
 
             // just for better error reporting
-            ElHirType* type = el_binder_bind_type(binder, field->as.var_decl.type);
-            fields[i] = (ElHirStructField) {
-                .name = field->as.var_decl.name->name,
-                .type = type ? type : binder->builtins->type_void,
-            };
+            for (ElAstDeclarator* d = field->as.var_decl.declarators; d != NULL; d = d->next) {
+                ElHirType* type = el_binder_bind_type(binder, d->type);
+                fields[i++] = (ElHirStructField) {
+                    .name = d->name->name,
+                    .type = type ? type : binder->builtins->type_void,
+                };
+            }
             break;
         }
         case EL_AST_DECL_FUNC_DECL:
@@ -81,7 +104,7 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
             );
 
             // just for better error reporting
-            fields[i] = (ElHirStructField) {
+            fields[i++] = (ElHirStructField) {
                 .name = field->type == EL_AST_DECL_FUNC_DECL
                     ? field->as.func_decl.sig.name->name
                     : field->as.func_def.sig.name->name,
@@ -91,10 +114,6 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
 
         case EL_AST_DECL_ALIAS:
         case EL_AST_DECL_TYPEDEF:
-            // very cool trick
-            // the loop increments i every iteration but struct-local aliases
-            // are not declaring any fields so we can just decrement i here
-            i--;
             el_binder_bind_decl(binder, field);
             break;
         }

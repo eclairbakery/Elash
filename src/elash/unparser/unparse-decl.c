@@ -8,11 +8,18 @@ static bool unparse_var_def(ElUnparser* unpar, ElAstDecl* decl) {
         if (!el_unparser_push_kw(unpar, EL_TT_KW_STATIC)) return false;
     }
 
-    if (!el_unparser_unparse_type(unpar, def->type))   return false;
-    if (!_el_unparser_unparse_ident(unpar, def->name)) return false;
-    if (def->init != NULL) {
-        if (!el_unparser_push_punct(unpar, EL_TT_ASSIGN)) return false;
-        if (!el_unparser_unparse_init(unpar, def->init))  return false;
+    ElAstDeclarator* first = def->declarators;
+    if (!el_unparser_unparse_type(unpar, first->type)) return false;
+
+    for (ElAstDeclarator* d = first; d != NULL; d = d->next) {
+        if (d != first) {
+            if (!el_unparser_push_punct(unpar, EL_TT_COMMA)) return false;
+        }
+        if (!_el_unparser_unparse_ident(unpar, d->name)) return false;
+        if (d->init != NULL) {
+            if (!el_unparser_push_punct(unpar, EL_TT_ASSIGN)) return false;
+            if (!el_unparser_unparse_init(unpar, d->init))    return false;
+        }
     }
     return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 }
@@ -20,8 +27,16 @@ static bool unparse_var_def(ElUnparser* unpar, ElAstDecl* decl) {
 static bool unparse_var_decl(ElUnparser* unpar, ElAstDecl* decl) {
     ElAstVarDecl* vd = &decl->as.var_decl;
     if (!el_unparser_push_kw(unpar, EL_TT_KW_EXTERN)) return false;
-    if (!el_unparser_unparse_type(unpar, vd->type))   return false;
-    if (!_el_unparser_unparse_ident(unpar, vd->name)) return false;
+
+    ElAstDeclarator* first = vd->declarators;
+    if (!el_unparser_unparse_type(unpar, first->type)) return false;
+
+    for (ElAstDeclarator* d = first; d != NULL; d = d->next) {
+        if (d != first) {
+            if (!el_unparser_push_punct(unpar, EL_TT_COMMA)) return false;
+        }
+        if (!_el_unparser_unparse_ident(unpar, d->name)) return false;
+    }
     return el_unparser_push_punct(unpar, EL_TT_SEMICOLON);
 }
 

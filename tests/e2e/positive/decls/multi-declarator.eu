@@ -1,0 +1,42 @@
+int main() {
+    int i = 10, j, k = 99;
+
+    j = 0;
+    while (j < 100) {
+        if (j % 2 == 0)
+            i++;
+        k--;
+        j++;
+    }
+
+    if (i != 60)
+        return 1;
+    if (j != 100)
+        return 2;
+    if (k != -1)
+        return 3;
+
+    uint
+        first = 20,
+        second = first * 2,
+        third = second + first - 13;
+
+    if (first != 20)
+        return 4;
+    if (second != 40)
+        return 5;
+    if (third != 47)
+        return 6;
+
+    struct {
+        float f1, f2;
+    } floats = { 3.14, 2.99 };
+
+    // yoda notation my beloved
+    if (3.14 != floats.f1)
+        return 7;
+    if (2.99 != floats.f2)
+        return 8;
+
+    return 0;
+}

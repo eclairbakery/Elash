@@ -120,6 +120,19 @@ bool el_ast_equal_func_signature(const ElAstFuncSignature* a, const ElAstFuncSig
     return pa == pb;
 }
 
+bool el_ast_equal_declarator(const ElAstDeclarator* a, const ElAstDeclarator* b) {
+    return el_ast_equal_type(a->type, b->type) &&
+           el_sv_eql(a->name->name, b->name->name) &&
+           el_ast_equal_init(a->init, b->init);
+}
+
+bool el_ast_equal_declarators(const ElAstDeclarator* a, const ElAstDeclarator* b) {
+    for (; a != NULL && b != NULL; a = a->next, b = b->next) {
+        if (!el_ast_equal_declarator(a, b)) return false;
+    }
+    return a == NULL && b == NULL;
+}
+
 bool el_ast_equal_decl(const ElAstDecl* a, const ElAstDecl* b) {
     if (a == b) return true;
     if (!a || !b) return false;
@@ -133,13 +146,11 @@ bool el_ast_equal_decl(const ElAstDecl* a, const ElAstDecl* b) {
         return el_sv_eql(a->as.typedef_.name, b->as.typedef_.name) &&
                el_ast_equal_type(a->as.typedef_.target, b->as.typedef_.target);
     case EL_AST_DECL_VAR_DEF:
-        return el_ast_equal_type(a->as.var_def.type, b->as.var_def.type) &&
-               el_sv_eql(a->as.var_def.name->name, b->as.var_def.name->name) &&
-               el_ast_equal_init(a->as.var_def.init, b->as.var_def.init) &&
-               a->as.var_def.is_static == b->as.var_def.is_static;
+        if (a->as.var_def.is_static != b->as.var_def.is_static)
+            return false;
+        return el_ast_equal_declarators(a->as.var_def.declarators, b->as.var_def.declarators);
     case EL_AST_DECL_VAR_DECL:
-        return el_ast_equal_type(a->as.var_decl.type, b->as.var_decl.type) &&
-               el_sv_eql(a->as.var_decl.name->name, b->as.var_decl.name->name);
+        return el_ast_equal_declarators(a->as.var_decl.declarators, b->as.var_decl.declarators);
     case EL_AST_DECL_FUNC_DEF: {
         if (!el_ast_equal_func_signature(&a->as.func_def.sig, &b->as.func_def.sig)) return false;
         ElAstStmt* sa = a->as.func_def.block->stmts;

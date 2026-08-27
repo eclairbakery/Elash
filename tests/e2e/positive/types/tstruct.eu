@@ -1,7 +1,7 @@
 typedef Point as struct(int, int);
 typedef Rect as struct {
-    int w; int h;
-    int x; int y;
+    int x, y;
+    int w, h;
 };
 
 int main() {

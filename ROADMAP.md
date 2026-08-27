@@ -11,7 +11,7 @@
 ### Declarations
 - [ ] Make function parameter definitions semicolon-separated and represent them as decl AST mode
 - [ ] Support unnamed function params in declarations
-- [ ] Multiple declarators in a single declaration (comma separated, e.g. `int x, y;`)
+- [x] Multiple declarators in a single declaration (comma separated, e.g. `int x, y;`)
 - [x] Forward-declared typedefs / opaque types (e.g. `typedef Name;`), better incomplete types semantics
 
 ### Type system

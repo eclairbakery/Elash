@@ -6,3 +6,12 @@ ElHirDecl* el_hir_decl_none(ElDynArena* arena, ElSourceSpan span) {
         .span = span,
     });
 }
+
+void el_hir_append_decl(ElHirDecl** head, ElHirDecl** tail, ElHirDecl* decl) {
+    if (*tail != NULL) {
+        (*tail)->next = decl;
+        *tail = decl;
+    } else {
+        *head = *tail = decl;
+    }
+}
