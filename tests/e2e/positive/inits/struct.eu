@@ -1,6 +1,5 @@
 typedef Point as struct {
-    int x;
-    int y;
+    int x, y;
 };
 
 typedef Tuple as struct(char, char);

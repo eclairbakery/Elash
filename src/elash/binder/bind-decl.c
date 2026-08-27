@@ -132,44 +132,60 @@ static ElHirSymbol* bind_func_sig(ElBinder* binder, ElAstFuncSignature* sig) {
 }
 
 static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var) {
-    ElHirType* type = el_binder_bind_type(binder, var->type);
-    if (!_el_binder_ensure_complete(binder, var->type->span, type))
-        return NULL;
+    ElHirDecl* head = NULL;
+    ElHirDecl* tail = NULL;
 
-    ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, var->name->name, type);
-    if (!el_hir_scope_insert(binder->current_scope, sym)) {
-        return REPORT_REDEFINITION(binder, var->name->span, sym->name);
+    for (ElAstDeclarator* d = var->declarators; d != NULL; d = d->next) {
+        ElHirType* type = el_binder_bind_type(binder, d->type);
+        if (!_el_binder_ensure_complete(binder, d->type->span, type))
+            return NULL;
+
+        ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, d->name->name, type);
+        if (!el_hir_scope_insert(binder->current_scope, sym)) {
+            return REPORT_REDEFINITION(binder, d->name->span, sym->name);
+        }
+
+        ElStorageClass scls = (var->is_static || binder->current_func == NULL)
+            ? EL_STORAGECLS_STATIC
+            : EL_STORAGECLS_LOCAL;
+
+        ElHirExpr* init = NULL;
+        if (d->init != NULL) {
+            init = el_binder_bind_init(binder, d->init, type, scls);
+            if (init == NULL) return NULL;
+        }
+
+        el_hir_append_decl(&head, &tail,
+            el_hir_new_var_def(binder->arena, in->span, sym, init, scls));
     }
 
-    ElStorageClass scls = (var->is_static || binder->current_func == NULL)
-        ? EL_STORAGECLS_STATIC
-        : EL_STORAGECLS_LOCAL;
-
-    ElHirExpr* init = NULL;
-    if (var->init != NULL) {
-        init = el_binder_bind_init(binder, var->init, type, scls);
-        if (init == NULL) return NULL;
-    }
-
-    return el_hir_new_var_def(binder->arena, in->span, sym, init, scls);
+    return head;
 }
 
 static ElHirDecl* bind_var_decl(ElBinder* binder, ElAstDecl* in, ElAstVarDecl* var) {
-    ElHirType* type = el_binder_bind_type(binder, var->type);
-    if (!_el_binder_ensure_complete(binder, var->type->span, type))
-        return NULL;
+    ElHirDecl* head = NULL;
+    ElHirDecl* tail = NULL;
 
-    ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, var->name->name, type);
-    if (!el_hir_scope_insert(binder->current_scope, sym)) {
-        return el_diag_report(
-            binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
-            var->name->span,
-            "redeclaration of symbol '${name}'",
-            EL_DIAG_STRING("name", sym->name)
-        );
+    for (ElAstDeclarator* d = var->declarators; d != NULL; d = d->next) {
+        ElHirType* type = el_binder_bind_type(binder, d->type);
+        if (!_el_binder_ensure_complete(binder, d->type->span, type))
+            return NULL;
+
+        ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, d->name->name, type);
+        if (!el_hir_scope_insert(binder->current_scope, sym)) {
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.redeclaration",
+                d->name->span,
+                "redeclaration of symbol '${name}'",
+                EL_DIAG_STRING("name", sym->name)
+            );
+        }
+
+        el_hir_append_decl(&head, &tail,
+            el_hir_new_var_decl(binder->arena, in->span, sym));
     }
 
-    return el_hir_new_var_decl(binder->arena, in->span, sym);
+    return head;
 }
 
 static ElHirDecl* bind_func_def(ElBinder* binder, ElAstDecl* in, ElAstFuncDef* def) {

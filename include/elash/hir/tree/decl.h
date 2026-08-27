@@ -28,3 +28,4 @@ typedef struct ElHirDecl {
 } ElHirDecl;
 
 ElHirDecl* el_hir_decl_none(ElDynArena* arena, ElSourceSpan span);
+void el_hir_append_decl(ElHirDecl** head, ElHirDecl** tail, ElHirDecl* decl);

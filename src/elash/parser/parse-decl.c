@@ -78,26 +78,56 @@ static ElAstDecl* parse_func_internal_decl(ElParser* parser, ElAstFuncSignature 
     return el_ast_new_func_decl(parser->arena, span, sig);
 }
 
+static ElAstDeclarator* parse_declarator_list(ElParser* parser, ElAstType* type, bool allow_init) {
+    ElAstDeclarator* head = NULL;
+    ElAstDeclarator* tail = NULL;
+
+    while (true) {
+        ElAstIdent* name = _el_parser_parse_ident(parser);
+        if (name == NULL) return NULL;
+
+        ElAstInit* init = NULL;
+        if (el_parser_check(parser, EL_TT_ASSIGN)) {
+            if (!allow_init) {
+                el_diag_report(
+                    parser->diag, EL_DIAG_ERROR, "syntax.extern-init",
+                    parser->current.span,
+                    "extern variables cannot have an initializer"
+                );
+            }
+
+            // this is intentionally reachable, even tho initializers are not allowed here,
+            // we still need to parse it to skip the tokens and report diagnostics
+            el_parser_advance(parser);
+            init = el_parser_parse_init(parser);
+
+            if (init == NULL) return NULL;
+            if (!allow_init) init = NULL;
+        }
+
+        el_ast_append_declarator(&head, &tail,
+            el_ast_new_declarator(parser->arena, type, name, init));
+
+        if (!el_parser_match(parser, EL_TT_COMMA)) break;
+    }
+
+    return head;
+}
+
 static ElAstDecl* parse_var_internal_decl(ElParser* parser) {
     bool is_static = el_parser_match(parser, EL_TT_KW_STATIC);
 
     ElAstType* type = _el_parser_parse_type(parser);
     if (type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
-    ElAstIdent* name = _el_parser_parse_ident(parser);
-    if (name == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
-
-    ElAstInit* init = NULL;
-    if (el_parser_match(parser, EL_TT_ASSIGN)) {
-        init = el_parser_parse_init(parser);
-        if (init == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
-    }
+    ElAstDeclarator* declarators = parse_declarator_list(parser, type, /*allow_init=*/true);
+    if (declarators == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
     ElToken semi_tok = parser->current;
     el_parser_expect(parser, EL_TT_SEMICOLON);
 
     ElSourceSpan span = el_srcspan_merge(type->span, semi_tok.span);
-    return el_ast_new_var_def(parser->arena, span, type, name, init, is_static);
+    return el_ast_new_var_def(parser->arena, span, declarators, is_static);
 }
 
 static ElAstDecl* _el_parser_report_incomplete_decl(ElParser* parser, usize idx) {
@@ -142,24 +172,14 @@ static ElAstDecl* parse_extern_decl(ElParser* parser, ElToken extern_tok) {
         ElAstType* type = _el_parser_parse_type(parser);
         if (type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
-        ElAstIdent* name = _el_parser_parse_ident(parser);
-        if (name == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
-
-        if (el_parser_check(parser, EL_TT_ASSIGN)) {
-            el_diag_report(
-                parser->diag, EL_DIAG_ERROR, "syntax.extern-init",
-                parser->current.span,
-                "extern variables cannot have an initializer"
-            );
-            el_parser_advance(parser);
-            el_parser_parse_init(parser);
-        }
+        ElAstDeclarator* declarators = parse_declarator_list(parser, type, /*allow_init=*/false);
+        if (declarators == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
         ElToken semi_tok = parser->current;
         el_parser_expect(parser, EL_TT_SEMICOLON);
 
         ElSourceSpan span = el_srcspan_merge(extern_tok.span, semi_tok.span);
-        return el_ast_new_var_decl(parser->arena, span, type, name);
+        return el_ast_new_var_decl(parser->arena, span, declarators);
     }
 }
 
