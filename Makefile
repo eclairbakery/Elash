@@ -116,7 +116,9 @@ $(OBJ_ROOT_DIR)/shared/%.o: %.c
 	$(Q)$(CC) $(CFLAGS) $(PIC_CFLAGS) -MMD -MP -MF $(DEP_ROOT_DIR)/shared/$*.d -c $< -o $@
 
 -include $(DEPS)
+
 include tests/build.mk
+include docs/doxygen.mk
 
 include make/compcmds.mk
 include make/utilities.mk

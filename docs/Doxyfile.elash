@@ -1,0 +1,159 @@
+DOXYFILE_ENCODING      = UTF-8
+
+####### Project #######
+PROJECT_NAME           = "Elash Frontend"
+PROJECT_NUMBER         =
+PROJECT_BRIEF          = The Elash programming language frontend library
+
+PROJECT_LOGO           =
+PROJECT_ICON           =
+
+####### Common #######
+OUTPUT_DIRECTORY       = docs/out/elash/
+
+CREATE_SUBDIRS         = NO
+CREATE_SUBDIRS_LEVEL   = 8
+
+OUTPUT_LANGUAGE        = English
+
+BRIEF_MEMBER_DESC      = YES
+REPEAT_BRIEF           = YES
+
+TAB_SIZE               = 4
+ALIASES                =
+
+####### Optimize For #######
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+####### Markdown #######
+MARKDOWN_SUPPORT       = YES
+MARKDOWN_STRICT        = YES
+MARKDOWN_ID_STYLE      = DOXYGEN
+
+####### Hide/Show #######
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_PACKAGE        = NO
+EXTRACT_STATIC         = NO
+EXTRACT_LOCAL_METHODS  = NO
+
+RESOLVE_UNNAMED_PARAMS = YES
+
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_IN_BODY_DOCS      = NO
+HIDE_SCOPE_NAMES       = NO
+HIDE_COMPOUND_REFERENCE= NO
+INTERNAL_DOCS          = NO
+
+SHOW_HEADERFILE        = YES
+SHOW_INCLUDE_FILES     = YES
+SHOW_GROUPED_MEMB_INC  = NO
+
+CASE_SENSE_NAMES       = YES
+FORCE_LOCAL_INCLUDES   = NO
+INLINE_INFO            = YES
+
+####### Warnings #######
+QUIET                  = NO
+WARNINGS               = YES
+
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_IF_INCOMPLETE_DOC = YES
+WARN_NO_PARAMDOC       = NO
+WARN_IF_UNDOC_ENUM_VAL = NO
+WARN_LAYOUT_FILE       = YES
+
+WARN_AS_ERROR          = NO
+
+WARN_FORMAT            = "$file:$line: $text"
+WARN_LINE_FORMAT       = "at line $line of file $file"
+
+WARN_LOGFILE           =
+
+####### Input #######
+INPUT                  = include/elash
+INPUT_ENCODING         = UTF-8
+
+FILE_PATTERNS          = *.h
+                       # *.c
+
+RECURSIVE              = YES
+
+####### Exclude #######
+EXCLUDE                =
+EXCLUDE_SYMLINKS       = NO
+EXCLUDE_PATTERNS       =
+EXCLUDE_SYMBOLS        =
+
+EXAMPLE_PATH           =
+EXAMPLE_PATTERNS       = *
+EXAMPLE_RECURSIVE      = NO
+
+IMAGE_PATH             =
+INPUT_FILTER           =
+
+FILTER_PATTERNS        =
+FILTER_SOURCE_FILES    = NO
+FILTER_SOURCE_PATTERNS =
+
+####### Options #######
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+REFERENCES_LINK_SOURCE = YES
+
+SOURCE_TOOLTIPS        = YES
+
+IGNORE_PREFIX          = el_, El
+
+####### HTML #######
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+
+HTML_HEADER            =
+HTML_FOOTER            =
+HTML_STYLESHEET        =
+HTML_EXTRA_STYLESHEET  = docs/doxygen-awesome/doxygen-awesome.css
+HTML_EXTRA_FILES       =
+
+GENERATE_TREEVIEW      = YES
+HTML_COLORSTYLE        = AUTO_DARK
+
+PAGE_OUTLINE_PANEL     = YES
+FULL_SIDEBAR           = NO
+
+ENUM_VALUES_PER_LINE   = 3
+SHOW_ENUM_VALUES       = NO
+
+TREEVIEW_WIDTH         = 260
+EXT_LINKS_IN_WINDOW    = NO
+
+####### Manual page #######
+GENERATE_MAN           = YES
+
+MAN_OUTPUT             = man
+MAN_EXTENSION          = .3
+
+MAN_SUBDIR             =
+MAN_LINKS              = NO
+
+####### Preprocessor #######
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+
+INCLUDE_PATH           = include
+INCLUDE_FILE_PATTERNS  =
+
+####### Graphs #######
+HAVE_DOT = YES
+
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+
+CALL_GRAPH             = NO
+CALLER_GRAPH           = NO
+
+GRAPHICAL_HIERARCHY    = YES
+DIRECTORY_GRAPH        = YES
+DIR_GRAPH_MAX_DEPTH    = 1

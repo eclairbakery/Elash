@@ -20,14 +20,14 @@ static ElStringView EL_LEXERR_to_string_map[] = {
     [EL_LEXERR_INVALID_ARG] = EL_SV("INVALID_ARG"),
 };
 
-ElStringView el_lexer_err_code_to_string(ElLexerErrorCode code) {
+ElStringView el_lexer_err_code_to_string(ElLexerStatus code) {
     if (code < 0 || code >= _EL_LEXERR_COUNT) return EL_SV_NULL;
     ElStringView s = EL_LEXERR_to_string_map[code];
     if (s.data == NULL) return EL_SV("UNKNOWN_ERROR");
     return s;
 }
 
-usize el_lexer_result_to_string(ElLexerErrorDetails r, char** out) {
+usize el_lexer_result_to_string(ElLexerResult r, char** out) {
     ElStringView error_code_str = el_lexer_err_code_to_string(r.code);
 
     if (r.code == EL_LEXERR_SUCCESS) {
@@ -77,7 +77,7 @@ usize el_lexer_result_to_string(ElLexerErrorDetails r, char** out) {
     return full_len;
 }
 
-usize el_lexer_result_print(ElLexerErrorDetails r, FILE* out) {
+usize el_lexer_result_print(ElLexerResult r, FILE* out) {
     ulong written = 0;
 
     if (r.code != EL_LEXERR_SUCCESS) {
@@ -101,7 +101,7 @@ usize el_lexer_result_print(ElLexerErrorDetails r, FILE* out) {
     return (written > 0) ? (usize)written : 0;
 }
 
-usize el_lexer_result_format(ElLexerErrorDetails r, usize n, char buf[static n]) {
+usize el_lexer_result_format(ElLexerResult r, usize n, char buf[static n]) {
     char* s = NULL;
     usize len = el_lexer_result_to_string(r, &s);
     if (s == NULL) return 0;

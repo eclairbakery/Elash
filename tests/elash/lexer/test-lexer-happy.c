@@ -6,7 +6,7 @@
 // NOLINTNEXTLINE(readability-function-cognitive-complexity): clang-tidy sucks.
 static void assert_token(ElLexer* lexer, ElTokenType expected_type, const char* expected_lexeme) {
     ElToken tok;
-    ElLexerErrorCode err = el_lexer_next_token(lexer, &tok);
+    ElLexerStatus err = el_lexer_next_token(lexer, &tok);
 
     ElStringView err_str = el_lexer_err_code_to_string(err);
     cr_assert_eq(err, EL_LEXERR_SUCCESS,

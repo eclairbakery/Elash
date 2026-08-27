@@ -47,14 +47,14 @@ static inline char next(ElLexer* lexer) {
     return c;
 }
 
-static ElLexerErrorCode ret_token(ElLexer* lexer, ElTokenType type, ElToken* out_tok) {
+static ElLexerStatus ret_token(ElLexer* lexer, ElTokenType type, ElToken* out_tok) {
     lexer->last_err_details = EL_LEXER_RESULT_SUCCESS;
     out_tok->type = type;
     out_tok->span = el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc);
     out_tok->lexeme = el_srcspan_to_sv(out_tok->span);
     return EL_LEXERR_SUCCESS;
 }
-static ElLexerErrorCode ret_token_with_lexeme(ElLexer* lexer, ElTokenType type, ElStringView lexeme, ElToken* out_tok) {
+static ElLexerStatus ret_token_with_lexeme(ElLexer* lexer, ElTokenType type, ElStringView lexeme, ElToken* out_tok) {
     lexer->last_err_details = EL_LEXER_RESULT_SUCCESS;
     out_tok->type = type;
     out_tok->span = el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc);
@@ -65,11 +65,11 @@ static ElLexerErrorCode ret_token_with_lexeme(ElLexer* lexer, ElTokenType type, 
 static inline ElStringView el_make_lexeme_from_token_start(ElLexer* lexer) {
     return el_sv_slice(el_srcdoc_content(lexer->doc), lexer->token_start_loc.offset, lexer->current_loc.offset);
 }
-static inline ElLexerErrorCode ret_tok_with_lexeme_auto(ElLexer* lexer, ElTokenType t, ElToken* out) {
+static inline ElLexerStatus ret_tok_with_lexeme_auto(ElLexer* lexer, ElTokenType t, ElToken* out) {
     return ret_token_with_lexeme(lexer, t, el_make_lexeme_from_token_start(lexer), out);
 }
 
-ElLexerErrorCode el_lexer_init(ElLexer* lexer, const ElSourceDocument* doc, ElLexerFlags flags) {
+ElLexerStatus el_lexer_init(ElLexer* lexer, const ElSourceDocument* doc, ElLexerFlags flags) {
     lexer->doc = doc;
     lexer->current_loc = EL_SOURCE_LOC_ZERO;
     lexer->token_start_loc = EL_SOURCE_LOC_ZERO;
@@ -78,7 +78,7 @@ ElLexerErrorCode el_lexer_init(ElLexer* lexer, const ElSourceDocument* doc, ElLe
     return EL_LEXERR_SUCCESS;
 }
 
-ElLexerErrorCode el_lexer_reset(ElLexer* lexer) {
+ElLexerStatus el_lexer_reset(ElLexer* lexer) {
     lexer->current_loc = EL_SOURCE_LOC_ZERO;
     lexer->token_start_loc = EL_SOURCE_LOC_ZERO;
     lexer->doc = NULL;
@@ -86,8 +86,8 @@ ElLexerErrorCode el_lexer_reset(ElLexer* lexer) {
     return EL_LEXERR_SUCCESS;
 }
 
-ElLexerErrorCode el_lexer_set_document(ElLexer* lexer, const ElSourceDocument* doc) {
-    ElLexerErrorCode err = el_lexer_reset(lexer);
+ElLexerStatus el_lexer_set_document(ElLexer* lexer, const ElSourceDocument* doc) {
+    ElLexerStatus err = el_lexer_reset(lexer);
 
     lexer->doc = doc;
 
@@ -142,7 +142,7 @@ ElTokenType get_keyword_or_ident_type(ElStringView lexeme) {
 }
 
 
-static ElLexerErrorCode lex_op2(ElLexer* lexer, char expect, ElTokenType single, ElTokenType dbl, ElToken* out) {
+static ElLexerStatus lex_op2(ElLexer* lexer, char expect, ElTokenType single, ElTokenType dbl, ElToken* out) {
     if (peek(lexer) == expect) {
         next(lexer);
         return ret_tok_with_lexeme_auto(lexer, dbl, out);
@@ -152,7 +152,7 @@ static ElLexerErrorCode lex_op2(ElLexer* lexer, char expect, ElTokenType single,
         ret_tok_with_lexeme_auto(lexer, single, out);
 }
 
-static ElLexerErrorCode lex_op3(ElLexer* lexer, char expect1, char expect2, ElTokenType single, ElTokenType dbl, ElTokenType triple, ElToken* out) {
+static ElLexerStatus lex_op3(ElLexer* lexer, char expect1, char expect2, ElTokenType single, ElTokenType dbl, ElTokenType triple, ElToken* out) {
     if (peek(lexer) == expect1) {
         next(lexer);
         if (peek(lexer) == expect2) {
@@ -165,7 +165,7 @@ static ElLexerErrorCode lex_op3(ElLexer* lexer, char expect1, char expect2, ElTo
     return ret_tok_with_lexeme_auto(lexer, single, out);
 }
 
-static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
+static ElLexerStatus lex_operator(ElLexer* lexer, char c, ElToken* out) {
     switch (c) {
     case '+':
         if (peek(lexer) == '+') {
@@ -263,7 +263,7 @@ static ElLexerErrorCode lex_operator(ElLexer* lexer, char c, ElToken* out) {
 
 #define UTF8_MULTIBYTE_MARKER 0x80
 
-static ElLexerErrorCode lex_ident(ElLexer* lexer, ElToken* out) {
+static ElLexerStatus lex_ident(ElLexer* lexer, ElToken* out) {
     while (isalnum(peek(lexer)) || peek(lexer) == '_') next(lexer);
 
     if (lexer->flags & EL_LF_ALLOW_UTF8_IDENTS) {
@@ -278,7 +278,7 @@ static ElLexerErrorCode lex_ident(ElLexer* lexer, ElToken* out) {
     );
 }
 
-static ElLexerErrorCode lex_number(ElLexer* lexer, ElToken* out) {
+static ElLexerStatus lex_number(ElLexer* lexer, ElToken* out) {
     bool is_float = false;
 
     while (isdigit(peek(lexer))) next(lexer);
@@ -301,7 +301,7 @@ static ElLexerErrorCode lex_number(ElLexer* lexer, ElToken* out) {
 
 // TODO: refactor this function
 // NOLINTNEXTLINE
-ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
+ElLexerStatus el_lexer_next_token(ElLexer* lexer, ElToken* out) {
     ElStringView content = el_srcdoc_content(lexer->doc);
     while (true) {
         lexer->token_start_loc = lexer->current_loc;
@@ -461,7 +461,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
 
         char op = next(lexer);
 
-        ElLexerErrorCode r = lex_operator(lexer, op, out);
+        ElLexerStatus r = lex_operator(lexer, op, out);
         if (r != EL_LEXERR_UNEXPECTED_CHAR) return r;
 
         if (!(lexer->flags & EL_LF_SKIP_UNKNOWN))
@@ -472,7 +472,7 @@ ElLexerErrorCode el_lexer_next_token(ElLexer* lexer, ElToken* out) {
 static ElToken token_stream_next(ElTokenStream* stream, ElDiagEngine* engine) {
     ElLexer* lexer = (ElLexer*)stream->ctx;
     ElToken tok;
-    ElLexerErrorCode err = el_lexer_next_token(lexer, &tok);
+    ElLexerStatus err = el_lexer_next_token(lexer, &tok);
 
     if (err != EL_LEXERR_SUCCESS) {
         if (engine != NULL) {

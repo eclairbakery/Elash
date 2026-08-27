@@ -2,6 +2,9 @@
 /build
 /out
 
+# Doxygen output
+/docs/out
+
 # Python cache
 __pycache__
 *.pyc

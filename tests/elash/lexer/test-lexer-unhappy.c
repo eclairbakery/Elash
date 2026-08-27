@@ -4,7 +4,7 @@
 #include <elash/source/doc.h>
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-static void assert_lexer_error(const char* input, ElLexerErrorCode expected_error) {
+static void assert_lexer_error(const char* input, ElLexerStatus expected_error) {
     ElSourceDocument doc;
     el_srcdoc_init_from_str(&doc, el_sv_from_cstr(input), EL_SV("test.ela"));
 
@@ -12,7 +12,7 @@ static void assert_lexer_error(const char* input, ElLexerErrorCode expected_erro
     el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT);
 
     ElToken tok;
-    ElLexerErrorCode err = el_lexer_next_token(&lexer, &tok);
+    ElLexerStatus err = el_lexer_next_token(&lexer, &tok);
 
     ElStringView err_sv = el_lexer_err_code_to_string(err);
     ElStringView expected_err_sv = el_lexer_err_code_to_string(expected_error);

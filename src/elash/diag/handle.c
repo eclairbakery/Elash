@@ -2,7 +2,7 @@
 
 #include <elash/util/assert.h>
 
-void el_diag_handle_lexer_error(ElDiagEngine* engine, const ElLexerErrorDetails* err) {
+void el_diag_handle_lexer_error(ElDiagEngine* engine, const ElLexerResult* err) {
     switch (err->code) {
     case EL_LEXERR_SUCCESS:
     case _EL_LEXERR_COUNT:
@@ -50,5 +50,5 @@ void el_diag_handle_lexer_error(ElDiagEngine* engine, const ElLexerErrorDetails*
             "Unterminated multi-line comment",
         ); return;
     }
-    EL_UNREACHABLE_ENUM_VAL(ElLexerErrorCode, err->code);
+    EL_UNREACHABLE_ENUM_VAL(ElLexerStatus, err->code);
 }
