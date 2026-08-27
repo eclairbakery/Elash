@@ -102,7 +102,7 @@
 - [ ] Document elash basics
 
 ## Stability & Hardening
-- [ ] Support multiple source files in e2e cases
+- [x] Support multiple source files in e2e cases
 - [ ] Preproc test suite
 - [x] Parser test suite
 - [x] Unparser test suite
