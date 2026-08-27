@@ -6,6 +6,8 @@ import os
 from concurrent.futures import (
     ThreadPoolExecutor, as_completed
 )
+
+from signal import Signals
 from pathlib import Path
 
 from .models  import *
@@ -158,20 +160,22 @@ def report_failure(name: str, expected: TestExpectation, actual: TestResult):
 
 def collect_test_cases() -> list[TestCase]:
     def get_name(item: Path) -> str:
-        return str(item.relative_to(script_dir)).removesuffix(".eu")
+        return str(item.relative_to(script_dir)).removesuffix('.eu')
 
     def collect(ttype: TestType) -> list[TestCase]:
         cases: list[TestCase] = []
-
         dir = script_dir.joinpath(ttype)
         if not dir.is_dir():
             error(f"invalid tests directory structure: expected '{ttype}' to be a directory")
 
-        for p in dir.rglob('input.eu'):
-            cases.append(TestCase(path=p.parent, name=get_name(p.parent), type=ttype))
-        for p in dir.rglob('*.eu'):
-            if p.name != 'input.eu':
-                cases.append(TestCase(path=p, name=get_name(p), type=ttype))
+        for category in dir.iterdir():
+            if not category.is_dir(): continue
+
+            for item in category.iterdir():
+                if item.is_dir():
+                    cases.append(TestCase(path=item, name=get_name(item), type=ttype))
+                elif item.suffix == '.eu':
+                    cases.append(TestCase(path=item, name=get_name(item), type=ttype))
 
         return cases
 
@@ -234,19 +238,25 @@ def _is_success(expected: TestExpectation, actual: TestResult) -> bool:
 def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Timeouts, verbose: bool) -> bool:
     passed_count  = 0
     failed_count  = 0
+    crashed_count = 0
     skipped_count = 0
 
     test_cases = collect_test_cases()
+    elc_bin_mtime = elc_bin.stat().st_mtime
 
     tasks = []
     for case in test_cases:
         tasks.append((case, get_expectation(case)))
 
     def handle_result(name, expected, actual):
-        nonlocal passed_count, failed_count, skipped_count
+        nonlocal passed_count, failed_count, crashed_count, skipped_count
         if actual is None:
             print_skip(name)
             skipped_count += 1
+        elif isinstance(actual, FinishedResult) and actual.exitcode < 0:
+            print_fail(name)
+            print_info(f'  crash: {Signals(-actual.exitcode).name}')
+            crashed_count += 1
         elif _is_success(expected, actual):
             if verbose:
                 print_pass(name)
@@ -259,7 +269,7 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
         with ThreadPoolExecutor(max_workers=jobs) as executor:
             future_to_test = {}
             for case, expected in tasks:
-                future = executor.submit(run_test_case, elc_bin, work_dir, case, timeouts)
+                future = executor.submit(run_test_case, elc_bin, work_dir, case, timeouts, elc_bin_mtime)
                 future_to_test[future] = (case.name, expected)
 
             for future in as_completed(future_to_test):
@@ -267,14 +277,16 @@ def run_suite(elc_bin: Path, work_dir: Path, jobs: Optional[int], timeouts: Time
                 handle_result(name, expected, future.result())
     else:
         for case, expected in tasks:
-            handle_result(case.name, expected, run_test_case(elc_bin, work_dir, case, timeouts))
+            handle_result(case.name, expected, run_test_case(elc_bin, work_dir, case, timeouts, elc_bin_mtime))
 
-    tested_count = passed_count + failed_count + skipped_count
+    tested_count = passed_count + failed_count + crashed_count + skipped_count
     print(f'[{CLR_BLUE}===={CLR_RESET}] {CLR_BOLD}Synthesis: ', end='')
     print(f'Tested: {CLR_BLUE}{tested_count}{CLR_RESET}{CLR_BOLD} ', end='')
     print(f'| Passing: {stat(passed_count, CLR_GREEN)}{CLR_BOLD} ', end='')
     print(f'| Failing: {stat(failed_count, CLR_RED)}{CLR_BOLD} ', end='')
-    print(f'| Skipped: {stat(skipped_count, CLR_BLUE)}{CLR_BOLD}', end='')
+    print(f'| Crashing: {stat(crashed_count, CLR_ORANGE)}{CLR_BOLD} ', end='')
+    if skipped_count != 0:
+        print(f'| Skipped: {CLR_BLUE}{skipped_count}{CLR_RESET}', end='')
     print(CLR_RESET)
 
-    return failed_count == 0
+    return (failed_count + crashed_count) == 0
