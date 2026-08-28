@@ -14,6 +14,7 @@
 #include <elash/util/strconv.h>
 #include <elash/util/assert.h>
 
+#include <elash/sema/intparse.h>
 #include <elash/sema/strparse.h>
 
 static bool peek(ElPreproc* pp, ElToken* out_tok) {
@@ -150,23 +151,11 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
 
     switch (tok.type) {
     case EL_TT_INT_LITERAL: {
-        int64_t val = 0;
-        if (!el_string_to_i64(tok.lexeme, /* NOLINTBEGIN(readability-magic-numbers): Keep Yourself Safe */ 10 /* NOLINTEND(readability-magic-numbers) */, &val)) {
-            return el_diag_report(
-                pp->diag, EL_DIAG_ERROR, "pp.invalid-literal",
-                tok.span, "invalid integer literal"
-            );
-        }
+        int64_t val = el_parse_int_lit(pp->diag, tok);
         return _el_pp_new_int(pp->iarena, val);
     }
     case EL_TT_FLOAT_LITERAL: {
-        long double val = 0.0L;
-        if (!el_string_to_long_double(tok.lexeme, &val)) {
-            return el_diag_report(
-                pp->diag, EL_DIAG_ERROR, "pp.invalid-literal",
-                tok.span, "invalid float literal"
-            );
-        }
+        long double val = el_string_to_long_double(pp->diag, tok.lexeme, tok.span);
         return _el_pp_new_float(pp->iarena, (double)val);
     }
     case EL_TT_STRING_LITERAL: {

@@ -278,22 +278,26 @@ static ElLexerStatus lex_ident(ElLexer* lexer, ElToken* out) {
     );
 }
 
+static bool is_number_char(char c) {
+    return isalnum((unsigned char)c) || c == '\'';
+}
+
 static ElLexerStatus lex_number(ElLexer* lexer, ElToken* out) {
     bool is_float = false;
 
-    while (isdigit(peek(lexer))) next(lexer);
+    while (is_number_char(peek(lexer))) next(lexer);
 
-    if (peek(lexer) == '.' && isdigit(peek_next(lexer))) {
+    if (peek(lexer) == '.' && isdigit((unsigned char)peek_next(lexer))) {
         is_float = true;
         next(lexer);
-        while (isdigit(peek(lexer))) next(lexer);
+        while (is_number_char(peek(lexer))) next(lexer);
     }
 
     if (peek(lexer) == 'e' || peek(lexer) == 'E') {
         is_float = true;
         next(lexer);
         if (peek(lexer) == '+' || peek(lexer) == '-') next(lexer);
-        while (isdigit(peek(lexer))) next(lexer);
+        while (is_number_char(peek(lexer))) next(lexer);
     }
 
     return ret_tok_with_lexeme_auto(lexer, is_float ? EL_TT_FLOAT_LITERAL : EL_TT_INT_LITERAL, out);

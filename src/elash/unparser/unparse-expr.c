@@ -159,7 +159,7 @@ static bool unparse_literal(ElUnparser* unpar, ElAstExpr* expr) {
     case EL_AST_LIT_INT:
         return el_unparser_push_fmt(unpar, EL_TT_INT_LITERAL, "%"PRId64, lit->of.int_.value);
     case EL_AST_LIT_FLOAT:
-        return el_unparser_push_fmt(unpar, EL_TT_FLOAT_LITERAL, "%lf", lit->of.float_.value);
+        return el_unparser_push_fmt(unpar, EL_TT_FLOAT_LITERAL, "%.17g", lit->of.float_.value);
     case EL_AST_LIT_CHAR:
         return push_escapeified(unpar, EL_TT_CHAR_LITERAL, el_sv_from_data_and_len(&lit->of.char_.value, 1));
     case EL_AST_LIT_STRING:

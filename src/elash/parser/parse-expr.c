@@ -17,6 +17,7 @@
 #include <elash/ast/tree/common/ident.h>
 #include <elash/ast/tree/init.h>
 
+#include <elash/sema/intparse.h>
 #include <elash/sema/strparse.h>
 
 bool _el_parser_is_type_literal(ElParser* parser) {
@@ -50,30 +51,14 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_INT_LITERAL)) {
         ElToken tok = el_parser_advance(parser);
 
-        int64_t val = 0;
-        if (!el_string_to_i64(tok.lexeme, 10, &val)) {
-            el_diag_report(
-                parser->diag, EL_DIAG_ERROR, "syntax.invalid-number",
-                tok.span,
-                "invalid integer literal"
-            );
-            return NULL;
-        }
+        int64_t val = el_parse_int_lit(parser->diag, tok);
         return el_ast_new_int_literal(parser->aarena, tok.span, val);
     }
 
     if (el_parser_check(parser, EL_TT_FLOAT_LITERAL)) {
         ElToken tok = el_parser_advance(parser);
 
-        long double val = 0.0L;
-        if (!el_string_to_long_double(tok.lexeme, &val)) {
-            el_diag_report(
-                parser->diag, EL_DIAG_ERROR, "syntax.invalid-number",
-                tok.span,
-                "invalid float literal"
-            );
-            return NULL;
-        }
+        long double val = el_string_to_long_double(parser->diag, tok.lexeme, tok.span);
         return el_ast_new_float_literal(parser->aarena, tok.span, val);
     }
 
@@ -144,17 +129,7 @@ ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr) {
         return el_ast_new_member_expr(parser->aarena, span, expr, name_ident.lexeme);
     } else if (el_parser_check(parser, EL_TT_INT_LITERAL)) {
         ElToken index_tok = el_parser_advance(parser);
-        // TODO: i think we need a function for parsing integer literals
-        //       so we'll be able to add for example hex-literals in the
-        //       future without duplicating the same code in many places
-        uint64_t val = 0;
-        if (!el_string_to_u64(index_tok.lexeme, /* NOLINTBEGIN(readability-magic-numbers): SHUT UP CLANG-TIDY */ 10 /* NOLINTEND(readability-magic-numbers) */, &val)) {
-            return el_diag_report(
-                parser->diag, EL_DIAG_ERROR, "syntax.invalid-number",
-                index_tok.span, "invalid integer literal"
-            );
-        }
-
+        uint64_t val = el_parse_int_lit(parser->diag, index_tok);
         ElSourceSpan span = el_srcspan_merge(expr->span, index_tok.span);
         return el_ast_new_tmember_expr(parser->aarena, span, expr, (usize)val, index_tok.span);
     } else {

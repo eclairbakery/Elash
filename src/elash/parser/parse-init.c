@@ -1,7 +1,7 @@
 #include "parser-internals.h"
 
 #include <elash/ast/tree/init.h>
-#include <elash/util/strconv.h>
+#include <elash/sema/intparse.h>
 
 static bool is_designator_start(ElParser* parser) {
     return el_parser_check(parser, EL_TT_DOT) || el_parser_check(parser, EL_TT_LBRACKET);
@@ -37,11 +37,8 @@ static ElAstDesignator* parse_designator(ElParser* parser) {
 
         if (tok.type == EL_TT_INT_LITERAL) {
             el_parser_advance(parser);
-            uint64_t val;
-            // NOLINTNEXTLINE(readability-magic-numbers)
-            if (el_string_to_u64(tok.lexeme, 10, &val)) {
-                return el_ast_new_desig_tmember(parser->aarena, (usize)val);
-            }
+            uint64_t val = el_parse_int_lit(parser->diag, tok);
+            return el_ast_new_desig_tmember(parser->aarena, (usize)val);
         }
 
         _el_parser_report_unexpected(parser, tok);

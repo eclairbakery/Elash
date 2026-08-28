@@ -1,0 +1,17 @@
+int main() {
+    int i = 100'000'000;
+    if (i != 100000000)
+        return 1;
+
+    uint8 x = 0xFF'AB13'27;
+    if (x != 0xFFAB1327)
+        return 2;
+    if (x != 4289401639)
+        return 3;
+
+    float f = 300'124.100'400'123;
+    if (f != 300124.100400123)
+        return 4;
+
+    return 0;
+}

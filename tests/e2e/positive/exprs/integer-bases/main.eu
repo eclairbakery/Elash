@@ -1,0 +1,32 @@
+#const binary      = 0b1111011
+#const octal       = 0o173
+#const decimal     = 123
+#const hexadecimal = 0x7B
+
+#note "binary      =", binary
+#note "octal       =", octal
+#note "decimal     =", decimal
+#note "hexadecimal =", hexadecimal
+
+int main() {
+    if (0b1010 != 10)      return 1;
+    if (0b11111111 != 255) return 2;
+    if (0b0 != 0)          return 3;
+
+    if (0o77 != 63)   return 4;
+    if (0o755 != 493) return 5;
+    if (0o0 != 0)     return 6;
+
+    if (0x1A != 26)               return 7;
+    if (0xFF != 255)              return 8;
+    if (0xDEADBEEF != 3735928559) return 9;
+
+    if ((0b1111 + 0o20 + 0x10) != (15 + 16 + 16)) return 10;
+    if ((0b1010 * 0o12) != (0xA * 10))            return 11;
+
+    if ((0b1100 & 0x0A) != 0b1000)    return 12;
+    if ((0o77 | 0b1000000) != 0o177)  return 13;
+    if ((0xFF <> 0b11110000) != 0x0F) return 14;
+
+    return 0o0;
+}

@@ -199,3 +199,18 @@ Test(el_lexer_happy, comments_kept) {
 
     el_srcdoc_destroy(&doc);
 }
+
+Test(el_lexer_happy, number_literals) {
+    ElSourceDocument doc;
+    el_srcdoc_init_from_str(&doc, EL_SV("100'000'000 3.14'15'92 0x0123456789ABCDEF"), EL_SV("test.eu"));
+
+    ElLexer lexer;
+    el_lexer_init(&lexer, &doc, EL_LF_SKIP_WHITESPACE);
+
+    assert_token(&lexer, EL_TT_INT_LITERAL, "100'000'000");
+    assert_token(&lexer, EL_TT_FLOAT_LITERAL, "3.14'15'92");
+    assert_token(&lexer, EL_TT_INT_LITERAL, "0x0123456789ABCDEF");
+    assert_token(&lexer, EL_TT_EOF, "");
+
+    el_srcdoc_destroy(&doc);
+}

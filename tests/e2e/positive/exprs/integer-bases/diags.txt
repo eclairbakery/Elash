@@ -1,0 +1,4 @@
+6:note: binary      = 123
+7:note: octal       = 123
+8:note: decimal     = 123
+9:note: hexadecimal = 123
