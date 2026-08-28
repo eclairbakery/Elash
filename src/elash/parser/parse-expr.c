@@ -17,6 +17,8 @@
 #include <elash/ast/tree/common/ident.h>
 #include <elash/ast/tree/init.h>
 
+#include <elash/sema/strparse.h>
+
 bool _el_parser_is_type_literal(ElParser* parser) {
     usize idx = 0;
     if (el_parser_peek_at(parser, idx).type == EL_TT_KW_STATIC) idx++;
@@ -75,16 +77,26 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
         return el_ast_new_float_literal(parser->aarena, tok.span, val);
     }
 
+    // TODO: handle compile time concatenation, e.g. "foo" " bar" " baz"
     if (el_parser_check(parser, EL_TT_STRING_LITERAL)) {
         ElToken tok = el_parser_advance(parser);
-        return el_ast_new_string_literal(parser->aarena, tok.span, tok.lexeme);
+
+        char* buf = EL_DYNARENA_NEW_ARR(parser->farena, char, tok.lexeme.len);
+        ElStringView str = el_parse_str_with_escapes(parser->diag, tok, buf);
+        if (el_sv_is_null(str)) return NULL;
+
+        return el_ast_new_string_literal(parser->aarena, tok.span, str);
     }
 
     if (el_parser_check(parser, EL_TT_CHAR_LITERAL)) {
         ElToken tok = el_parser_advance(parser);
+        bool ok;
 
-        char val = tok.lexeme.data[0];
-        return el_ast_new_char_literal(parser->aarena, tok.span, val);
+        char* buf = EL_DYNARENA_NEW_ARR(parser->farena, char, tok.lexeme.len);
+        char c = el_parse_char_with_escapes(parser->diag, tok, buf, &ok);
+        if (!ok) return NULL;
+
+        return el_ast_new_char_literal(parser->aarena, tok.span, c);
     }
 
     if (el_parser_check(parser, EL_TT_TRUE_LITERAL)) {

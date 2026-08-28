@@ -1,0 +1,52 @@
+#var nl = '\n'
+#var str = "Hel\r\nlo\0\"World"
+
+#if nl != '\n'
+    #error "so bad"
+#end
+
+#if str[0] != 'H' || str[3] != '\r' || str[7] != '\0' || str[8] != '\"'
+    #error "string literal"
+#end
+
+int main() {
+    char c1 = '\0';
+    if (c1 != 0)
+        return 1;
+
+    char c2 = '\'';
+    if (c2 != '\'')
+        return 2;
+    if (c2 != 39)
+        return 3;
+
+    char[] s1 = "Hello\nWorld!";
+
+    if (len(s1) != 12)
+        return 4;
+    if (s1[0] != 'H')
+        return 5;
+    if (s1[5] != '\n')
+        return 6;
+    if (s1[5] != 10)
+        return 7;
+
+    char[] s2 = "\n\r\t\"\'\\";
+
+    if (len(s2) != 6)
+        return 8;
+    if (s2[0] != 10) // LF
+        return 9;
+    if (s2[1] != 13) // CR
+        return 10;
+    if (s2[2] != 9)  // HT
+        return 11;
+    if (s2[3] != 34) // "
+        return 12;
+    if (s2[4] != 39) // '
+        return 13;
+    if (s2[5] != 92) // \
+        return 14;
+
+    return 0;
+}

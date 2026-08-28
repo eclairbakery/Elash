@@ -118,6 +118,40 @@ static bool unparse_child(ElUnparser* unpar, ElAstExpr* child, int parent_prec, 
     return el_unparser_unparse_expr(unpar, child);
 }
 
+#define LITERAL_BUFSIZE 2038
+static bool push_escapeified(ElUnparser* unpar, ElTokenType type, ElStringView sv) {
+    char stack_buf[LITERAL_BUFSIZE];
+
+    // the worst case, a string that contains only quotes or backslashes.
+    // theoretically we could first count characters that actually need escaping
+    // but RAM is cheaper than CPU time.
+    usize needed = sv.len * 2;
+    char* buf = (needed <= LITERAL_BUFSIZE)
+        ? stack_buf : malloc(needed);
+
+    if (buf == NULL)
+        return false;
+
+    usize bidx = 0;
+    for (usize i = 0; i < sv.len; ++i) {
+        // we don;t actually need to handle all escapes here. the lexer handles most special characters just fine
+        // inside string/char literals, so we only need to ensure that we don't insert literal quotes or back slashes
+        // (escaping single quotes in string literals / double quotes in char literals is fine.)
+        switch (sv.data[i]) {
+        case '\\': buf[bidx++] = '\\'; buf[bidx++] = '\\'; break;
+        case '\"': buf[bidx++] = '\\'; buf[bidx++] = '\"'; break;
+        case '\'': buf[bidx++] = '\\'; buf[bidx++] = '\''; break;
+        default:
+            buf[bidx++] = sv.data[i];
+            break;
+        }
+    }
+
+    bool success = el_unparser_push(unpar, type, el_sv_from_data_and_len(buf, bidx));
+    if (buf != stack_buf) free(buf);
+    return success;
+}
+
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 static bool unparse_literal(ElUnparser* unpar, ElAstExpr* expr) {
     ElAstLiteral* lit = &expr->as.literal;
@@ -126,22 +160,10 @@ static bool unparse_literal(ElUnparser* unpar, ElAstExpr* expr) {
         return el_unparser_push_fmt(unpar, EL_TT_INT_LITERAL, "%"PRId64, lit->of.int_.value);
     case EL_AST_LIT_FLOAT:
         return el_unparser_push_fmt(unpar, EL_TT_FLOAT_LITERAL, "%lf", lit->of.float_.value);
-    case EL_AST_LIT_CHAR: {
-        char c = lit->of.char_.value;
-        char buf[2];
-        usize len = 0;
-        if (c == '\\' || c == '\'') {
-            buf[0] = '\\';
-            buf[1] = c;
-            len = 2;
-        } else {
-            buf[0] = c;
-            len = 1;
-        }
-        return el_unparser_push(unpar, EL_TT_CHAR_LITERAL, el_sv_from_data_and_len(buf, len));
-    }
+    case EL_AST_LIT_CHAR:
+        return push_escapeified(unpar, EL_TT_CHAR_LITERAL, el_sv_from_data_and_len(&lit->of.char_.value, 1));
     case EL_AST_LIT_STRING:
-        return el_unparser_push(unpar, EL_TT_STRING_LITERAL, lit->of.str_.value);
+        return push_escapeified(unpar, EL_TT_STRING_LITERAL, lit->of.str_.value);
     case EL_AST_LIT_BOOL:
         return el_unparser_push_kw(
             unpar,

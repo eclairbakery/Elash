@@ -128,6 +128,21 @@ Test(el_lexer_happy, operators) {
     el_srcdoc_destroy(&doc);
 }
 
+// lexer should allow char literals with more than one characters,
+// the parser handles verification and parsing escape sequences
+Test(el_lexer_happy, multi_char_literal) {
+    ElSourceDocument doc;
+    el_srcdoc_init_from_str(&doc, EL_SV("'abc'"), EL_SV("test.eu"));
+
+    ElLexer lexer;
+    el_lexer_init(&lexer, &doc, EL_LF_SKIP_WHITESPACE);
+
+    assert_token(&lexer, EL_TT_CHAR_LITERAL, "abc");
+    assert_token(&lexer, EL_TT_EOF, "");
+
+    el_srcdoc_destroy(&doc);
+}
+
 Test(el_lexer_happy, delimiters) {
     ElSourceDocument doc;
     el_srcdoc_init_from_str(&doc, EL_SV("( ) [ ] { } ; : :: , . # ..."), EL_SV("test.eu"));
