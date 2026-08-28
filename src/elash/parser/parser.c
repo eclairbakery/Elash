@@ -98,10 +98,16 @@ ElToken el_parser_expect(ElParser* parser, ElTokenType type) {
     return parser->current;
 }
 
-void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine, ElDynArena* arena) {
+void el_parser_init(
+    ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine,
+    ElDynArena* farena, ElDynArena* aarena
+) {
     parser->tokens = tokens;
     parser->diag = engine;
-    parser->arena = arena;
+
+    parser->farena = farena;
+    parser->aarena = aarena;
+
     parser->current.type = EL_TT_UNKNOWN;
     el_tkque_init(&parser->lookahead);
 

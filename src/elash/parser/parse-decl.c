@@ -21,7 +21,7 @@ static ElAstFuncParamList parse_func_params(ElParser* parser) {
         }
 
         el_ast_func_param_list_append(&params, el_ast_new_func_param(
-            parser->arena,
+            parser->aarena,
             el_srcspan_merge(p_type->span, p_name->span),
             p_type, p_name
         ));
@@ -68,14 +68,14 @@ static ElAstDecl* parse_func_internal_decl(ElParser* parser, ElAstFuncSignature 
         ElAstStmt* body_stmt = _el_parser_parse_block(parser, lbrace_tok);
         ElSourceSpan span = el_srcspan_merge(sig.span, body_stmt->span);
 
-        return el_ast_new_func_def(parser->arena, span, sig, &body_stmt->as.block);
+        return el_ast_new_func_def(parser->aarena, span, sig, &body_stmt->as.block);
     }
 
     ElToken semi_tok = parser->current;
     el_parser_expect(parser, EL_TT_SEMICOLON);
 
     ElSourceSpan span = el_srcspan_merge(sig.span, semi_tok.span);
-    return el_ast_new_func_decl(parser->arena, span, sig);
+    return el_ast_new_func_decl(parser->aarena, span, sig);
 }
 
 static ElAstDeclarator* parse_declarator_list(ElParser* parser, ElAstType* type, bool allow_init) {
@@ -106,7 +106,7 @@ static ElAstDeclarator* parse_declarator_list(ElParser* parser, ElAstType* type,
         }
 
         el_ast_append_declarator(&head, &tail,
-            el_ast_new_declarator(parser->arena, type, name, init));
+            el_ast_new_declarator(parser->aarena, type, name, init));
 
         if (!el_parser_match(parser, EL_TT_COMMA)) break;
     }
@@ -127,7 +127,7 @@ static ElAstDecl* parse_var_internal_decl(ElParser* parser) {
     el_parser_expect(parser, EL_TT_SEMICOLON);
 
     ElSourceSpan span = el_srcspan_merge(type->span, semi_tok.span);
-    return el_ast_new_var_def(parser->arena, span, declarators, is_static);
+    return el_ast_new_var_def(parser->aarena, span, declarators, is_static);
 }
 
 static ElAstDecl* _el_parser_report_incomplete_decl(ElParser* parser, usize idx) {
@@ -167,7 +167,7 @@ static ElAstDecl* parse_extern_decl(ElParser* parser, ElToken extern_tok) {
         el_parser_expect(parser, EL_TT_SEMICOLON);
 
         ElSourceSpan span = el_srcspan_merge(extern_tok.span, semi_tok.span);
-        return el_ast_new_func_decl(parser->arena, span, sig);
+        return el_ast_new_func_decl(parser->aarena, span, sig);
     } else {
         ElAstType* type = _el_parser_parse_type(parser);
         if (type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
@@ -179,7 +179,7 @@ static ElAstDecl* parse_extern_decl(ElParser* parser, ElToken extern_tok) {
         el_parser_expect(parser, EL_TT_SEMICOLON);
 
         ElSourceSpan span = el_srcspan_merge(extern_tok.span, semi_tok.span);
-        return el_ast_new_var_decl(parser->arena, span, declarators);
+        return el_ast_new_var_decl(parser->aarena, span, declarators);
     }
 }
 
@@ -196,7 +196,7 @@ static ElAstDecl* parse_alias_decl(ElParser* parser, ElToken alias_tok) {
     ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
 
     ElSourceSpan span = el_srcspan_merge(alias_tok.span, semi_tok.span);
-    return el_ast_new_alias(parser->arena, span, name_tok.lexeme, *target);
+    return el_ast_new_alias(parser->aarena, span, name_tok.lexeme, *target);
 }
 
 // 100% not just copy pased from the function above (no idea how to dedup this)
@@ -213,7 +213,7 @@ static ElAstDecl* parse_typedef_decl(ElParser* parser, ElToken typedef_tok) {
     ElToken semi_tok = el_parser_expect(parser, EL_TT_SEMICOLON);
 
     ElSourceSpan span = el_srcspan_merge(typedef_tok.span, semi_tok.span);
-    return el_ast_new_typedef(parser->arena, span, name_tok.lexeme, target);
+    return el_ast_new_typedef(parser->aarena, span, name_tok.lexeme, target);
 }
 
 static ElAstDecl* el_parser_parse_internal_decl(ElParser* parser) {
