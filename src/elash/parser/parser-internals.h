@@ -22,6 +22,8 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser);
 ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr);
 ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee);
 
+bool _el_parser_parse_const_idx(ElParser* parser, ElToken tok, usize* out);
+
 typedef enum ElParseAmbigKind {
     EL_PARSE_AMBIG_TYPE,
     EL_PARSE_AMBIG_EXPR,

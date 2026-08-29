@@ -19,7 +19,7 @@ Test(pp_scope, basic_usage) {
         .name = EL_SV("foo"),
         .as.var.v = EL_DYNARENA_NEW_STRUCT(&arena, ElPpValue, {
             .type = EL_PP_TYPE_INT,
-            .as.int_ = 42,
+            .as.int_ = EL_INT128(42),
         }),
     };
 
@@ -29,7 +29,7 @@ Test(pp_scope, basic_usage) {
     ElPpSymbol* lookup_result = el_pp_scope_lookup(scope, key);
     cr_assert_not_null(lookup_result);
     cr_assert_eq(lookup_result, &var1);
-    cr_assert_eq(lookup_result->as.var.v->as.int_, 42);
+    cr_assert(el_i128_eq(lookup_result->as.var.v->as.int_, EL_INT128(42)));
 
     cr_assert(el_pp_scope_deassign(scope, key));
     cr_assert_null(el_pp_scope_lookup(scope, key));
@@ -44,8 +44,8 @@ Test(pp_scope, nested_lookup) {
     ElPpSymbol var_parent = {
         .name = EL_SV("foo"),
         .as.var.v = EL_DYNARENA_NEW_STRUCT(&arena, ElPpValue, {
-            .type = EL_PP_TYPE_INT,
-            .as.int_ = 100,
+            .type = EL_PP_TYPE_CHAR,
+            .as.char_ = 'Q',
         }),
     };
 

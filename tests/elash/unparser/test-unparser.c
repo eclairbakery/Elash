@@ -24,7 +24,7 @@ Test(el_unparser, null_span_int_literal) {
     el_tkbuf_init(&toks);
     el_unparser_init(&unparser, &toks, &arena);
 
-    ElAstExpr* lit = el_ast_new_int_literal(&arena, EL_SRCSPAN_NULL, 42);
+    ElAstExpr* lit = el_ast_new_int_literal(&arena, EL_SRCSPAN_NULL, EL_INT128(42));
 
     bool success = el_unparser_unparse_expr(&unparser, lit);
     cr_assert(success);

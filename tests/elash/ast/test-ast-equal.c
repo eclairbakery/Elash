@@ -71,8 +71,8 @@ Test(ast_equal, integration_test) {
 /// --- normal cases ---
 Test(ast_equal, literals) {
     // int
-    cr_assert(el_ast_equal_expr(el_ast_new_int_literal(&arena, span, 0), el_ast_new_int_literal(&arena, span, 0)));
-    cr_assert(!el_ast_equal_expr(el_ast_new_int_literal(&arena, span, 0), el_ast_new_int_literal(&arena, span, 1)));
+    cr_assert(el_ast_equal_expr(el_ast_new_int_literal(&arena, span,  EL_INT128(0)), el_ast_new_int_literal(&arena, span, EL_INT128(0))));
+    cr_assert(!el_ast_equal_expr(el_ast_new_int_literal(&arena, span, EL_INT128(0)), el_ast_new_int_literal(&arena, span, EL_INT128(1))));
 
     // string
     cr_assert(el_ast_equal_expr(el_ast_new_string_literal(&arena, span, el_sv_from_cstr("a")), el_ast_new_string_literal(&arena, span, el_sv_from_cstr("a"))));
@@ -88,15 +88,18 @@ Test(ast_equal, nulls) {
 
 Test(ast_equal, expressions) {
     // (1 + 2) * 3
-    ElAstExpr* one = el_ast_new_int_literal(&arena, span, 1);
-    ElAstExpr* two = el_ast_new_int_literal(&arena, span, 2);
-    ElAstExpr* three = el_ast_new_int_literal(&arena, span, 3);
+    ElAstExpr* one = el_ast_new_int_literal(&arena, span,   EL_INT128(1));
+    ElAstExpr* two = el_ast_new_int_literal(&arena, span,   EL_INT128(2));
+    ElAstExpr* three = el_ast_new_int_literal(&arena, span, EL_INT128(3));
 
     ElAstExpr* plus = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_ADD, one, two);
     ElAstExpr* mul = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_MUL, plus, three);
 
-    ElAstExpr* plus2 = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_ADD, el_ast_new_int_literal(&arena, span, 1), el_ast_new_int_literal(&arena, span, 2));
-    ElAstExpr* mul2 = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_MUL, plus2, el_ast_new_int_literal(&arena, span, 3));
+    ElAstExpr* plus2 = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_ADD,
+        el_ast_new_int_literal(&arena, span, EL_INT128(1)), el_ast_new_int_literal(&arena, span, EL_INT128(2)));
+
+    ElAstExpr* mul2 = el_ast_new_bin_expr(&arena, span, EL_SEMA_BIN_OP_MUL, plus2,
+            el_ast_new_int_literal(&arena, span, EL_INT128(3)));
 
     cr_assert(el_ast_equal_expr(mul, mul2));
 

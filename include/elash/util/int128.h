@@ -1,6 +1,8 @@
 #pragma once
 
+#include <elash/defs/int-types.h>
 #include <elash/defs/platform.h>
+#include <elash/defs/sv.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -123,6 +125,8 @@
     static inline uint64_t el_u128_hi(ElUint128 v) { return (uint64_t)(v.v >> 64); }
     // NOLINTEND(readability-magic-numbers)
 
+    static inline double el_i128_to_double(ElInt128 v) { return (double)v.v; }
+
     #undef i128
     #undef u128
     #if EL_GCC_EXTENSIONS
@@ -151,6 +155,8 @@
     #define INT128_MAX         EL_INT128_H(0xFFFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL)
     #define UINT128_MAX        EL_UINT128_H(0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL)
 
+ElUint128 el_i128_abs_u128(ElInt128 v);
+
 static inline uint64_t el_i128_lo(ElInt128 v)  { return v.lo; }
 static inline uint64_t el_i128_hi(ElInt128 v)  { return v.hi; }
 static inline uint64_t el_u128_lo(ElUint128 v) { return v.lo; }
@@ -158,16 +164,6 @@ static inline uint64_t el_u128_hi(ElUint128 v) { return v.hi; }
 
 _EL_I128_API ElUint128 el_u128_neg(ElUint128 x);
 _EL_I128_API bool el_i128_lt(ElInt128 lhs, ElInt128 rhs);
-
-_EL_I128_API ElUint128 el_i128_abs_u128(ElInt128 v)
-{
-	if (el_i128_lt(v, EL_INT128(0))) {
-		ElUint128 uv = { .lo = v.lo, .hi = v.hi };
-		return el_u128_neg(uv);
-	}
-
-	return (ElUint128){ .lo = v.lo, .hi = v.hi };
-}
 
 // emulated 128-bit arithmetic
 // stolen from https://github.com/aeldidi/ElInt128/blob/main/int128.h
@@ -208,9 +204,7 @@ _EL_I128_API bool el_i128_lt(ElInt128 lhs, ElInt128 rhs)
 	cvt2.u = rhs.hi;
 
 	if (cvt.i == cvt2.i) {
-		cvt.u = lhs.lo;
-		cvt2.u = rhs.lo;
-		return cvt.i < cvt2.i;
+		return lhs.lo < rhs.lo;
 	}
 
 	return cvt.i < cvt2.i;
@@ -232,9 +226,7 @@ _EL_I128_API bool el_i128_gt(ElInt128 lhs, ElInt128 rhs)
 	cvt2.u = rhs.hi;
 
 	if (cvt.i == cvt2.i) {
-		cvt.u = lhs.lo;
-		cvt2.u = rhs.lo;
-		return cvt.i > cvt2.i;
+		return lhs.lo > rhs.lo;
 	}
 
 	return cvt.i > cvt2.i;
@@ -855,9 +847,32 @@ _EL_I128_API ElInt128 el_i128_mod(ElInt128 lhs, ElInt128 rhs)
 	return result;
 }
 
+
+_EL_I128_API double el_i128_to_double(ElInt128 v) {
+    const double TWO_POW_64 = 18446744073709551616.0;
+    if ((int64_t)v.hi < 0) {
+        ElUint128 u = el_i128_abs_u128(v);
+        double d = (double)u.hi * TWO_POW_64 + (double)u.lo;
+        return -d;
+    } else {
+        return (double)v.hi * TWO_POW_64 + (double)v.lo;
+    }
+}
+
 #endif
+
+static inline ElUint128 el_i128_bitcast_u128(ElInt128 v)  { return EL_UINT128_H(el_i128_lo(v), el_i128_hi(v)); }
+static inline ElInt128  el_u128_bitcast_i128(ElUint128 v) { return EL_INT128_H(el_u128_lo(v),  el_u128_hi(v)); }
+
+ElUint128 el_i128_abs_u128(ElInt128 v);
 
 // NOLINTBEGIN(readability-magic-numbers): clueless
 _Static_assert(sizeof(ElInt128)  == 16, "ElInt128 should be exactly 16 bytes");
 _Static_assert(sizeof(ElUint128) == 16, "ElUint128 should be exactly 16 bytes");
 // NOLINTEND(readability-magic-numbers)
+
+// NOLINTBEGIN(readability-magic-numbers)
+ElStringView el_i128_to_string(ElInt128 x,  uint base, char* buf);
+ElStringView el_u128_to_string(ElUint128 x, uint base, char* buf);
+// NOLINTEND(readability-magic-numbers)
+

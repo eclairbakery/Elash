@@ -102,19 +102,33 @@ bool _el_binder_eval_const_index(ElBinder* binder, ElAstExpr* expr, usize* out_i
     ElHirExpr* bound = el_binder_bind_expr(binder, expr);
     if (bound == NULL) return false;
 
+    ElInt128 val;
     if (bound->kind == EL_HIR_EXPR_LITERAL && bound->as.literal.kind == EL_HIR_LITERAL_INT) {
-        int64_t val = bound->as.literal.of.int_;
-        if (val < 0) return false;
-        *out_idx = (usize)val;
-        return true;
+        val = bound->as.literal.of.int_;
+        goto common;
     }
+
     if (bound->kind == EL_HIR_EXPR_CONST) {
-        int64_t val = bound->as.constant.as.int_;
-        if (val < 0) return false;
-        *out_idx = (usize)val;
-        return true;
+        val = bound->as.constant.as.int_;
+        goto common;
     }
+
     return false;
+
+common:
+    // TODO: this sucks. we should add some helper like el_i128_sign or el_128_is_neg
+    if (el_i128_lt(val, EL_INT128(0))) return false;
+
+    if (el_i128_ge(val, EL_INT128(SIZE_MAX))) {
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.overflow",
+            bound->span, "integer constant value too high to represent an array index"
+        );
+    }
+
+    *out_idx = (usize)el_i128_lo(val);
+    return true;
+
 }
 
 bool _el_binder_ensure_complete(ElBinder* binder, ElSourceSpan span, ElHirType* type) {

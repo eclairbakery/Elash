@@ -276,3 +276,31 @@ Test(el_int128, modulo) {
     cr_assert_i128_eq(el_i128_mod(min_val, min_val), zero);
     cr_assert_i128_eq(el_i128_mod(min_val, max_val), EL_INT128(-1));
 }
+
+// NOLINTBEGIN(readability-magic-numbers): Never gonna give you up
+Test(el_int128, to_string) {
+    char buf[128];
+
+    ElUint128 foo = EL_UINT128(12345);
+    ElStringView sfoo = el_u128_to_string(foo, 10, buf);
+    cr_assert(el_sv_eql(sfoo, EL_SV("12345")));
+
+    ElStringView hfoo = el_u128_to_string(foo, 16, buf);
+    cr_assert(el_sv_eql(hfoo, EL_SV("3039")));
+
+    ElInt128 bar = EL_INT128(12345);
+    ElStringView sbar = el_i128_to_string(bar, 10, buf);
+    cr_assert(el_sv_eql(sbar, EL_SV("12345")));
+
+    ElInt128 baz = EL_INT128(-12345);
+    ElStringView sbaz = el_i128_to_string(baz, 10, buf);
+    cr_assert(el_sv_eql(sbaz, EL_SV("-12345")));
+
+    ElStringView hbaz = el_i128_to_string(baz, 36, buf);
+    cr_assert(el_sv_eql(hbaz, EL_SV("-9ix")));
+
+    ElUint128 qux = EL_UINT128(0);
+    ElStringView squx = el_u128_to_string(qux, 14, buf);
+    cr_assert(el_sv_eql(squx, EL_SV("0")));
+}
+// NOLINTEND(readability-magic-numbers)

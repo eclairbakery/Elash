@@ -7,6 +7,7 @@
 
 #include <elash/sema/bin-op.h>
 #include <elash/sema/unary-op.h>
+#include <elash/util/int128.h>
 
 #include <inttypes.h>
 #include <elash/defs/sv.h>
@@ -14,7 +15,7 @@
 void dump_constant(ElHirExpr* node, ElHirType* type, FILE* out) {
     if (type->kind == EL_HIR_TYPE_PRIM) {
         switch (type->as.prim.kind) {
-        case EL_PRIMTYPE_INT:   fprintf(out, "%"PRId64, node->as.constant.as.int_);        return;
+        case EL_PRIMTYPE_INT:   fprintf(out, "%" PRId64, (int64_t)el_i128_lo(node->as.constant.as.int_)); return;
         case EL_PRIMTYPE_FLOAT: fprintf(out, "%lf", node->as.constant.as.float_);          return;
         case EL_PRIMTYPE_BOOL:  fputs(node->as.constant.as.bool_ ? "true" : "false", out); return;
         case EL_PRIMTYPE_VOID:  EL_UNREACHABLE("void literal");                            return;
@@ -28,7 +29,7 @@ void dump_constant(ElHirExpr* node, ElHirType* type, FILE* out) {
             && orig->as.prim.as.integral.is_signed == false;
 
         if (is_char) {
-            fprintf(out, "%c", (char)node->as.constant.as.int_);
+            fprintf(out, "%c", (char)el_i128_lo(node->as.constant.as.int_));
             return;
         } else {
             return dump_constant(node, orig, out);
@@ -118,11 +119,15 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
 
     case EL_HIR_EXPR_LITERAL:
         switch (node->as.literal.kind) {
-            case EL_HIR_LITERAL_INT:    fprintf(out, "%"PRId64, node->as.literal.of.int_);        break;
-            case EL_HIR_LITERAL_FLOAT:  fprintf(out, "%lf", node->as.literal.of.float_);          break;
-            case EL_HIR_LITERAL_CHAR:   fprintf(out, "'%c'", node->as.literal.of.char_);          break;
-            case EL_HIR_LITERAL_BOOL:   fputs(node->as.literal.of.bool_ ? "true" : "false", out); break;
-            case EL_HIR_LITERAL_STRING: el_sv_print(node->as.literal.of.str_, out);               break;
+        case EL_HIR_LITERAL_INT:
+            // NOLINTBEGIN(readability-magic-numbers): We're no strangers to love
+            el_sv_print(el_i128_to_string(node->as.literal.of.int_, 10, (char[42]){}), out);
+            break;
+            // NOLINTEND(readability-magic-numbers)
+        case EL_HIR_LITERAL_FLOAT:  fprintf(out, "%lf", node->as.literal.of.float_);          break;
+        case EL_HIR_LITERAL_CHAR:   fprintf(out, "'%c'", node->as.literal.of.char_);          break;
+        case EL_HIR_LITERAL_BOOL:   fputs(node->as.literal.of.bool_ ? "true" : "false", out); break;
+        case EL_HIR_LITERAL_STRING: el_sv_print(node->as.literal.of.str_, out);               break;
         }
         break;
 

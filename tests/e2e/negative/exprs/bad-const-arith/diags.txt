@@ -1,0 +1,2 @@
+2:error[sema.div-by-zero]
+3:warning[sema.overflow]

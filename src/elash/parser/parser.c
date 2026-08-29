@@ -3,6 +3,8 @@
 #include <elash/diag/meta.h>
 #include <elash/lexer/token.h>
 
+#include <elash/sema/intparse.h>
+
 void _el_parser_report_expected(ElParser* parser, ElTokenType expected) {
     el_diag_report(
         parser->diag, EL_DIAG_ERROR, "syntax.expected-token",
@@ -116,4 +118,18 @@ void el_parser_init(
 
 void el_parser_destroy(ElParser* parser) {
     el_tkque_destroy(&parser->lookahead);
+}
+
+bool _el_parser_parse_const_idx(ElParser* parser, ElToken tok, usize* out) {
+    ElInt128 val = el_parse_int_lit(parser->diag, tok);
+
+    if (el_i128_gt(val, EL_INT128(SIZE_MAX))) {
+        return el_diag_report(
+            parser->diag, EL_DIAG_ERROR, "syntax.index-overflow",
+            tok.span, "integer value too high to be used as a tuple member expression",
+        );
+    }
+
+    *out = el_i128_lo(val);
+    return true;
 }

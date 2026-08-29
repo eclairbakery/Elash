@@ -11,7 +11,7 @@ static void report_invalid_prefix(ElDiagEngine* diag, ElSourceSpan span, char c)
     );
 }
 
-int64_t el_parse_int_lit(ElDiagEngine* diag, ElToken tok) {
+ElInt128 el_parse_int_lit(ElDiagEngine* diag, ElToken tok) {
     ElStringView sv = tok.lexeme;
 
     // NOLINTBEGIN(readability-magic-numbers): i hate clang-tidy
@@ -40,11 +40,11 @@ int64_t el_parse_int_lit(ElDiagEngine* diag, ElToken tok) {
                 diag, "integer base prefixes in elash must be lower case, did you mean '0${lc}'?",
                 EL_DIAG_CHAR("lc", tolower(sv.data[1])),
             );
-            return 0;
+            return EL_INT128(0);
         default:
             if (!isdigit((unsigned char)sv.data[1])) {
                 report_invalid_prefix(diag, tok.span, sv.data[1]);
-                return 0;
+                return EL_INT128(0);
             }
             break;
         }
@@ -52,5 +52,5 @@ int64_t el_parse_int_lit(ElDiagEngine* diag, ElToken tok) {
     // NOLINTEND(readability-magic-numbers): ok ok
 
     ElStringView parsed_sv = el_sv_window(sv, start, sv.len - start);
-    return el_string_to_i64(diag, parsed_sv, base, tok.span);
+    return el_string_to_i128(diag, parsed_sv, base, tok.span);
 }

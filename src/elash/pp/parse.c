@@ -151,7 +151,7 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
 
     switch (tok.type) {
     case EL_TT_INT_LITERAL: {
-        int64_t val = el_parse_int_lit(pp->diag, tok);
+        ElInt128 val = el_parse_int_lit(pp->diag, tok);
         return _el_pp_new_int(pp->iarena, val);
     }
     case EL_TT_FLOAT_LITERAL: {

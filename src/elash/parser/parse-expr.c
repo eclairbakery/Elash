@@ -51,7 +51,7 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_INT_LITERAL)) {
         ElToken tok = el_parser_advance(parser);
 
-        int64_t val = el_parse_int_lit(parser->diag, tok);
+        ElInt128 val = el_parse_int_lit(parser->diag, tok);
         return el_ast_new_int_literal(parser->aarena, tok.span, val);
     }
 
@@ -129,9 +129,13 @@ ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr) {
         return el_ast_new_member_expr(parser->aarena, span, expr, name_ident.lexeme);
     } else if (el_parser_check(parser, EL_TT_INT_LITERAL)) {
         ElToken index_tok = el_parser_advance(parser);
-        uint64_t val = el_parse_int_lit(parser->diag, index_tok);
+        usize index;
+        if (!_el_parser_parse_const_idx(parser, index_tok, &index)) {
+            return NULL;
+        }
+
         ElSourceSpan span = el_srcspan_merge(expr->span, index_tok.span);
-        return el_ast_new_tmember_expr(parser->aarena, span, expr, (usize)val, index_tok.span);
+        return el_ast_new_tmember_expr(parser->aarena, span, expr, index, index_tok.span);
     } else {
         el_parser_expect(parser, EL_TT_IDENT);
         return NULL;

@@ -60,7 +60,7 @@ bool el_ast_equal_expr(const ElAstExpr* a, const ElAstExpr* b) {
     case EL_AST_EXPR_LITERAL:
         if (a->as.literal.type != b->as.literal.type) return false;
         switch (a->as.literal.type) {
-            case EL_AST_LIT_INT: return a->as.literal.of.int_.value == b->as.literal.of.int_.value;
+            case EL_AST_LIT_INT: return el_i128_eq(a->as.literal.of.int_.value, b->as.literal.of.int_.value);
             case EL_AST_LIT_FLOAT: return a->as.literal.of.float_.value == b->as.literal.of.float_.value;
             case EL_AST_LIT_CHAR: return a->as.literal.of.char_.value == b->as.literal.of.char_.value;
             case EL_AST_LIT_STRING: return el_sv_eql(a->as.literal.of.str_.value, b->as.literal.of.str_.value);

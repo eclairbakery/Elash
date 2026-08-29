@@ -5,11 +5,12 @@
 #define MIN_BASE 2
 #define MAX_BASE 32
 
-uint64_t el_string_to_u64(ElDiagEngine* engine, ElStringView str, uint base, ElSourceSpan span) {
-    EL_ASSERT(str.len != 0, "empty string passed to el_string_to_u64");
+ElUint128 el_string_to_u128(ElDiagEngine* engine, ElStringView str, uint base, ElSourceSpan span) {
+    EL_ASSERT(str.len != 0, "empty string passed to el_string_to_u128");
     EL_ASSERT(base >= MIN_BASE && base <= MAX_BASE, "invalid base range");
 
-    uint64_t res = 0;
+    ElUint128 res = EL_UINT128(0);
+    ElUint128 base128 = EL_UINT128(base);
     bool has_digits = false;
     for (usize i = 0; i < str.len; i++) {
         char c = str.data[i];
@@ -23,14 +24,18 @@ uint64_t el_string_to_u64(ElDiagEngine* engine, ElStringView str, uint base, ElS
         }
 
         if (digit >= 0 && digit < (int) base) {
-            if (res > (UINT64_MAX - (uint64_t) digit) / base) {
+            ElUint128 digit128 = EL_UINT128(digit);
+            ElUint128 max_val = UINT128_MAX;
+            ElUint128 threshold = el_u128_div(el_u128_sub(max_val, digit128), base128);
+
+            if (el_u128_gt(res, threshold)) {
                 el_diag_report(
                     engine, EL_DIAG_ERROR, "syntax.invalid-number", span,
                     "literal value exceeds maximum representable value"
                 );
-                return 0;
+                return EL_UINT128(0);
             }
-            res = (res * base) + (uint64_t) digit;
+            res = el_u128_add(el_u128_mul(res, base128), digit128);
             has_digits = true;
         } else if (c == '\'') {
            continue;
@@ -41,7 +46,7 @@ uint64_t el_string_to_u64(ElDiagEngine* engine, ElStringView str, uint base, ElS
                 EL_DIAG_CHAR("char", c),
                 EL_DIAG_INT("base", (int)base),
             );
-            return 0;
+            return EL_UINT128(0);
         }
     }
 
@@ -49,8 +54,8 @@ uint64_t el_string_to_u64(ElDiagEngine* engine, ElStringView str, uint base, ElS
     return res;
 }
 
-int64_t el_string_to_i64(ElDiagEngine* engine, ElStringView str, uint base, ElSourceSpan span) {
-    EL_ASSERT(str.len != 0, "empty string passed to el_string_to_i64");
+ElInt128 el_string_to_i128(ElDiagEngine* engine, ElStringView str, uint base, ElSourceSpan span) {
+    EL_ASSERT(str.len != 0, "empty string passed to el_string_to_i128");
     EL_ASSERT(base >= MIN_BASE && base <= MAX_BASE, "invalid base range");
 
     bool negative = false;
@@ -68,35 +73,39 @@ int64_t el_string_to_i64(ElDiagEngine* engine, ElStringView str, uint base, ElSo
             engine, EL_DIAG_ERROR, "syntax.invalid-number", span,
             "numeric literal consists only of a sign; digits are required"
         );
-        return 0;
+        return EL_INT128(0);
     }
 
     ElStringView absolute = { .data = str.data + start, .len = str.len - start };
-    uint64_t ures = el_string_to_u64(engine, absolute, base, span);
-    if (el_diag_engine_has_errors(engine)) return 0;
+    ElUint128 ures = el_string_to_u128(engine, absolute, base, span);
+    if (el_diag_engine_has_errors(engine)) return EL_INT128(0);
 
     if (negative) {
-        if (ures > (uint64_t) INT64_MAX + 1) {
+        ElUint128 min_abs = el_i128_abs_u128(INT128_MIN);
+        
+        if (el_u128_gt(ures, min_abs)) {
             el_diag_report(
                 engine, EL_DIAG_ERROR, "syntax.invalid-number", span,
-                "literal value exceeds minimum representable value for 64-bit signed integer"
+                "literal value exceeds minimum representable value for 128-bit signed integer"
             );
-            return 0;
+            return EL_INT128(0);
         }
-        if (ures == (uint64_t) INT64_MAX + 1) {
-            return INT64_MIN;
+        
+        if (el_u128_eq(ures, min_abs)) {
+            return INT128_MIN;
         } else {
-            return -(int64_t) ures;
+            return el_i128_neg(el_u128_bitcast_i128(ures));
         }
     } else {
-        if (ures > (uint64_t) INT64_MAX) {
+        ElUint128 max_val = el_i128_bitcast_u128(INT128_MAX);
+        if (el_u128_gt(ures, max_val)) {
             el_diag_report(
                 engine, EL_DIAG_ERROR, "syntax.invalid-number", span,
-                "literal value exceeds maximum representable value for 64-bit signed integer"
+                "literal value exceeds maximum representable value for 128-bit signed integer"
             );
-            return 0;
+            return EL_INT128(0);
         }
-        return (int64_t) ures;
+        return el_u128_bitcast_i128(ures);
     }
 }
 
@@ -209,7 +218,7 @@ static bool parse_exp_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView
 }
 
 long double el_string_to_long_double(ElDiagEngine* engine, ElStringView str, ElSourceSpan span) {
-    EL_ASSERT(str.len != 0, "empty string passed to el_string_to_u64");
+    EL_ASSERT(str.len != 0, "empty string passed to el_string_to_u128");
 
     usize i = 0;
     bool neg = false;

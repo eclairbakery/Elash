@@ -3,7 +3,7 @@
 
 #include <elash/util/assert.h>
 
-ElHirExpr* el_hir_new_int_lit(ElDynArena* arena, ElSourceSpan span, int64_t value) {
+ElHirExpr* el_hir_new_int_lit(ElDynArena* arena, ElSourceSpan span, ElInt128 value) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
         .kind = EL_HIR_EXPR_LITERAL,
         .type = NULL,

@@ -11,29 +11,11 @@ static ElHirType* bind_array_type(ElBinder* binder, ElAstArrayType* array) {
     if (!_el_binder_ensure_complete(binder, array->base->span, base))
         return NULL;
 
-    ElHirExpr* size_hir = el_binder_bind_expr(binder, array->size);
-    if (size_hir == NULL) return NULL;
+    usize size;
+    if (!_el_binder_eval_const_index(binder, array->size, &size))
+        return NULL;
 
-    ElHirExpr* actual_size_hir = _el_binder_implicit_cast(binder, array->size->span, size_hir, binder->builtins->type_usize);
-    if (actual_size_hir == NULL) return NULL;
-
-    if (actual_size_hir->kind != EL_HIR_EXPR_CONST) {
-        return el_diag_report(
-            binder->diag, EL_DIAG_ERROR, "sema.invalid-array-size",
-            array->size->span,
-            "array size must be a compile-time constant"
-        );
-    }
-
-    int64_t size_val = actual_size_hir->as.constant.as.int_;
-    if (size_val < 0)
-        return el_diag_report(
-            binder->diag, EL_DIAG_ERROR, "sema.invalid-array-size",
-            array->size->span,
-            "array size must be positive"
-        );
-
-    return el_hir_new_array_type(binder->arena, base, (usize)size_val);
+    return el_hir_new_array_type(binder->arena, base, size);
 }
 
 static usize count_struct_fields(ElAstStructType* struct_) {

@@ -124,7 +124,7 @@ static ElMirValue* _el_lowerer_lower_incdec(ElLowerer* lw, ElHirUnaryExpr* expr)
         one_lit.as.float_ = 1.0;
     } else {
         one_lit.kind = EL_MIR_CONST_INT;
-        one_lit.as.int_ = 1;
+        one_lit.as.int_ = EL_INT128(1);
     }
     ElMirValue* one = el_mir_new_const(lw->arena, val_type, one_lit);
 
@@ -156,7 +156,7 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
         ElMirValue* lhs = el_lowerer_lower_expr(lw, bin->left);
 
         if (bin->op == EL_SEMA_BIN_OP_IMP) {
-            ElMirConstant true_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = 1 };
+            ElMirConstant true_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = EL_INT128(1) };
             ElMirValue* true_val = el_mir_new_const(lw->arena, mir_type, true_lit);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_store_instr(lw->arena, res_ptr, true_val));
         } else {
@@ -339,7 +339,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
         if (type->as.prim.kind == EL_PRIMTYPE_INT) {
             mir_const.as.int_ = hir->as.constant.as.int_;
         } else if (type->as.prim.kind == EL_PRIMTYPE_BOOL) {
-            mir_const.as.int_ = hir->as.constant.as.bool_ ? 1 : 0;
+            mir_const.as.int_ = EL_INT128(hir->as.constant.as.bool_ ? 1 : 0);
         } else if (type->as.prim.kind == EL_PRIMTYPE_FLOAT) {
             mir_const.as.float_ = hir->as.constant.as.float_;
         } else {

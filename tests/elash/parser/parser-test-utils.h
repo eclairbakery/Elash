@@ -4,9 +4,9 @@
 
 #include <stdlib.h>
 
-#define assert_int_lit(LIT, EXPECTED) do {                   \
-    cr_assert_eq((LIT)->as.literal.type, EL_AST_LIT_INT);    \
-    cr_assert_eq((LIT)->as.literal.of.int_.value, EXPECTED); \
+#define assert_int_lit(LIT, EXPECTED) do {                            \
+    cr_assert_eq((LIT)->as.literal.type, EL_AST_LIT_INT);             \
+    cr_assert(el_i128_eq((LIT)->as.literal.of.int_.value, EXPECTED)); \
 } while (0)
 
 #define assert_char_lit(LIT, EXPECTED) do {                   \

@@ -71,7 +71,7 @@ static ElAstExpr* gen_literal(ElDynArena* arena) {
     //       and causes assertion errors. change that 5 to 6 once null
     //       literals have been implemented.
     switch (rand() % 5) {
-    case 0: return el_ast_new_int_literal(arena, NSPAN, rand() % 100);
+    case 0: return el_ast_new_int_literal(arena, NSPAN, EL_INT128(rand() % 100));
     case 1: return el_ast_new_float_literal(arena, NSPAN, (long double)(rand() % 100) / 10.0);
     case 2: return el_ast_new_char_literal(arena, NSPAN, (char)('a' + (rand() % 26)));
     case 3: return el_ast_new_string_literal(arena, NSPAN, el_sv_from_cstr("str"));

@@ -2,6 +2,6 @@
 
 #include <elash/diag/engine.h>
 #include <elash/lexer/token.h>
-#include <stdint.h>
+#include <elash/util/int128.h>
 
-int64_t el_parse_int_lit(ElDiagEngine* diag, ElToken tok);
+ElInt128 el_parse_int_lit(ElDiagEngine* diag, ElToken tok);

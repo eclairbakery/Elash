@@ -21,7 +21,10 @@ void el_ast_dump_expr_literal(ElAstLiteral* lit, usize indent, FILE* out) {
         fprintf(out, "CharLiteral(%c)\n", lit->of.char_.value);
         break;
     case EL_AST_LIT_INT:
-        fprintf(out, "IntLiteral(%"PRId64")\n", lit->of.int_.value);
+        // NOLINTBEGIN(readability-magic-numbers): You know the rules and so do I
+        el_sv_print(el_i128_to_string(lit->of.int_.value, 10, (char[42]){}), out);
+        fputc('\n', out);
+        // NOLINTEND(readability-magic-numbers)
         break;
     case EL_AST_LIT_FLOAT:
         fprintf(out, "FloatLiteral(%lf)\n", lit->of.float_.value);

@@ -10,7 +10,7 @@ static ElAstExpr* el_ast_new_literal_wrapper(ElDynArena* arena, ElSourceSpan spa
     });
 }
 
-ElAstLiteral el_ast_int_literal(int64_t value) {
+ElAstLiteral el_ast_int_literal(ElInt128 value) {
     return (ElAstLiteral) {
         .type = EL_AST_LIT_INT,
         .of.int_.value = value,
@@ -51,7 +51,7 @@ ElAstLiteral el_ast_null_literal(void) {
     };
 }
 
-ElAstExpr* el_ast_new_int_literal(ElDynArena* arena, ElSourceSpan span, int64_t value) {
+ElAstExpr* el_ast_new_int_literal(ElDynArena* arena, ElSourceSpan span, ElInt128 value) {
     return el_ast_new_literal_wrapper(arena, span, el_ast_int_literal(value));
 }
 

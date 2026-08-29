@@ -50,20 +50,21 @@ static bool is_int_float_compar(ElPpType ltype, ElPpType rtype) {
         && (rtype == EL_PP_TYPE_INT || rtype == EL_PP_TYPE_FLOAT);
 }
 
-#define FOOBARBAZ(OP) do {                                                                \
-    if (lhs->type == EL_PP_TYPE_INT && rhs->type == EL_PP_TYPE_INT) {                     \
-        return lhs->as.int_ OP rhs->as.int_;                                              \
-    }                                                                                     \
-    if (is_int_float_compar(lhs->type, rhs->type)) {                                      \
-        double l = (lhs->type == EL_PP_TYPE_INT) ? (double)lhs->as.int_ : lhs->as.float_; \
-        double r = (rhs->type == EL_PP_TYPE_INT) ? (double)rhs->as.int_ : rhs->as.float_; \
-        return l OP r;                                                                    \
-    }                                                                                     \
+#define FOOBARBAZ(INT_FUNC, FLOAT_OP) do {                                                           \
+    if (lhs->type == EL_PP_TYPE_INT && rhs->type == EL_PP_TYPE_INT) {                                \
+        return INT_FUNC(lhs->as.int_, rhs->as.int_);                                                 \
+    }                                                                                                \
+    if (is_int_float_compar(lhs->type, rhs->type)) {                                                 \
+        double l = (lhs->type == EL_PP_TYPE_INT) ? el_i128_to_double(lhs->as.int_) : lhs->as.float_; \
+        double r = (rhs->type == EL_PP_TYPE_INT) ? el_i128_to_double(rhs->as.int_) : rhs->as.float_; \
+        return l FLOAT_OP r;                                                                         \
+    }                                                                                                \
 } while (0)
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): clang-tidy has no idea what cognitive complexity even is.
 bool _el_pp_value_eq(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span) {
     if (lhs->type != rhs->type) {
-        FOOBARBAZ(==);
+        FOOBARBAZ(el_i128_eq, ==);
 
         return el_diag_report(
             pp->diag, EL_DIAG_ERROR, "pp.compar", span,
@@ -77,7 +78,7 @@ bool _el_pp_value_eq(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan
     case EL_PP_TYPE_NULL:
         return true;
     case EL_PP_TYPE_INT:
-        return lhs->as.int_ == rhs->as.int_;
+        return el_i128_eq(lhs->as.int_, rhs->as.int_);
     case EL_PP_TYPE_BOOL:
         return lhs->as.bool_ == rhs->as.bool_;
     case EL_PP_TYPE_FLOAT:
@@ -105,7 +106,7 @@ bool _el_pp_value_eq(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan
 }
 
 bool _el_pp_value_lt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span) {
-    FOOBARBAZ(<);
+    FOOBARBAZ(el_i128_lt, <);
 
     if (lhs->type == EL_PP_TYPE_CHAR && rhs->type == EL_PP_TYPE_CHAR) {
         return lhs->as.char_ < rhs->as.char_;
@@ -120,7 +121,7 @@ bool _el_pp_value_lt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan
 }
 
 bool _el_pp_value_gt(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs, ElSourceSpan span) {
-    FOOBARBAZ(>);
+    FOOBARBAZ(el_i128_gt, >);
 
     if (lhs->type == EL_PP_TYPE_CHAR && rhs->type == EL_PP_TYPE_CHAR) {
         return lhs->as.char_ > rhs->as.char_;
@@ -167,7 +168,7 @@ ElPpValue* _el_pp_new_null(ElDynArena* arena) {
     });
 }
 
-ElPpValue* _el_pp_new_int(ElDynArena* arena, int64_t val) {
+ElPpValue* _el_pp_new_int(ElDynArena* arena, ElInt128 val) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElPpValue, {
         .type = EL_PP_TYPE_INT,
         .as.int_ = val,

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <elash/util/dynarena.h>
-#include <elash/defs/sv.h>
 #include <elash/source/span.h>
+#include <elash/defs/sv.h>
+
+#include <elash/util/int128.h>
 
 typedef struct ElAstExpr ElAstExpr;
 
@@ -16,8 +18,7 @@ typedef enum ElAstLiteralType {
 } ElAstLiteralType;
 
 typedef struct ElAstIntLiteral {
-    // TODO: use arbitrary precision integers
-    int64_t value;
+    ElInt128 value;
 } ElAstIntLiteral;
 
 typedef struct ElAstFloatLiteral {
@@ -48,14 +49,14 @@ typedef struct ElAstLiteral {
     } of;
 } ElAstLiteral;
 
-ElAstLiteral el_ast_int_literal(int64_t value);
+ElAstLiteral el_ast_int_literal(ElInt128 value);
 ElAstLiteral el_ast_float_literal(long double value);
 ElAstLiteral el_ast_char_literal(char value);
 ElAstLiteral el_ast_string_literal(ElStringView value);
 ElAstLiteral el_ast_bool_literal(bool value);
 ElAstLiteral el_ast_null_literal();
 
-ElAstExpr* el_ast_new_int_literal(ElDynArena* arena, ElSourceSpan span, int64_t value);
+ElAstExpr* el_ast_new_int_literal(ElDynArena* arena, ElSourceSpan span, ElInt128 value);
 ElAstExpr* el_ast_new_float_literal(ElDynArena* arena, ElSourceSpan span, long double value);
 ElAstExpr* el_ast_new_char_literal(ElDynArena* arena, ElSourceSpan span, char value);
 ElAstExpr* el_ast_new_string_literal(ElDynArena* arena, ElSourceSpan span, ElStringView value);

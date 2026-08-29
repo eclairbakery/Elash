@@ -6,7 +6,7 @@ static ElHirExpr* len_from_array_type(ElBinder* binder, ElSourceSpan span, ElHir
     if (type->kind != EL_HIR_TYPE_ARRAY) return NULL;
 
     return el_hir_new_int_constant(
-        binder->arena, span, binder->builtins->type_usize, (int64_t)type->as.array.size
+        binder->arena, span, binder->builtins->type_usize, EL_INT128((int64_t)type->as.array.size)
     );
 }
 
@@ -39,7 +39,7 @@ ElHirExpr* _el_binder_bind_len_call(ElBinder* binder, ElAstExpr* in, ElAstCallEx
     if (type->kind == EL_HIR_TYPE_ARRAY) {
         return el_hir_new_int_constant(
             binder->arena, in->span, binder->builtins->type_usize,
-            (int64_t)type->as.array.size
+            EL_INT128((int64_t)type->as.array.size)
         );
     }
     if (type->kind == EL_HIR_TYPE_SLICE) {

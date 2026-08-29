@@ -1,6 +1,7 @@
 #include <elash/unparser/unparser.h>
 
 #include <elash/util/assert.h>
+#include <elash/util/int128.h>
 #include <elash/sema/bin-op.h>
 #include <elash/sema/unary-op.h>
 #include <elash/sema/storage-cls.h>
@@ -156,8 +157,11 @@ static bool push_escapeified(ElUnparser* unpar, ElTokenType type, ElStringView s
 static bool unparse_literal(ElUnparser* unpar, ElAstExpr* expr) {
     ElAstLiteral* lit = &expr->as.literal;
     switch (lit->type) {
-    case EL_AST_LIT_INT:
-        return el_unparser_push_fmt(unpar, EL_TT_INT_LITERAL, "%"PRId64, lit->of.int_.value);
+    case EL_AST_LIT_INT: {
+        char buf[42];
+        ElStringView str = el_i128_to_string(lit->of.int_.value, 10, buf);
+        return el_unparser_push(unpar, EL_TT_INT_LITERAL, str);
+    }
     case EL_AST_LIT_FLOAT:
         return el_unparser_push_fmt(unpar, EL_TT_FLOAT_LITERAL, "%.17g", lit->of.float_.value);
     case EL_AST_LIT_CHAR:
