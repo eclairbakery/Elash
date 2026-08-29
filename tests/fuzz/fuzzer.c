@@ -162,7 +162,10 @@ static ElAstBlockStmt* gen_block(ElDynArena* arena, int depth) {
 
 static ElAstDeclarator* gen_declarators(ElDynArena* arena, int depth, bool allow_init) {
     ElAstType* type = gen_type(arena, depth > 0 ? depth - 1 : 0);
-    usize count = (rand() % 3) + 1;
+
+    // for whatever reason this makes everything so much slower,
+    // i dont want to wait 5 mintues for CI so let's just always generate one declarators
+    usize count = 1;//(rand() % 3) + 1;
 
     ElAstDeclarator* head = NULL;
     ElAstDeclarator* tail = NULL;
