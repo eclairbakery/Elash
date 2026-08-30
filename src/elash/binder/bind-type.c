@@ -47,8 +47,8 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
     for (ElAstDecl* field = struct_->fields; field != NULL; field = field->next) {
         switch (field->type) {
         case EL_AST_DECL_VAR_DEF: {
+            ElHirType* type = el_binder_bind_type(binder, field->as.var_def.type);
             for (ElAstDeclarator* d = field->as.var_def.declarators; d != NULL; d = d->next) {
-                ElHirType* type = el_binder_bind_type(binder, d->type);
                 if (!_el_binder_ensure_complete(binder, field->span, type))
                     type = binder->builtins->type_void;
 
@@ -66,8 +66,8 @@ static ElHirType* bind_struct_type(ElBinder* binder, ElAstStructType* struct_) {
             );
 
             // just for better error reporting
+            ElHirType* type = el_binder_bind_type(binder, field->as.var_decl.type);
             for (ElAstDeclarator* d = field->as.var_decl.declarators; d != NULL; d = d->next) {
-                ElHirType* type = el_binder_bind_type(binder, d->type);
                 fields[i++] = (ElHirStructField) {
                     .name = d->name->name,
                     .type = type ? type : binder->builtins->type_void,

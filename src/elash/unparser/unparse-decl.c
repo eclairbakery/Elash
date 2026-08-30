@@ -8,13 +8,13 @@ static bool unparse_var_def(ElUnparser* unpar, ElAstDecl* decl) {
         if (!el_unparser_push_kw(unpar, EL_TT_KW_STATIC)) return false;
     }
 
-    ElAstDeclarator* first = def->declarators;
-    if (!el_unparser_unparse_type(unpar, first->type)) return false;
+    if (!el_unparser_unparse_type(unpar, def->type)) return false;
 
-    for (ElAstDeclarator* d = first; d != NULL; d = d->next) {
-        if (d != first) {
+    for (ElAstDeclarator* d = def->declarators; d != NULL; d = d->next) {
+        if (d != def->declarators) {
             if (!el_unparser_push_punct(unpar, EL_TT_COMMA)) return false;
         }
+
         if (!_el_unparser_unparse_ident(unpar, d->name)) return false;
         if (d->init != NULL) {
             if (!el_unparser_push_punct(unpar, EL_TT_ASSIGN)) return false;
@@ -28,11 +28,9 @@ static bool unparse_var_decl(ElUnparser* unpar, ElAstDecl* decl) {
     ElAstVarDecl* vd = &decl->as.var_decl;
     if (!el_unparser_push_kw(unpar, EL_TT_KW_EXTERN)) return false;
 
-    ElAstDeclarator* first = vd->declarators;
-    if (!el_unparser_unparse_type(unpar, first->type)) return false;
-
-    for (ElAstDeclarator* d = first; d != NULL; d = d->next) {
-        if (d != first) {
+    if (!el_unparser_unparse_type(unpar, vd->type)) return false;
+    for (ElAstDeclarator* d = vd->declarators; d != NULL; d = d->next) {
+        if (d != vd->declarators) {
             if (!el_unparser_push_punct(unpar, EL_TT_COMMA)) return false;
         }
         if (!_el_unparser_unparse_ident(unpar, d->name)) return false;

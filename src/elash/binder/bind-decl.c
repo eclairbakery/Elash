@@ -135,11 +135,11 @@ static ElHirDecl* bind_var_def(ElBinder* binder, ElAstDecl* in, ElAstVarDef* var
     ElHirDecl* head = NULL;
     ElHirDecl* tail = NULL;
 
-    for (ElAstDeclarator* d = var->declarators; d != NULL; d = d->next) {
-        ElHirType* type = el_binder_bind_type(binder, d->type);
-        if (!_el_binder_ensure_complete(binder, d->type->span, type))
-            return NULL;
+    ElHirType* type = el_binder_bind_type(binder, var->type);
+    if (!_el_binder_ensure_complete(binder, var->type->span, type))
+        return NULL;
 
+    for (ElAstDeclarator* d = var->declarators; d != NULL; d = d->next) {
         ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, d->name->name, type);
         if (!el_hir_scope_insert(binder->current_scope, sym)) {
             return REPORT_REDEFINITION(binder, d->name->span, sym->name);
@@ -166,11 +166,11 @@ static ElHirDecl* bind_var_decl(ElBinder* binder, ElAstDecl* in, ElAstVarDecl* v
     ElHirDecl* head = NULL;
     ElHirDecl* tail = NULL;
 
-    for (ElAstDeclarator* d = var->declarators; d != NULL; d = d->next) {
-        ElHirType* type = el_binder_bind_type(binder, d->type);
-        if (!_el_binder_ensure_complete(binder, d->type->span, type))
-            return NULL;
+    ElHirType* type = el_binder_bind_type(binder, var->type);
+    if (!_el_binder_ensure_complete(binder, var->type->span, type))
+        return NULL;
 
+    for (ElAstDeclarator* d = var->declarators; d != NULL; d = d->next) {
         ElHirSymbol* sym = el_hir_new_var_symbol(binder->arena, binder->sym_id_counter++, d->name->name, type);
         if (!el_hir_scope_insert(binder->current_scope, sym)) {
             return el_diag_report(

@@ -9,9 +9,8 @@ void el_ast_append_declarator(ElAstDeclarator** head, ElAstDeclarator** tail, El
     }
 }
 
-ElAstDeclarator* el_ast_new_declarator(ElDynArena* arena, ElAstType* type, ElAstIdent* name, ElAstInit* init) {
+ElAstDeclarator* el_ast_new_declarator(ElDynArena* arena, ElAstIdent* name, ElAstInit* init) {
     return EL_DYNARENA_NEW_STRUCT(arena, ElAstDeclarator, {
-        .type = type,
         .name = name,
         .init = init,
         .next = NULL,

@@ -78,7 +78,7 @@ static ElAstDecl* parse_func_internal_decl(ElParser* parser, ElAstFuncSignature 
     return el_ast_new_func_decl(parser->aarena, span, sig);
 }
 
-static ElAstDeclarator* parse_declarator_list(ElParser* parser, ElAstType* type, bool allow_init) {
+static ElAstDeclarator* parse_declarator_list(ElParser* parser, bool allow_init) {
     ElAstDeclarator* head = NULL;
     ElAstDeclarator* tail = NULL;
 
@@ -106,7 +106,7 @@ static ElAstDeclarator* parse_declarator_list(ElParser* parser, ElAstType* type,
         }
 
         el_ast_append_declarator(&head, &tail,
-            el_ast_new_declarator(parser->aarena, type, name, init));
+            el_ast_new_declarator(parser->aarena, name, init));
 
         if (!el_parser_match(parser, EL_TT_COMMA)) break;
     }
@@ -120,14 +120,14 @@ static ElAstDecl* parse_var_internal_decl(ElParser* parser) {
     ElAstType* type = _el_parser_parse_type(parser);
     if (type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
-    ElAstDeclarator* declarators = parse_declarator_list(parser, type, /*allow_init=*/true);
+    ElAstDeclarator* declarators = parse_declarator_list(parser, /*allow_init=*/true);
     if (declarators == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
     ElToken semi_tok = parser->current;
     el_parser_expect(parser, EL_TT_SEMICOLON);
 
     ElSourceSpan span = el_srcspan_merge(type->span, semi_tok.span);
-    return el_ast_new_var_def(parser->aarena, span, declarators, is_static);
+    return el_ast_new_var_def(parser->aarena, span, type, declarators, is_static);
 }
 
 static ElAstDecl* _el_parser_report_incomplete_decl(ElParser* parser, usize idx) {
@@ -172,14 +172,14 @@ static ElAstDecl* parse_extern_decl(ElParser* parser, ElToken extern_tok) {
         ElAstType* type = _el_parser_parse_type(parser);
         if (type == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
-        ElAstDeclarator* declarators = parse_declarator_list(parser, type, /*allow_init=*/false);
+        ElAstDeclarator* declarators = parse_declarator_list(parser, /*allow_init=*/false);
         if (declarators == NULL) return el_parser_sync(parser, EL_PARSER_SYNC_DECL);
 
         ElToken semi_tok = parser->current;
         el_parser_expect(parser, EL_TT_SEMICOLON);
 
         ElSourceSpan span = el_srcspan_merge(extern_tok.span, semi_tok.span);
-        return el_ast_new_var_decl(parser->aarena, span, declarators);
+        return el_ast_new_var_decl(parser->aarena, span, type, declarators);
     }
 }
 

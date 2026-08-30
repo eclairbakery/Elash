@@ -46,8 +46,8 @@ void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
         fprintf(out, "VarDef(is-static=%s):\n", node->as.var_def.is_static ? "true" : "false");
         el_ast_dump_print_indent(indent + 1, out);
         fprintf(out, "type:\n");
+        el_ast_dump_type(node->as.var_def.type, indent + 2, out);
         for (ElAstDeclarator* d = node->as.var_def.declarators; d != NULL; d = d->next) {
-            el_ast_dump_type(d->type, indent + 2, out);
             el_ast_dump_print_indent(indent + 1, out);
             fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(d->name->name));
             if (d->init != NULL) {
@@ -61,13 +61,13 @@ void el_ast_dump_decl(ElAstDecl* node, usize indent, FILE* out) {
     case EL_AST_DECL_VAR_DECL:
         el_ast_dump_print_indent(indent, out);
         fprintf(out, "VarDecl:\n");
+        el_ast_dump_print_indent(indent + 1, out);
+        fprintf(out, "type:\n");
+        el_ast_dump_type(node->as.var_decl.type, indent + 2, out);
         for (ElAstDeclarator* d = node->as.var_decl.declarators; d != NULL; d = d->next) {
             el_ast_dump_print_indent(indent + 1, out);
             fputs("Declarator:", out);
             el_ast_dump_print_indent(indent + 2, out);
-            fprintf(out, "type:\n");
-            el_ast_dump_type(d->type, indent + 3, out);
-            el_ast_dump_print_indent(indent + 4, out);
             fprintf(out, "name: " EL_SV_FMT "\n", EL_SV_FARG(d->name->name));
         }
         return;

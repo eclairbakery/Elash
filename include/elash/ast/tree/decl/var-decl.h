@@ -10,7 +10,8 @@
 typedef struct ElAstDecl ElAstDecl;
 
 typedef struct ElAstVarDecl {
+    ElAstType* type;
     ElAstDeclarator* declarators;
 } ElAstVarDecl;
 
-ElAstDecl* el_ast_new_var_decl(ElDynArena* arena, ElSourceSpan span, ElAstDeclarator* declarators);
+ElAstDecl* el_ast_new_var_decl(ElDynArena* arena, ElSourceSpan span, ElAstType* type, ElAstDeclarator* declarators);

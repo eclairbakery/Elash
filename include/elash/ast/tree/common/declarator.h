@@ -11,13 +11,12 @@ typedef struct ElAstIdent ElAstIdent;
 typedef struct ElAstDeclarator ElAstDeclarator;
 
 struct ElAstDeclarator {
-    ElAstType*  type;
     ElAstIdent* name;
     ElAstInit*  init; // nullable
 
     ElAstDeclarator* next;
 };
 
+ElAstDeclarator* el_ast_new_declarator(ElDynArena* arena, ElAstIdent* name, ElAstInit* init);
 void el_ast_append_declarator(ElAstDeclarator** head, ElAstDeclarator** tail, ElAstDeclarator* declarator);
-ElAstDeclarator* el_ast_new_declarator(ElDynArena* arena, ElAstType* type, ElAstIdent* name, ElAstInit* init);
 
