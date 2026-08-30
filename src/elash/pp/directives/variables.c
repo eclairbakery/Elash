@@ -154,7 +154,11 @@ static bool _el_pp_handle_incdec(ElPreproc* pp, ElStringView dname, bool increme
 
     ElPpValue* val = sym->as.var.v;
     if (val->type == EL_PP_TYPE_INT) {
-        if (increment) val->as.int_++;   else val->as.int_--;
+        if (increment) {
+            val->as.int_ = el_i128_add(val->as.int_, EL_INT128(1));
+        } else {
+            val->as.int_ = el_i128_sub(val->as.int_, EL_INT128(1));
+        }
     } else if (val->type == EL_PP_TYPE_FLOAT) {
         if (increment) val->as.float_++; else val->as.float_--;
     } else if (val->type == EL_PP_TYPE_CHAR) {

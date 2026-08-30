@@ -8,26 +8,29 @@
 #include <elash/ast/dump/toi.h>
 #include <inttypes.h>
 
-void el_ast_dump_expr_literal(ElAstLiteral* lit, usize indent, FILE* out) {
+void el_ast_dump_expr_lit(ElAstLiteral* lit, usize indent, FILE* out) {
     el_ast_dump_print_indent(indent, out);
-    switch (lit->type) {
+    switch (lit->kind) {
     case EL_AST_LIT_BOOL:
-        fprintf(out, "BoolLiteral(%s)\n", lit->of.bool_.value ? "true" : "false");
+        fprintf(out, "BoolLiteral(%s)\n", lit->of.bool_ ? "true" : "false");
         break;
     case EL_AST_LIT_NULL:
         fprintf(out, "NullLiteral\n");
         break;
     case EL_AST_LIT_CHAR:
-        fprintf(out, "CharLiteral(%c)\n", lit->of.char_.value);
+        fprintf(out, "CharLiteral(%c)\n", lit->of.char_);
         break;
     case EL_AST_LIT_INT:
-        fprintf(out, "IntLiteral(%"PRId64")\n", lit->of.int_.value);
+        // NOLINTBEGIN(readability-magic-numbers): You know the rules and so do I
+        fprintf(out, "IntLiteral("EL_SV_FMT")\n",
+                EL_SV_FARG(el_i128_to_string(lit->of.int_, 10, (char[42]){})));
+        // NOLINTEND(readability-magic-numbers)
         break;
     case EL_AST_LIT_FLOAT:
-        fprintf(out, "FloatLiteral(%lf)\n", lit->of.float_.value);
+        fprintf(out, "FloatLiteral(%lf)\n", lit->of.float_);
         break;
     case EL_AST_LIT_STRING:
-        fprintf(out, "StringLiteral(\""EL_SV_FMT"\")\n", EL_SV_FARG(lit->of.str_.value));
+        fprintf(out, "StringLiteral(\""EL_SV_FMT"\")\n", EL_SV_FARG(lit->of.str_));
         break;
     }
 }
@@ -57,7 +60,7 @@ void el_ast_dump_expr(ElAstExpr* node, usize indent, FILE* out) {
         break;
     }
     case EL_AST_EXPR_LITERAL:
-        return el_ast_dump_expr_literal(&node->as.literal, indent, out);
+        return el_ast_dump_expr_lit(&node->as.literal, indent, out);
     case EL_AST_EXPR_IDENT:
         return el_ast_dump_expr_ident(&node->as.ident, indent, out);
     case EL_AST_EXPR_CALL: {

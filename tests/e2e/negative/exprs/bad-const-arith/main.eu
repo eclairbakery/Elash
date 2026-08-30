@@ -1,0 +1,5 @@
+int main() {
+    uint x = 2 / 0;
+    uint8 y = 399;
+    return 0;
+}

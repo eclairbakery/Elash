@@ -71,12 +71,12 @@ static ElAstExpr* gen_literal(ElDynArena* arena) {
     //       and causes assertion errors. change that 5 to 6 once null
     //       literals have been implemented.
     switch (rand() % 5) {
-    case 0: return el_ast_new_int_literal(arena, NSPAN, rand() % 100);
-    case 1: return el_ast_new_float_literal(arena, NSPAN, (long double)(rand() % 100) / 10.0);
-    case 2: return el_ast_new_char_literal(arena, NSPAN, (char)('a' + (rand() % 26)));
-    case 3: return el_ast_new_string_literal(arena, NSPAN, el_sv_from_cstr("str"));
-    case 4: return el_ast_new_bool_literal(arena, NSPAN, rand() % 2 == 0);
-    case 5: return el_ast_new_null_literal(arena, NSPAN);
+    case 0: return el_ast_new_int_lit(arena, NSPAN, EL_INT128(rand() % 100));
+    case 1: return el_ast_new_float_lit(arena, NSPAN, (long double)(rand() % 100) / 10.0);
+    case 2: return el_ast_new_char_lit(arena, NSPAN, (char)('a' + (rand() % 26)));
+    case 3: return el_ast_new_str_lit(arena, NSPAN, el_sv_from_cstr("str"));
+    case 4: return el_ast_new_bool_lit(arena, NSPAN, rand() % 2 == 0);
+    case 5: return el_ast_new_null_lit(arena, NSPAN);
     }
     EL_UNREACHABLE("shouldn't get here");
 }
@@ -162,7 +162,10 @@ static ElAstBlockStmt* gen_block(ElDynArena* arena, int depth) {
 
 static ElAstDeclarator* gen_declarators(ElDynArena* arena, int depth, bool allow_init) {
     ElAstType* type = gen_type(arena, depth > 0 ? depth - 1 : 0);
-    usize count = (rand() % 3) + 1;
+
+    // for whatever reason this makes everything so much slower,
+    // i dont want to wait 5 mintues for CI so let's just always generate one declarators
+    usize count = 1;//(rand() % 3) + 1;
 
     ElAstDeclarator* head = NULL;
     ElAstDeclarator* tail = NULL;

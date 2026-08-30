@@ -278,25 +278,64 @@ static ElLexerStatus lex_ident(ElLexer* lexer, ElToken* out) {
     );
 }
 
+static bool is_number_char(char c) {
+    return isalnum((unsigned char)c) || c == '\'';
+}
+
 static ElLexerStatus lex_number(ElLexer* lexer, ElToken* out) {
     bool is_float = false;
 
-    while (isdigit(peek(lexer))) next(lexer);
+    while (is_number_char(peek(lexer))) next(lexer);
 
-    if (peek(lexer) == '.' && isdigit(peek_next(lexer))) {
+    if (peek(lexer) == '.' && isdigit((unsigned char)peek_next(lexer))) {
         is_float = true;
         next(lexer);
-        while (isdigit(peek(lexer))) next(lexer);
+        while (is_number_char(peek(lexer))) next(lexer);
     }
 
     if (peek(lexer) == 'e' || peek(lexer) == 'E') {
         is_float = true;
         next(lexer);
         if (peek(lexer) == '+' || peek(lexer) == '-') next(lexer);
-        while (isdigit(peek(lexer))) next(lexer);
+        while (is_number_char(peek(lexer))) next(lexer);
     }
 
     return ret_tok_with_lexeme_auto(lexer, is_float ? EL_TT_FLOAT_LITERAL : EL_TT_INT_LITERAL, out);
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity): it's ok.
+static ElLexerStatus lex_quoted_literal(ElLexer* lexer, char delimiter, ElLexerStatus unterminated_err, ElTokenType type, ElToken* out) {
+    ElStringView content = el_srcdoc_content(lexer->doc);
+    bool terminated = false;
+
+    while (peek(lexer) != '\0' && peek(lexer) != '\n' && peek(lexer) != '\r') {
+        if (peek(lexer) == '\\') {
+            next(lexer);
+            if (peek(lexer) == '\0') {
+                EL_LEXER_RETURN_ERROR(
+                    lexer, EL_LEXERR_INVALID_ESCAPE,
+                    el_srcspan_make(lexer->doc, lexer->current_loc, lexer->current_loc), {}
+                );
+            }
+            next(lexer);
+        } else {
+            if (next(lexer) == delimiter) {
+                terminated = true;
+                break;
+            }
+        }
+    }
+
+    if (!terminated && !(lexer->flags & EL_LF_ALLOW_UNTERM)) {
+        EL_LEXER_RETURN_ERROR(lexer, unterminated_err, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
+    }
+
+    ElStringView lex = {
+        .data = content.data + lexer->token_start_loc.offset + 1,
+        .len = lexer->current_loc.offset - lexer->token_start_loc.offset - 2
+    };
+
+    return ret_token_with_lexeme(lexer, type, lex, out);
 }
 
 // TODO: refactor this function
@@ -402,51 +441,12 @@ ElLexerStatus el_lexer_next_token(ElLexer* lexer, ElToken* out) {
 
         if (c == '"') {
             next(lexer);
-
-            bool terminated = false;
-
-            while (peek(lexer) != '\0' && peek(lexer) != '\n' && peek(lexer) != '\r') {
-                if (peek(lexer) == '\\') {
-                    next(lexer);
-                    if (peek(lexer) == '\0') EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_INVALID_ESCAPE, el_srcspan_make(lexer->doc, lexer->current_loc, lexer->current_loc), {});
-                    next(lexer);
-                } else {
-                    if (next(lexer) == '"') {
-                        terminated = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!terminated && !(lexer->flags & EL_LF_ALLOW_UNTERM)) EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_STRING, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
-
-            ElStringView lex = {
-                .data = content.data + lexer->token_start_loc.offset + 1,
-                .len = lexer->current_loc.offset - lexer->token_start_loc.offset - 2
-            };
-
-            return ret_token_with_lexeme(lexer, EL_TT_STRING_LITERAL, lex, out);
+            return lex_quoted_literal(lexer, '"', EL_LEXERR_UNTERM_STRING, EL_TT_STRING_LITERAL, out);
         }
 
         if (c == '\'') {
             next(lexer);
-
-            if (peek(lexer) == '\\') {
-                next(lexer);
-                next(lexer);
-            } else {
-                next(lexer);
-            }
-
-            if (peek(lexer) != '\'') EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNTERM_CHAR, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
-
-            next(lexer);
-
-            ElStringView lex = {
-                .data = content.data + lexer->token_start_loc.offset + 1,
-                .len = lexer->current_loc.offset - lexer->token_start_loc.offset - 2
-            };
-            return ret_token_with_lexeme(lexer, EL_TT_CHAR_LITERAL, lex, out);
+            return lex_quoted_literal(lexer, '\'', EL_LEXERR_UNTERM_CHAR, EL_TT_CHAR_LITERAL, out);
         }
 
         if (isalpha(c) || c == '_') {
@@ -464,8 +464,9 @@ ElLexerStatus el_lexer_next_token(ElLexer* lexer, ElToken* out) {
         ElLexerStatus r = lex_operator(lexer, op, out);
         if (r != EL_LEXERR_UNEXPECTED_CHAR) return r;
 
-        if (!(lexer->flags & EL_LF_SKIP_UNKNOWN))
+        if (!(lexer->flags & EL_LF_SKIP_UNKNOWN)) {
             EL_LEXER_RETURN_ERROR(lexer, EL_LEXERR_UNEXPECTED_CHAR, el_srcspan_make(lexer->doc, lexer->token_start_loc, lexer->current_loc), {});
+        }
     }
 }
 

@@ -58,14 +58,14 @@ bool el_ast_equal_expr(const ElAstExpr* a, const ElAstExpr* b) {
         return a->as.unary.op == b->as.unary.op &&
                el_ast_equal_expr(a->as.unary.operand, b->as.unary.operand);
     case EL_AST_EXPR_LITERAL:
-        if (a->as.literal.type != b->as.literal.type) return false;
-        switch (a->as.literal.type) {
-            case EL_AST_LIT_INT: return a->as.literal.of.int_.value == b->as.literal.of.int_.value;
-            case EL_AST_LIT_FLOAT: return a->as.literal.of.float_.value == b->as.literal.of.float_.value;
-            case EL_AST_LIT_CHAR: return a->as.literal.of.char_.value == b->as.literal.of.char_.value;
-            case EL_AST_LIT_STRING: return el_sv_eql(a->as.literal.of.str_.value, b->as.literal.of.str_.value);
-            case EL_AST_LIT_BOOL: return a->as.literal.of.bool_.value == b->as.literal.of.bool_.value;
-            case EL_AST_LIT_NULL: return true;
+        if (a->as.literal.kind != b->as.literal.kind) return false;
+        switch (a->as.literal.kind) {
+        case EL_AST_LIT_INT: return el_i128_eq(a->as.literal.of.int_, b->as.literal.of.int_);
+        case EL_AST_LIT_FLOAT: return a->as.literal.of.float_ == b->as.literal.of.float_;
+        case EL_AST_LIT_CHAR: return a->as.literal.of.char_ == b->as.literal.of.char_;
+        case EL_AST_LIT_STRING: return el_sv_eql(a->as.literal.of.str_, b->as.literal.of.str_);
+        case EL_AST_LIT_BOOL: return a->as.literal.of.bool_ == b->as.literal.of.bool_;
+        case EL_AST_LIT_NULL: return true;
         }
         return false;
     case EL_AST_EXPR_TYPEDINIT:

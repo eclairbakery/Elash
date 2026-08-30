@@ -16,7 +16,7 @@ void _el_lowerer_lower_agginit(ElLowerer* lw, ElMirValue* ptr, ElHirAggInit* agg
         ElMirValue* elem_ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
 
         if (target_type->kind == EL_MIR_TYPE_ARRAY) {
-            ElMirConstant idx_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = (int64_t)i };
+            ElMirConstant idx_lit = { .kind = EL_MIR_CONST_INT, .as.int_ = EL_INT128((int64_t)i) };
             ElMirValue* index = el_mir_new_const(lw->arena, lw->builtins->type_usize, idx_lit);
             el_mir_ibuf_push(&lw->ibuf, el_mir_new_gep_instr(lw->arena, elem_ptr, ptr, index));
         } else if (target_type->kind == EL_MIR_TYPE_TUPLE) {

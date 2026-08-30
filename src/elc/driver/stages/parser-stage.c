@@ -7,7 +7,7 @@ bool elc_parser_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const
     (void) stage;
 
     ElParser parser;
-    el_parser_init(&parser, *input->as.tks, ctx->diag, ctx->arena);
+    el_parser_init(&parser, *input->as.tks, ctx->diag, ctx->arena, ctx->arena);
 
     ElAstModule* mod = el_parser_parse_module(&parser);
 

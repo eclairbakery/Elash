@@ -1,0 +1,9 @@
+#include utils:strings
+
+int main() {
+    char[] str = "Hello " "world" "!\n";
+    if (!streql(str, "Hello world!\n"))
+        return 1;
+
+    return 0;
+}

@@ -4,6 +4,8 @@
 #include <elash/util/strbuf.h>
 #include <elash/lexer/tokbuf.h>
 
+#include <elash/util/int128.h>
+
 typedef enum ElPpType {
     EL_PP_TYPE_NULL,
     EL_PP_TYPE_INT,
@@ -24,9 +26,8 @@ typedef struct ElPpList {
 } ElPpList;
 
 typedef struct ElPpValue {
-    // TODO: use big ints / big floats
     union {
-        int64_t      int_;   // EL_PP_TYPE_INT
+        ElInt128     int_;   // EL_PP_TYPE_INT
         double       float_; // EL_PP_TYPE_FLOAT
         bool         bool_;  // EL_PP_TYPE_BOOL
         char         char_;  // EL_PP_TYPE_CHAR
@@ -49,7 +50,7 @@ ElPpValue* _el_pp_listcat(ElPreproc* pp, ElPpValue* lhs, ElPpValue* rhs);
 ElPpValue* _el_pp_value_clone(ElDynArena* arena, ElPpValue* value);
 
 ElPpValue* _el_pp_new_null(ElDynArena* arena);
-ElPpValue* _el_pp_new_int(ElDynArena* arena, int64_t val);
+ElPpValue* _el_pp_new_int(ElDynArena* arena, ElInt128 val);
 ElPpValue* _el_pp_new_float(ElDynArena* arena, double val);
 ElPpValue* _el_pp_new_bool(ElDynArena* arena, bool val);
 ElPpValue* _el_pp_new_char(ElDynArena* arena, char val);

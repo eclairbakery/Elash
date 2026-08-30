@@ -12,7 +12,7 @@ ElMirConstant* _el_lowerer_lower_const(ElLowerer* lw, ElHirExpr* expr) {
         ElHirConstant hir = expr->as.constant;
         switch (type->as.prim.kind) {
         case EL_PRIMTYPE_INT:   mirconst->kind = EL_MIR_CONST_INT;   mirconst->as.int_   = hir.as.int_;           break;
-        case EL_PRIMTYPE_BOOL:  mirconst->kind = EL_MIR_CONST_INT;   mirconst->as.int_   = hir.as.bool_ ? 1 : 0;  break;
+        case EL_PRIMTYPE_BOOL:  mirconst->kind = EL_MIR_CONST_INT;   mirconst->as.int_   = EL_INT128(hir.as.bool_ ? 1 : 0);  break;
         case EL_PRIMTYPE_FLOAT: mirconst->kind = EL_MIR_CONST_FLOAT; mirconst->as.float_ = hir.as.float_;         break;
         default: EL_UNREACHABLE("invalid hir constant primitive type");                                           break;
         }

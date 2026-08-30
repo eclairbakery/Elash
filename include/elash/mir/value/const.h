@@ -4,6 +4,8 @@
 #include <elash/mir/type.h>
 #include <elash/defs/sv.h>
 
+#include <elash/util/int128.h>
+
 typedef struct ElMirValue ElMirValue;
 typedef struct ElMirConstant ElMirConstant;
 
@@ -29,8 +31,8 @@ typedef struct ElMirConstant {
         ElMirAggConst agg;
         ElMirStrConst str;
 
-        int64_t int_;
-        double float_;
+        ElInt128 int_;
+        double   float_;
     } as;
 } ElMirConstant;
 

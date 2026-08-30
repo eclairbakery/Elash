@@ -45,15 +45,15 @@ static ElAstExpr* continue_expr_postfixes(ElParser* parser, ElAstExpr* expr) {
     while (true) {
         if (el_parser_check(parser, EL_TT_INC)) {
             ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->arena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_INC, expr);
+            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_INC, expr);
         } else if (el_parser_check(parser, EL_TT_DEC)) {
             ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->arena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_DEC, expr);
+            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_POST_DEC, expr);
         } else if (el_parser_match(parser, EL_TT_LPAREN)) {
             expr = _el_parser_parse_call(parser, expr);
         } else if (el_parser_check(parser, EL_TT_CARET)) {
             ElToken tok = el_parser_advance(parser);
-            expr = el_ast_new_unary_expr(parser->arena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_DEREF, expr);
+            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_DEREF, expr);
         } else if (el_parser_match(parser, EL_TT_LBRACKET)) {
             ElAstExpr* index = el_parser_parse_expr(parser);
             if (el_parser_has_errs(parser)) {
@@ -72,7 +72,7 @@ static ElAstExpr* continue_expr_postfixes(ElParser* parser, ElAstExpr* expr) {
             }
 
             expr = el_ast_new_bin_expr(
-                parser->arena,
+                parser->aarena,
                 el_srcspan_merge(expr->span, rbracket.span),
                 EL_SEMA_BIN_OP_INDEX, expr, index
             );
@@ -94,7 +94,7 @@ static ElParseAmbig force_type_with_suffixes(ElParser* parser, ElParseAmbig node
         type = node.as.type;
         break;
     case EL_PARSE_AMBIG_UNR:
-        type = el_ast_unr_as_type(parser->arena, node.as.unr);
+        type = el_ast_unr_as_type(parser->aarena, node.as.unr);
         break;
     case EL_PARSE_AMBIG_EXPR:
         return node;
@@ -122,7 +122,7 @@ static ElParseAmbig parse_ambig_bracket_suffix(ElParser* parser, ElParseAmbig ba
 
     if (base.kind == EL_PARSE_AMBIG_TYPE) {
         ElAstType* type = el_ast_new_type_array(
-            parser->arena, combined_span, base.as.type, index_expr
+            parser->aarena, combined_span, base.as.type, index_expr
         );
         return ambig_type(type);
     }
@@ -130,7 +130,7 @@ static ElParseAmbig parse_ambig_bracket_suffix(ElParser* parser, ElParseAmbig ba
     EL_ASSERT(base.kind == EL_PARSE_AMBIG_UNR, "bracket suffix base must be unresolved");
 
     return ambig_unr(el_ast_new_unr_index(
-        parser->arena, combined_span, base.as.unr, NULL, index_expr
+        parser->aarena, combined_span, base.as.unr, NULL, index_expr
     ));
 }
 
@@ -159,7 +159,7 @@ static ElParseAmbig parse_ambig_suffixes(ElParser* parser, ElParseAmbig node) {
          || el_parser_check(parser, EL_TT_DOT)
          || (el_parser_check(parser, EL_TT_LBRACKET) && node.kind == EL_PARSE_AMBIG_EXPR)
         ) {
-            ElAstExpr* expr = ambig_as_expr(parser->arena, node);
+            ElAstExpr* expr = ambig_as_expr(parser->aarena, node);
             if (expr == NULL) return node;
             expr = continue_expr_postfixes(parser, expr);
             if (expr == NULL) return node;
@@ -259,7 +259,7 @@ ElParseAmbig _el_parser_parse_ambig(ElParser* parser) {
             return (ElParseAmbig){ .kind = EL_PARSE_AMBIG_EXPR, .as.expr = NULL };
         }
 
-        ElParseAmbig node = ambig_unr(el_ast_new_unr_ident(parser->arena, ident->span, ident));
+        ElParseAmbig node = ambig_unr(el_ast_new_unr_ident(parser->aarena, ident->span, ident));
         return parse_ambig_suffixes(parser, node);
     }
 
@@ -273,11 +273,11 @@ ElParseAmbig _el_parser_parse_ambig(ElParser* parser) {
 ElAstToE* _el_parser_toe_from_ambig(ElParser* parser, ElParseAmbig node) {
     switch (node.kind) {
     case EL_PARSE_AMBIG_TYPE:
-        return el_ast_new_toe_type(parser->arena, node.as.type);
+        return el_ast_new_toe_type(parser->aarena, node.as.type);
     case EL_PARSE_AMBIG_EXPR:
-        return el_ast_new_toe_expr(parser->arena, node.as.expr);
+        return el_ast_new_toe_expr(parser->aarena, node.as.expr);
     case EL_PARSE_AMBIG_UNR:
-        return el_ast_new_toe_unr(parser->arena, node.as.unr);
+        return el_ast_new_toe_unr(parser->aarena, node.as.unr);
     }
     EL_UNREACHABLE_ENUM_VAL(ElParseAmbigKind, node.kind);
 }

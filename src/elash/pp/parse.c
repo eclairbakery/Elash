@@ -14,33 +14,11 @@
 #include <elash/util/strconv.h>
 #include <elash/util/assert.h>
 
+#include <elash/sema/intparse.h>
+#include <elash/sema/strparse.h>
+
 static bool peek(ElPreproc* pp, ElToken* out_tok) {
     return _el_pp_peek(pp, out_tok);
-}
-
-// TODO: move this function to some shared module and implement
-//       something similar for parsing string literals; then reuse
-//       them in the parser
-static char parse_char_literal(ElStringView lexeme) {
-    if (lexeme.len == 0) {
-        return '\0';
-    }
-    if (lexeme.data[0] != '\\') {
-        return lexeme.data[0];
-    }
-    if (lexeme.len < 2) {
-        return lexeme.data[0];
-    }
-    switch (lexeme.data[1]) {
-    case 'n':  return '\n';
-    case 't':  return '\t';
-    case 'r':  return '\r';
-    case '0':  return '\0';
-    case '\\': return '\\';
-    case '\'': return '\'';
-    case '"':  return '"';
-    default:   return lexeme.data[1];
-    }
 }
 
 static ElPpValue* parse_list_literal(ElPreproc* pp, ElSourceSpan open_span) {
@@ -173,29 +151,29 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
 
     switch (tok.type) {
     case EL_TT_INT_LITERAL: {
-        int64_t val = 0;
-        if (!el_string_to_i64(tok.lexeme, /* NOLINTBEGIN(readability-magic-numbers): Keep Yourself Safe */ 10 /* NOLINTEND(readability-magic-numbers) */, &val)) {
-            return el_diag_report(
-                pp->diag, EL_DIAG_ERROR, "pp.invalid-literal",
-                tok.span, "invalid integer literal"
-            );
-        }
+        ElInt128 val = el_parse_int_lit(pp->diag, tok);
         return _el_pp_new_int(pp->iarena, val);
     }
     case EL_TT_FLOAT_LITERAL: {
-        long double val = 0.0L;
-        if (!el_string_to_long_double(tok.lexeme, &val)) {
-            return el_diag_report(
-                pp->diag, EL_DIAG_ERROR, "pp.invalid-literal",
-                tok.span, "invalid float literal"
-            );
-        }
-        return _el_pp_new_float(pp->iarena, (double)val);
+        double val = el_string_to_double(pp->diag, tok.lexeme, tok.span);
+        return _el_pp_new_float(pp->iarena, val);
     }
-    case EL_TT_CHAR_LITERAL:
-        return _el_pp_new_char(pp->iarena, parse_char_literal(tok.lexeme));
-    case EL_TT_STRING_LITERAL:
-        return _el_pp_new_str(pp->iarena, tok.lexeme);
+    case EL_TT_STRING_LITERAL: {
+        char* buf = EL_DYNARENA_NEW_ARR(pp->farena, char, tok.lexeme.len);
+        ElStringView str = el_parse_str_with_escapes(pp->diag, tok, buf);
+        if (el_sv_is_null(str)) return NULL;
+
+        return _el_pp_new_str(pp->iarena, str);
+    }
+    case EL_TT_CHAR_LITERAL: {
+        bool ok;
+
+        char* buf = EL_DYNARENA_NEW_ARR(pp->farena, char, tok.lexeme.len);
+        char c = el_parse_char_with_escapes(pp->diag, tok, buf, &ok);
+        if (!ok) return NULL;
+
+        return _el_pp_new_char(pp->iarena, c);
+    }
     case EL_TT_TRUE_LITERAL:
         return _el_pp_new_bool(pp->iarena, true);
     case EL_TT_FALSE_LITERAL:

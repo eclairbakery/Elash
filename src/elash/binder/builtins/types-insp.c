@@ -33,7 +33,7 @@ ElHirExpr* _el_binder_bind_sizeof(ElBinder* binder, ElAstExpr* in, ElAstCallExpr
     if (bstype == NULL) return NULL;
 
     usize size = binder->bsquery->get_size(binder->bsquery, bstype);
-    return el_hir_new_int_lit(binder->arena, in->span, (int64_t)size);
+    return el_hir_new_int_lit(binder->arena, in->span, EL_INT128(size));
 }
 
 ElHirExpr* _el_binder_bind_alignof(ElBinder* binder, ElAstExpr* in, ElAstCallExpr* call) {
@@ -41,6 +41,6 @@ ElHirExpr* _el_binder_bind_alignof(ElBinder* binder, ElAstExpr* in, ElAstCallExp
     if (bstype == NULL) return NULL;
 
     usize alignment = binder->bsquery->get_align(binder->bsquery, bstype);
-    return el_hir_new_int_lit(binder->arena, in->span, (int64_t)alignment);
+    return el_hir_new_int_lit(binder->arena, in->span, EL_INT128(alignment));
 }
 

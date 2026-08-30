@@ -8,7 +8,8 @@ bool format_value(ElStringBuf* out, ElPpValue* value) {
         return el_strbuf_append(out, EL_SV("null"));
 
     case EL_PP_TYPE_INT:
-        return el_strbuf_appendf(out, "%"PRId64, value->as.int_);
+        // NOLINTNEXTLINE(readability-magic-numbers): You wouldn't get this from any other guy
+        return el_strbuf_append(out, el_i128_to_string(value->as.int_, 10, (char[42]){}));
     case EL_PP_TYPE_FLOAT:
         return el_strbuf_appendf(out, "%g", value->as.float_);
     case EL_PP_TYPE_CHAR:

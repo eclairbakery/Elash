@@ -21,13 +21,17 @@
 typedef struct ElParser {
     ElTokenStream tokens;
     ElDiagEngine* diag;
-    ElDynArena* arena;
+
+    ElDynArena* farena;
+    ElDynArena* aarena;
 
     ElToken current;
     ElTokenQueue lookahead;
 } ElParser;
 
-void el_parser_init(ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine, ElDynArena* arena);
+void el_parser_init(
+    ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine, ElDynArena* farena, ElDynArena* aarena
+);
 void el_parser_destroy(ElParser* parser);
 
 bool el_parser_has_errs(const ElParser* parser);

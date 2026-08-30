@@ -1,8 +1,11 @@
 #pragma once
 
 #include <elash/defs/sv.h>
+#include <elash/diag/engine.h>
 
-bool el_string_to_u64(ElStringView str, uint base, uint64_t* out);
-bool el_string_to_i64(ElStringView str, uint base, int64_t* out);
+#include <elash/util/int128.h>
 
-bool el_string_to_long_double(ElStringView str, long double* out);
+ElUint128 el_string_to_u128(ElDiagEngine* engine, ElStringView str, uint base, ElSourceSpan span);
+ElInt128 el_string_to_i128(ElDiagEngine* engine, ElStringView str, uint base, ElSourceSpan span);
+
+double el_string_to_double(ElDiagEngine* engine, ElStringView str, ElSourceSpan span);

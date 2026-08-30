@@ -34,6 +34,37 @@
     #define EL_PLATFORM_IS_WINDOWS 0
 #endif
 
+
+/////////////// Compilers ///////////////
+#define EL_COMPILER_UNKNOWN 0
+#define EL_COMPILER_CLANG   1
+#define EL_COMPILER_GCC     2
+#define EL_COMPILER_ICX     3
+#define EL_COMPILER_MSVC    4
+
+#if defined(__clang__)
+    #define EL_COMPILER EL_COMPILER_CLANG
+
+#elif defined(__ICX_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+    #define EL_COMPILER EL_COMPILER_ICX
+
+#elif defined(__GNUC__)
+    #define EL_COMPILER EL_COMPILER_GCC
+
+#elif defined(_MSC_VER)
+    #define EL_COMPILER EL_COMPILER_MSVC
+
+#else
+    #define EL_COMPILER EL_COMPILER_UNKNOWN
+#endif
+
+#define EL_COMPILER_IS_CLANG (EL_COMPILER == EL_COMPILER_CLANG)
+#define EL_COMPILER_IS_GCC   (EL_COMPILER == EL_COMPILER_GCC)
+#define EL_COMPILER_IS_MSVC  (EL_COMPILER == EL_COMPILER_MSVC)
+#define EL_COMPILER_IS_ICX   (EL_COMPILER == EL_COMPILER_INTEL)
+
+#define EL_GCC_EXTENSIONS (EL_COMPILER_GCC || EL_COMPILER_CLANG || EL_COMPILER_IS_ICX)
+
 ///////// CPU Architectures /////////
 #define EL_ARCH_UNKNOWN 0
 #define EL_ARCH_X86_64  1

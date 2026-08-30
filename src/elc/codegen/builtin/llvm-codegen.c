@@ -8,6 +8,7 @@
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>
 
+#include <elash/util/int128.h>
 #include <llvm-c/Core.h>
 #include <llvm-c/Target.h>
 #include <llvm-c/Analysis.h>
@@ -81,8 +82,10 @@ LLVMTypeRef elc_llvm_map_type(Context* ctx, const ElMirType* type) {
 
 LLVMValueRef elc_llvm_map_constant(Context* ctx, ElMirType* type, ElMirConstant* constant) {
     switch (constant->kind) {
-    case EL_MIR_CONST_INT:
-        return LLVMConstInt(map_type(ctx, type), (unsigned long long)constant->as.int_, true);
+    case EL_MIR_CONST_INT: {
+        uint64_t words[2] = { el_i128_lo(constant->as.int_), el_i128_hi(constant->as.int_) };
+        return LLVMConstIntOfArbitraryPrecision(map_type(ctx, type), 2, words);
+    }
     case EL_MIR_CONST_FLOAT:
         return LLVMConstReal(map_type(ctx, type), constant->as.float_);
     case EL_MIR_CONST_STRING:
@@ -127,7 +130,8 @@ static LLVMValueRef map_const_value(Context* ctx, ElMirValue* value) {
     LLVMTypeRef type = map_type(ctx, value->type);
 
     if (value->type->kind == EL_MIR_TYPE_INT) {
-        return LLVMConstInt(type, (unsigned long long)value->as.constant.as.int_, true);
+        uint64_t words[2] = { el_i128_lo(value->as.constant.as.int_), el_i128_hi(value->as.constant.as.int_) };
+        return LLVMConstIntOfArbitraryPrecision(type, 2, words);
     }
     if (value->type->kind == EL_MIR_TYPE_FLOAT) {
         return LLVMConstReal(type, value->as.constant.as.float_);

@@ -16,9 +16,11 @@ void el_mir_dump_value(const ElMirValue* value, FILE* out) {
     case EL_MIR_VAL_CONST:
         if (value->type->kind == EL_MIR_TYPE_INT) {
             if (value->type->as.integer.width == 1) {
-                fputs(value->as.constant.as.int_ ? "true" : "false", out);
+                fputs(el_i128_eq(value->as.constant.as.int_, EL_INT128(0)) ? "true" : "false", out);
             } else {
-                fprintf(out, "$%"PRId64, value->as.constant.as.int_);
+                // NOLINTBEGIN(readability-magic-numbers): A full commitment's what I'm thinking of
+                el_sv_print(el_i128_to_string(value->as.constant.as.int_, 10, (char[42]){}), out);
+                // NOLINTEND(readability-magic-numbers)
             }
         } else {
             fputs("<unhandled const>", out);

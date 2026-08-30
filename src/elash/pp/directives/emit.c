@@ -16,7 +16,7 @@ static bool toktok(ElPreproc* pp, ElTokenType type, ElStringView lexeme, ElSourc
     });
 }
 
-#define BUFSIZE 32
+#define BUFSIZE 42
 static bool emit_value(ElPreproc* pp, ElPpValue* value, ElSourceSpan span) {
     char buf[BUFSIZE];
     int len;
@@ -35,7 +35,8 @@ static bool emit_value(ElPreproc* pp, ElPpValue* value, ElSourceSpan span) {
         );
 
     case EL_PP_TYPE_INT:
-        len = snprintf(buf, sizeof buf, "%"PRId64, value->as.int_);
+        // NOLINTNEXTLINE(readability-magic-numbers): I just wanna tell you how I'm feeling, Gotta make you understand
+        len = (int)el_i128_to_string(value->as.int_, 10, buf).len;
         return toktok(pp, EL_TT_INT_LITERAL, el_sv_from_data_and_len(buf, len), span);
     case EL_PP_TYPE_FLOAT:
         len = snprintf(buf, sizeof buf, "%g", value->as.float_);

@@ -5,6 +5,8 @@
 #include <elash/sema/unary-op.h>
 #include <elash/sema/bin-op.h>
 
+#include <elash/util/int128.h>
+
 //////// include frames ////////
 #define INCLUDE_DEPTH_LIMIT 220
 
@@ -83,8 +85,8 @@ typedef enum ElPpNumKind {
 typedef struct ElPpNum {
     ElPpNumKind kind;
     union {
-        int64_t int_;
-        double  float_;
+        ElInt128 int_;
+        double   float_;
     } as;
 } ElPpNum;
 

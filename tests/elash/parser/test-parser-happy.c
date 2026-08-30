@@ -21,7 +21,7 @@ Test(el_parser_happy, parse_expr) {
 
     // left-left: 1
     cr_assert_eq(left->as.binary.left->type, EL_AST_EXPR_LITERAL);
-    assert_int_lit(left->as.binary.left, 1);
+    assert_int_lit(left->as.binary.left, EL_INT128(1));
 
     // left-right: 2 / 30
     ElAstExpr* div_node = left->as.binary.right;
@@ -29,8 +29,8 @@ Test(el_parser_happy, parse_expr) {
     cr_assert_eq(div_node->type, EL_AST_EXPR_BINARY);
     cr_assert_eq(div_node->as.binary.op, EL_SEMA_BIN_OP_DIV);
 
-    assert_int_lit(div_node->as.binary.left,  2);
-    assert_int_lit(div_node->as.binary.right, 30);
+    assert_int_lit(div_node->as.binary.left,  EL_INT128(2));
+    assert_int_lit(div_node->as.binary.right, EL_INT128(30));
 
     // right: ('X' + "Hello")
     ElAstExpr* right = expr->as.binary.right;
@@ -94,7 +94,7 @@ Test(el_parser_happy, parse_stmt_aug_assign) {
     cr_assert_eq(stmt->as.cassign.value->kind, EL_AST_INIT_EXPR);
     cr_assert_not_null(stmt->as.cassign.value->expr);
     cr_assert_eq(stmt->as.cassign.value->expr->type, EL_AST_EXPR_LITERAL);
-    assert_int_lit(stmt->as.cassign.value->expr, 10);
+    assert_int_lit(stmt->as.cassign.value->expr, EL_INT128(10));
 }
 
 Test(el_parser_happy, parse_decl_func) {

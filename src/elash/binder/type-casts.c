@@ -2,6 +2,7 @@
 
 #include <elash/diag/engine.h>
 #include <elash/util/assert.h>
+#include <elash/util/int128.h>
 #include <elash/util/todo.h>
 
 #include <elash/hir/type/ref.h>
@@ -47,10 +48,15 @@ ElHirExpr* _el_binder_eval_const_cast(ElBinder* binder, ElSourceSpan span, ElHir
     switch (to->as.prim.kind) {
     case EL_PRIMTYPE_INT:
         switch (from->as.prim.kind) {
-        case EL_PRIMTYPE_INT:
-            return el_hir_new_int_constant(binder->arena, span, to, expr->as.constant.as.int_);
+        case EL_PRIMTYPE_INT: {
+            ElInt128 wrapped = _el_binder_wrap_typed_int(binder, span, to, expr->as.constant.as.int_);
+            return el_hir_new_int_constant(binder->arena, span, to, wrapped);
+        }
         case EL_PRIMTYPE_FLOAT:
-            return el_hir_new_int_constant(binder->arena, span, to, (int64_t)expr->as.constant.as.float_);
+            return el_hir_new_int_constant(
+                binder->arena, span, to,
+                _el_binder_wrap_typed_int(binder, span, to, EL_INT128((int64_t)expr->as.constant.as.float_))
+            );
         case EL_PRIMTYPE_BOOL:
         case EL_PRIMTYPE_VOID:
             EL_UNREACHABLE("invalid cast");
@@ -69,7 +75,7 @@ ElHirExpr* _el_binder_eval_const_cast(ElBinder* binder, ElSourceSpan span, ElHir
     case EL_PRIMTYPE_FLOAT:
         switch (from->as.prim.kind) {
         case EL_PRIMTYPE_INT:
-            return el_hir_new_float_constant(binder->arena, span, to, (double)expr->as.constant.as.int_);
+            return el_hir_new_float_constant(binder->arena, span, to, (double)el_i128_lo(expr->as.constant.as.int_));
         case EL_PRIMTYPE_FLOAT:
             return el_hir_new_float_constant(binder->arena, span, to, expr->as.constant.as.float_);
         case EL_PRIMTYPE_BOOL:
@@ -126,7 +132,7 @@ static ElHirExpr* implicit_cast_array(ElBinder* binder, ElSourceSpan span, ElHir
             binder->arena,
             expr->span,
             _el_binder_implicit_cast(binder, span, expr, el_hir_new_raw_slice_type(binder->arena, from->as.array.base)),
-            el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_usize, (int64_t)from->as.array.size)
+            el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_usize, EL_INT128((int64_t)from->as.array.size))
         );
     } else if (to->kind == EL_HIR_TYPE_RWSLICE) {
         if (type_eql(to->as.rwslice.base, from->as.array.base)) {
@@ -138,7 +144,7 @@ static ElHirExpr* implicit_cast_array(ElBinder* binder, ElSourceSpan span, ElHir
                     el_hir_new_ref_type(binder->arena, base_type),
                     EL_SEMA_UNARY_OP_ADDROF,
                     el_hir_new_bin_expr(binder->arena, EL_SRCSPAN_NULL, base_type, EL_SEMA_BIN_OP_INDEX,
-                        expr, el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_int, 0)
+                        expr, el_hir_new_int_constant(binder->arena, EL_SRCSPAN_NULL, binder->builtins->type_int, EL_INT128(0))
             )));
         }
     } else if (to->kind == EL_HIR_TYPE_REF) {
@@ -314,14 +320,16 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
         switch (lit->kind) {
         case EL_HIR_LITERAL_INT:
             if (prim->kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->arena, expr->span, to, lit->of.int_);
+                ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to, lit->of.int_);
+                return el_hir_new_int_constant(binder->arena, expr->span, to, wrapped);
             } else if (prim->kind == EL_PRIMTYPE_FLOAT) {
-                return el_hir_new_float_constant(binder->arena, expr->span, to, (double)lit->of.int_);
+                return el_hir_new_float_constant(binder->arena, expr->span, to, (double)el_i128_lo(lit->of.int_));
             }
             break;
         case EL_HIR_LITERAL_CHAR:
             if (prim->kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->arena, expr->span, to, (int64_t)lit->of.char_);
+                ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to, EL_INT128((int64_t)lit->of.char_));
+                return el_hir_new_int_constant(binder->arena, expr->span, to, wrapped);
             }
             break;
         case EL_HIR_LITERAL_BOOL:
@@ -333,7 +341,8 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
             if (prim->kind == EL_PRIMTYPE_FLOAT) {
                 return el_hir_new_float_constant(binder->arena, expr->span, to, lit->of.float_);
             } else if (prim->kind == EL_PRIMTYPE_INT) {
-                return el_hir_new_int_constant(binder->arena, expr->span, to, (int64_t)lit->of.float_);
+                ElInt128 wrapped = _el_binder_wrap_typed_int(binder, expr->span, to, EL_INT128((int64_t)lit->of.float_));
+                return el_hir_new_int_constant(binder->arena, expr->span, to, wrapped);
             }
             break;
         case EL_HIR_LITERAL_STRING:

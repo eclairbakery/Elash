@@ -1,8 +1,65 @@
 #include "binder-internals.h"
 
+#include <elash/diag/engine.h>
+#include <elash/hir/type/prim.h>
 #include <elash/util/assert.h>
+#include <elash/util/int128.h>
 
-#define TYPED_INT_RET(type, val, span)    el_hir_new_int_constant(binder->arena, span, type, val)
+static unsigned prim_int_bits(const ElHirPrimType* prim) {
+    switch (prim->as.integral.width) {
+    case EL_HIR_IWIDTH_8:         return 8;
+    case EL_HIR_IWIDTH_16:        return 16;
+    case EL_HIR_IWIDTH_32:        return 32;
+    case EL_HIR_IWIDTH_64:        return 64;
+    case EL_HIR_IWIDTH_128:       return 128;
+    case EL_HIR_IWIDTH_NATIVE:    return 64;
+    case EL_HIR_IWIDTH_EFFICIENT: return 32;
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElHirIntWidth, prim->as.integral.width);
+}
+
+static ElUint128 int_bit_mask(unsigned bits) {
+    if (bits >= 128) return UINT128_MAX;
+    return el_u128_sub(el_u128_shl(EL_UINT128(1), (int)bits), EL_UINT128(1));
+}
+
+ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirType* type, ElInt128 value) {
+    EL_ASSERT(type->kind == EL_HIR_TYPE_PRIM && type->as.prim.kind == EL_PRIMTYPE_INT, "expected integral type");
+
+    const ElHirPrimType* prim = &type->as.prim;
+    unsigned bits = prim_int_bits(prim);
+    bool overflow;
+
+    if (prim->as.integral.is_signed) {
+        ElInt128 min = el_i128_neg(el_i128_shl(EL_INT128(1), (int)bits - 1));
+        ElInt128 max = el_i128_sub(el_i128_shl(EL_INT128(1), (int)bits - 1), EL_INT128(1));
+        overflow = bits < 128 && (el_i128_lt(value, min) || el_i128_gt(value, max));
+    } else {
+        overflow = bits < 128 && el_u128_ne(el_u128_shr(el_i128_bitcast_u128(value), (int)bits), EL_UINT128(0));
+    }
+
+    if (overflow) {
+        el_diag_report(
+            binder->diag, EL_DIAG_WARN, "sema.overflow", span,
+            "integer overflow in constant expression; result wraps to type ${type}",
+            EL_DIAG_TYPE("type", type),
+        );
+    }
+
+    if (bits >= 128) return value;
+
+    ElUint128 uv = el_u128_and(el_i128_bitcast_u128(value), int_bit_mask(bits));
+    if (prim->as.integral.is_signed) {
+        ElUint128 sign = el_u128_shl(EL_UINT128(1), (int)bits - 1);
+        if (el_u128_ne(el_u128_and(uv, sign), EL_UINT128(0))) {
+            uv = el_u128_or(uv, el_u128_not(int_bit_mask(bits)));
+        }
+    }
+    return el_u128_bitcast_i128(uv);
+}
+
+#define TYPED_INT_RET(type, val, span) \
+    el_hir_new_int_constant(binder->arena, span, type, _el_binder_wrap_typed_int(binder, span, type, val))
 #define TYPED_CHAR_RET(type, val, span)   el_hir_new_char_constant(binder->arena, span, type, val)
 #define TYPED_BOOL_RET(type, val, span)   el_hir_new_bool_constant(binder->arena, span, type, val)
 #define TYPED_FLOAT_RET(type, val, span)  el_hir_new_float_constant(binder->arena, span, type, val)
@@ -12,25 +69,44 @@
 #define UNTYPED_BOOL_RET(type, val, span)  el_hir_new_bool_lit(binder->arena, span, val)
 #define UNTYPED_FLOAT_RET(type, val, span) el_hir_new_float_lit(binder->arena, span, val)
 
-// TODO: we probably should report an error on division/modulo by zero instead of returning NULL
-#define ARITH_BW_BIN_OP_CASES(a, b, RET_MACRO, type, span)                                          \
-    case EL_SEMA_BIN_OP_ADD:    return RET_MACRO(type, (a) + (b), span);                            \
-    case EL_SEMA_BIN_OP_SUB:    return RET_MACRO(type, (a) - (b), span);                            \
-    case EL_SEMA_BIN_OP_MUL:    return RET_MACRO(type, (a) * (b), span);                            \
-    case EL_SEMA_BIN_OP_DIV:    if ((b) == 0) return NULL; return RET_MACRO(type, (a) / (b), span); \
-    case EL_SEMA_BIN_OP_MOD:    if ((b) == 0) return NULL; return RET_MACRO(type, (a) % (b), span); \
-    case EL_SEMA_BIN_OP_BW_AND: return RET_MACRO(type, (a) & (b), span);                            \
-    case EL_SEMA_BIN_OP_BW_OR:  return RET_MACRO(type, (a) | (b), span);                            \
-    case EL_SEMA_BIN_OP_BW_XOR: return RET_MACRO(type, (a) ^ (b), span);                            \
-    case EL_SEMA_BIN_OP_BW_IMP: return RET_MACRO(type, ~(a) | (b), span);                           \
-    case EL_SEMA_BIN_OP_SHL:    return RET_MACRO(type, (a) << (b), span);                           \
-    case EL_SEMA_BIN_OP_SHR:    return RET_MACRO(type, (a) >> (b), span);
+#define ARITH_BW_BIN_OP_CASES(a, b, RET_MACRO, type, span)                                              \
+    case EL_SEMA_BIN_OP_ADD:    return RET_MACRO(type, el_i128_add((a), (b)), span);                    \
+    case EL_SEMA_BIN_OP_SUB:    return RET_MACRO(type, el_i128_sub((a), (b)), span);                    \
+    case EL_SEMA_BIN_OP_MUL:    return RET_MACRO(type, el_i128_mul((a), (b)), span);                    \
+    case EL_SEMA_BIN_OP_DIV:                                                                            \
+        if (el_i128_eq((b), EL_INT128(0))) {                                                            \
+            el_diag_report(binder->diag, EL_DIAG_ERROR, "sema.div-by-zero", span,                       \
+                "division by zero in constant expression");                                             \
+            return NULL;                                                                                \
+        }                                                                                               \
+        return RET_MACRO(type, el_i128_div((a), (b)), span);                                            \
+    case EL_SEMA_BIN_OP_MOD:                                                                            \
+        if (el_i128_eq((b), EL_INT128(0))) {                                                            \
+            el_diag_report(binder->diag, EL_DIAG_ERROR, "sema.div-by-zero", span,                       \
+                "division by zero in constant expression");                                             \
+            return NULL;                                                                                \
+        }                                                                                               \
+        return RET_MACRO(type, el_i128_mod((a), (b)), span);                                            \
+    case EL_SEMA_BIN_OP_BW_AND: return RET_MACRO(type, el_i128_and((a), (b)), span);                    \
+    case EL_SEMA_BIN_OP_BW_OR:  return RET_MACRO(type, el_i128_or((a), (b)), span);                     \
+    case EL_SEMA_BIN_OP_BW_XOR: return RET_MACRO(type, el_i128_xor((a), (b)), span);                    \
+    case EL_SEMA_BIN_OP_BW_IMP: return RET_MACRO(type, el_i128_or(el_i128_not((a)), (b)), span);        \
+    case EL_SEMA_BIN_OP_SHL:    return RET_MACRO(type, el_i128_shl((a), (int)el_u128_lo(el_i128_bitcast_u128(b))), span); \
+    case EL_SEMA_BIN_OP_SHR:    return RET_MACRO(type, el_i128_shr((a), (int)el_u128_lo(el_i128_bitcast_u128(b))), span);
 
 #define ARITH_FLOAT_BIN_OP_CASES(a, b, RET_MACRO, type, span)                                       \
     case EL_SEMA_BIN_OP_ADD:    return RET_MACRO(type, (a) + (b), span);                            \
     case EL_SEMA_BIN_OP_SUB:    return RET_MACRO(type, (a) - (b), span);                            \
     case EL_SEMA_BIN_OP_MUL:    return RET_MACRO(type, (a) * (b), span);                            \
     case EL_SEMA_BIN_OP_DIV:    return RET_MACRO(type, (a) / (b), span);
+
+#define COMP_INT_BIN_OP_CASES(a, b, RET_BOOL, type, span)                  \
+    case EL_SEMA_BIN_OP_EQ:  return RET_BOOL(type, el_i128_eq((a), (b)), span); \
+    case EL_SEMA_BIN_OP_NEQ: return RET_BOOL(type, el_i128_ne((a), (b)), span); \
+    case EL_SEMA_BIN_OP_LT:  return RET_BOOL(type, el_i128_lt((a), (b)), span); \
+    case EL_SEMA_BIN_OP_LTE: return RET_BOOL(type, el_i128_le((a), (b)), span); \
+    case EL_SEMA_BIN_OP_GT:  return RET_BOOL(type, el_i128_gt((a), (b)), span); \
+    case EL_SEMA_BIN_OP_GTE: return RET_BOOL(type, el_i128_ge((a), (b)), span);
 
 #define COMP_BIN_OP_CASES(a, b, RET_BOOL, type, span)                 \
     case EL_SEMA_BIN_OP_EQ:  return RET_BOOL(type, (a) == (b), span); \
@@ -47,10 +123,10 @@
     case EL_SEMA_BIN_OP_OR:  return RET_BOOL(type, (a) || (b), span); \
     case EL_SEMA_BIN_OP_IMP: return RET_BOOL(type, !(a) || (b), span);
 
-#define UNARY_INT_OP_CASES(a, RET_MACRO, type, span)                  \
-    case EL_SEMA_UNARY_OP_POS:    return RET_MACRO(type, +(a), span); \
-    case EL_SEMA_UNARY_OP_NEG:    return RET_MACRO(type, -(a), span); \
-    case EL_SEMA_UNARY_OP_BW_NOT: return RET_MACRO(type, ~(a), span);
+#define UNARY_INT_OP_CASES(a, RET_MACRO, type, span)                       \
+    case EL_SEMA_UNARY_OP_POS:    return RET_MACRO(type, (a), span);        \
+    case EL_SEMA_UNARY_OP_NEG:    return RET_MACRO(type, el_i128_neg((a)), span); \
+    case EL_SEMA_UNARY_OP_BW_NOT: return RET_MACRO(type, el_i128_not((a)), span);
 
 #define UNARY_FLOAT_OP_CASES(a, RET_MACRO, type, span)                \
     case EL_SEMA_UNARY_OP_POS:    return RET_MACRO(type, +(a), span); \
@@ -67,7 +143,7 @@
         T b = rhs->as.constant.as.MEMBER;                            \
         switch (op) {                                                \
         ARITH_BW_BIN_OP_CASES(a, b, TYPED_RET, lhs->type, lhs->span) \
-        COMP_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)   \
+        COMP_INT_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)   \
         default: return NULL;                                        \
         }                                                            \
     }
@@ -107,7 +183,7 @@
         T b = rhs->as.literal.of.MEMBER;                                \
         switch (op) {                                                       \
         ARITH_BW_BIN_OP_CASES(a, b, UNTYPED_RET, NULL, lhs->span)           \
-        COMP_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)          \
+        COMP_INT_BIN_OP_CASES(a, b, UNTYPED_BOOL_RET, NULL, lhs->span)          \
         default: return NULL;                                               \
         }                                                                   \
     }
@@ -143,7 +219,7 @@
 
 // i love X-macros
 #define EL_FOR_EACH_INTEGRAL_TYPE(X) \
-    X(INT,  int64_t, int_,  TYPED_INT_RET,  UNTYPED_INT_RET)
+    X(INT, ElInt128, int_, TYPED_INT_RET, UNTYPED_INT_RET)
 
 #define EL_FOR_EACH_FLOAT_TYPE(X) \
     X(FLOAT, double, float_, TYPED_FLOAT_RET, UNTYPED_FLOAT_RET)
