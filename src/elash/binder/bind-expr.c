@@ -154,17 +154,17 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
 }
 
 ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral* lit) {
-    switch (lit->type) {
+    switch (lit->kind) {
     case EL_AST_LIT_INT:
-        return el_hir_new_int_lit(binder->arena, in->span, lit->of.int_.value);
+        return el_hir_new_int_lit(binder->arena, in->span, lit->of.int_);
     case EL_AST_LIT_CHAR:
-        return el_hir_new_char_lit(binder->arena, in->span, lit->of.char_.value);
+        return el_hir_new_char_lit(binder->arena, in->span, lit->of.char_);
     case EL_AST_LIT_BOOL:
-        return el_hir_new_bool_lit(binder->arena, in->span, lit->of.bool_.value);
+        return el_hir_new_bool_lit(binder->arena, in->span, lit->of.bool_);
     case EL_AST_LIT_FLOAT:
-        return el_hir_new_float_lit(binder->arena, in->span, lit->of.float_.value);
+        return el_hir_new_float_lit(binder->arena, in->span, lit->of.float_);
     case EL_AST_LIT_STRING:
-        return el_hir_new_str_lit(binder->arena, in->span, lit->of.str_.value);
+        return el_hir_new_str_lit(binder->arena, in->span, lit->of.str_);
     default:
         EL_TODO("support all literal types");
     }

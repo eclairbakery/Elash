@@ -155,8 +155,8 @@ static ElPpValue* parse_primary(ElPreproc* pp) {
         return _el_pp_new_int(pp->iarena, val);
     }
     case EL_TT_FLOAT_LITERAL: {
-        long double val = el_string_to_long_double(pp->diag, tok.lexeme, tok.span);
-        return _el_pp_new_float(pp->iarena, (double)val);
+        double val = el_string_to_double(pp->diag, tok.lexeme, tok.span);
+        return _el_pp_new_float(pp->iarena, val);
     }
     case EL_TT_STRING_LITERAL: {
         char* buf = EL_DYNARENA_NEW_ARR(pp->farena, char, tok.lexeme.len);

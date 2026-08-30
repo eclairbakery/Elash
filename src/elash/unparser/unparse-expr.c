@@ -156,27 +156,29 @@ static bool push_escapeified(ElUnparser* unpar, ElTokenType type, ElStringView s
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 static bool unparse_literal(ElUnparser* unpar, ElAstExpr* expr) {
     ElAstLiteral* lit = &expr->as.literal;
-    switch (lit->type) {
+    switch (lit->kind) {
     case EL_AST_LIT_INT: {
+        // NOLINTBEGIN(readability-magic-numbers)
         char buf[42];
-        ElStringView str = el_i128_to_string(lit->of.int_.value, 10, buf);
+        ElStringView str = el_i128_to_string(lit->of.int_, 10, buf);
+        // NOLINTEND(readability-magic-numbers)
         return el_unparser_push(unpar, EL_TT_INT_LITERAL, str);
     }
     case EL_AST_LIT_FLOAT:
-        return el_unparser_push_fmt(unpar, EL_TT_FLOAT_LITERAL, "%.17g", lit->of.float_.value);
+        return el_unparser_push_fmt(unpar, EL_TT_FLOAT_LITERAL, "%.17g", lit->of.float_);
     case EL_AST_LIT_CHAR:
-        return push_escapeified(unpar, EL_TT_CHAR_LITERAL, el_sv_from_data_and_len(&lit->of.char_.value, 1));
+        return push_escapeified(unpar, EL_TT_CHAR_LITERAL, el_sv_from_data_and_len(&lit->of.char_, 1));
     case EL_AST_LIT_STRING:
-        return push_escapeified(unpar, EL_TT_STRING_LITERAL, lit->of.str_.value);
+        return push_escapeified(unpar, EL_TT_STRING_LITERAL, lit->of.str_);
     case EL_AST_LIT_BOOL:
         return el_unparser_push_kw(
             unpar,
-            lit->of.bool_.value ? EL_TT_TRUE_LITERAL : EL_TT_FALSE_LITERAL
+            lit->of.bool_ ? EL_TT_TRUE_LITERAL : EL_TT_FALSE_LITERAL
         );
     case EL_AST_LIT_NULL:
         return el_unparser_push_kw(unpar, EL_TT_NULL_LITERAL);
     }
-    EL_UNREACHABLE_ENUM_VAL(ElAstLiteralType, lit->type);
+    EL_UNREACHABLE_ENUM_VAL(ElAstLiteralKind, lit->kind);
 }
 
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)

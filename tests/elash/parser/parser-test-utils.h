@@ -5,18 +5,18 @@
 #include <stdlib.h>
 
 #define assert_int_lit(LIT, EXPECTED) do {                            \
-    cr_assert_eq((LIT)->as.literal.type, EL_AST_LIT_INT);             \
-    cr_assert(el_i128_eq((LIT)->as.literal.of.int_.value, EXPECTED)); \
+    cr_assert_eq((LIT)->as.literal.kind, EL_AST_LIT_INT);             \
+    cr_assert(el_i128_eq((LIT)->as.literal.of.int_, EXPECTED)); \
 } while (0)
 
 #define assert_char_lit(LIT, EXPECTED) do {                   \
-    cr_assert_eq((LIT)->as.literal.type, EL_AST_LIT_CHAR);    \
-    cr_assert_eq((LIT)->as.literal.of.char_.value, EXPECTED); \
+    cr_assert_eq((LIT)->as.literal.kind, EL_AST_LIT_CHAR);    \
+    cr_assert_eq((LIT)->as.literal.of.char_, EXPECTED); \
 } while (0)
 
 #define assert_str_lit(LIT, EXPECTED) do {                                  \
-    cr_assert_eq((LIT)->as.literal.type, EL_AST_LIT_STRING);                \
-    cr_assert(el_sv_eql((LIT)->as.literal.of.str_.value, EL_SV(EXPECTED))); \
+    cr_assert_eq((LIT)->as.literal.kind, EL_AST_LIT_STRING);                \
+    cr_assert(el_sv_eql((LIT)->as.literal.of.str_, EL_SV(EXPECTED))); \
 } while (0)
 
 static ElDynArena arena;

@@ -82,7 +82,7 @@ ElInt128 el_string_to_i128(ElDiagEngine* engine, ElStringView str, uint base, El
 
     if (negative) {
         ElUint128 min_abs = el_i128_abs_u128(INT128_MIN);
-        
+
         if (el_u128_gt(ures, min_abs)) {
             el_diag_report(
                 engine, EL_DIAG_ERROR, "syntax.invalid-number", span,
@@ -90,7 +90,7 @@ ElInt128 el_string_to_i128(ElDiagEngine* engine, ElStringView str, uint base, El
             );
             return EL_INT128(0);
         }
-        
+
         if (el_u128_eq(ures, min_abs)) {
             return INT128_MIN;
         } else {
@@ -112,12 +112,12 @@ ElInt128 el_string_to_i128(ElDiagEngine* engine, ElStringView str, uint base, El
 static inline bool is_digit(char c) { return c >= '0' && c <= '9'; }
 static inline bool is_sep(char c) { return c == '\''; }
 
-static bool parse_int_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView str, usize* i, long double* res, bool* has_digits) {
+static bool parse_int_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView str, usize* i, double* res, bool* has_digits) {
     bool prev_digit = false;
     while (*i < str.len) {
         char c = str.data[*i];
         if (is_digit(c)) {
-            *res = (*res * 10.0L) + (c - '0'); // NOLINT(readability-magic-numbers)
+            *res = (*res * 10.0) + (c - '0'); // NOLINT(readability-magic-numbers)
             *has_digits = true;
             prev_digit = true;
             (*i)++;
@@ -137,17 +137,17 @@ static bool parse_int_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView
     return true;
 }
 
-static bool parse_frac_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView str, usize* i, long double* res, bool* has_digits) {
+static bool parse_frac_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView str, usize* i, double* res, bool* has_digits) {
     if (*i >= str.len || str.data[*i] != '.') return true;
     (*i)++;
-    long double frac = 0.0L; // NOLINT(readability-magic-numbers)
-    long double div = 1.0L;  // NOLINT(readability-magic-numbers)
+    double frac = 0.0; // NOLINT(readability-magic-numbers)
+    double div = 1.0;  // NOLINT(readability-magic-numbers)
     bool prev_digit = false;
     while (*i < str.len) {
         char c = str.data[*i];
         if (is_digit(c)) {
-            frac = (frac * 10.0L) + (c - '0');  // NOLINT(readability-magic-numbers)
-            div *= 10.0L;                       // NOLINT(readability-magic-numbers)
+            frac = (frac * 10.0) + (c - '0');  // NOLINT(readability-magic-numbers)
+            div *= 10.0;                       // NOLINT(readability-magic-numbers)
             *has_digits = true;
             prev_digit = true;
             (*i)++;
@@ -168,7 +168,7 @@ static bool parse_frac_part(ElDiagEngine* engine, ElSourceSpan span, ElStringVie
     return true;
 }
 
-static bool parse_exp_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView str, usize* i, long double* res) {
+static bool parse_exp_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView str, usize* i, double* res) {
     if (*i >= str.len || (str.data[*i] != 'e' && str.data[*i] != 'E')) return true;
     (*i)++;
     bool neg = false;
@@ -204,8 +204,8 @@ static bool parse_exp_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView
         } else break;
     }
 
-    long double mult = 1.0L;  // NOLINT(readability-magic-numbers)
-    long double base = 10.0L; // NOLINT(readability-magic-numbers)
+    double mult = 1.0;  // NOLINT(readability-magic-numbers)
+    double base = 10.0; // NOLINT(readability-magic-numbers)
     long long e = exp;
     while (e > 0) {
         if (e % 2 == 1) mult *= base;
@@ -217,7 +217,7 @@ static bool parse_exp_part(ElDiagEngine* engine, ElSourceSpan span, ElStringView
     return true;
 }
 
-long double el_string_to_long_double(ElDiagEngine* engine, ElStringView str, ElSourceSpan span) {
+double el_string_to_double(ElDiagEngine* engine, ElStringView str, ElSourceSpan span) {
     EL_ASSERT(str.len != 0, "empty string passed to el_string_to_u128");
 
     usize i = 0;
@@ -233,7 +233,7 @@ long double el_string_to_long_double(ElDiagEngine* engine, ElStringView str, ElS
         return 0;
     }
 
-    long double res = 0.0L;
+    double res = 0.0;
     bool has_digits = false;
     if (!parse_int_part(engine, span, str, &i, &res, &has_digits)) return 0;
     if (!parse_frac_part(engine, span, str, &i, &res, &has_digits)) return 0;

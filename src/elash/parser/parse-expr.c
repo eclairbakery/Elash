@@ -27,6 +27,35 @@ bool _el_parser_is_type_literal(ElParser* parser) {
     return el_parser_peek_at(parser, idx).type == EL_TT_LBRACE;
 }
 
+static ElAstExpr* parse_string_lit(ElParser* parser) {
+    ElSourceSpan combined_span = el_parser_peek(parser).span;
+
+    usize total_cap = 0;
+    usize count = 0;
+
+    ElToken tok;
+    while ((tok = el_parser_peek_at(parser, count)).type == EL_TT_STRING_LITERAL) {
+        total_cap += tok.lexeme.len;
+        combined_span = el_srcspan_merge(combined_span, tok.span);
+        count++;
+    }
+
+    char* buf = EL_DYNARENA_NEW_ARR(parser->farena, char, total_cap);
+    usize current_len = 0;
+
+    for (usize i = 0; i < count; i++) {
+        ElToken tok = el_parser_advance(parser);
+
+        ElStringView str = el_parse_str_with_escapes(parser->diag, tok, buf + current_len);
+        if (el_sv_is_null(str)) return NULL;
+
+        current_len += str.len;
+    }
+
+    ElStringView total_str = el_sv_from_data_and_len(buf, current_len);
+    return el_ast_new_str_lit(parser->aarena, combined_span, total_str);
+}
+
 // TODO: split this function into smaller helpers
 //      "clang-tidy: Function '_el_parser_parse_primary' has cognitive complexity of 30 (threshold 25)" ~2026
 ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
@@ -52,25 +81,19 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
         ElToken tok = el_parser_advance(parser);
 
         ElInt128 val = el_parse_int_lit(parser->diag, tok);
-        return el_ast_new_int_literal(parser->aarena, tok.span, val);
+        return el_ast_new_int_lit(parser->aarena, tok.span, val);
     }
 
     if (el_parser_check(parser, EL_TT_FLOAT_LITERAL)) {
         ElToken tok = el_parser_advance(parser);
 
-        long double val = el_string_to_long_double(parser->diag, tok.lexeme, tok.span);
-        return el_ast_new_float_literal(parser->aarena, tok.span, val);
+        double val = el_string_to_double(parser->diag, tok.lexeme, tok.span);
+        return el_ast_new_float_lit(parser->aarena, tok.span, val);
     }
 
     // TODO: handle compile time concatenation, e.g. "foo" " bar" " baz"
     if (el_parser_check(parser, EL_TT_STRING_LITERAL)) {
-        ElToken tok = el_parser_advance(parser);
-
-        char* buf = EL_DYNARENA_NEW_ARR(parser->farena, char, tok.lexeme.len);
-        ElStringView str = el_parse_str_with_escapes(parser->diag, tok, buf);
-        if (el_sv_is_null(str)) return NULL;
-
-        return el_ast_new_string_literal(parser->aarena, tok.span, str);
+        return parse_string_lit(parser);
     }
 
     if (el_parser_check(parser, EL_TT_CHAR_LITERAL)) {
@@ -81,22 +104,22 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
         char c = el_parse_char_with_escapes(parser->diag, tok, buf, &ok);
         if (!ok) return NULL;
 
-        return el_ast_new_char_literal(parser->aarena, tok.span, c);
+        return el_ast_new_char_lit(parser->aarena, tok.span, c);
     }
 
     if (el_parser_check(parser, EL_TT_TRUE_LITERAL)) {
         ElToken tok = el_parser_advance(parser);
-        return el_ast_new_bool_literal(parser->aarena, tok.span, true);
+        return el_ast_new_bool_lit(parser->aarena, tok.span, true);
     }
 
     if (el_parser_check(parser, EL_TT_FALSE_LITERAL)) {
         ElToken tok = el_parser_advance(parser);
-        return el_ast_new_bool_literal(parser->aarena, tok.span, false);
+        return el_ast_new_bool_lit(parser->aarena, tok.span, false);
     }
 
     if (el_parser_check(parser, EL_TT_NULL_LITERAL)) {
         ElToken tok = el_parser_advance(parser);
-        return el_ast_new_null_literal(parser->aarena, tok.span);
+        return el_ast_new_null_lit(parser->aarena, tok.span);
     }
 
     if (el_parser_match(parser, EL_TT_LPAREN)) {
