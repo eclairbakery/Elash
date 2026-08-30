@@ -68,12 +68,13 @@ ifeq ($(CCKIND),gcc)
 	WARNINGS += -Werror=discarded-qualifiers
 endif
 
-COMMON_CFLAGS := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
+COMMON_CFLAGS  := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
+COMMON_LDFLAGS := -lc -lm
 
 IS_DEBUG := $(filter debug rel-debug debug-san rel-debug-san,$(BUILD))
 IS_SAN   := $(filter debug-san rel-debug-san,$(BUILD))
 
-DEFAULT_LDFLAGS :=
+DEFAULT_LDFLAGS := $(COMMON_LDFLAGS)
 ifeq ($(BUILD),debug)
 	DEFAULT_CFLAGS  := $(COMMON_CFLAGS) -O0 -g -DEL_DEBUG
 else ifeq ($(BUILD),debug-san)
