@@ -24,7 +24,7 @@
 - [x] Bitcast operator (`bitcast`)
 
 - [ ] Optional fallback operator (`??`)
-- [ ] Optional map operator (`?:`)
+- [ ] Optional map operator (`?>`)
 - [ ] Optional unwrap operator (`!`)
 - [ ] Optional member operator (`?.`)
 

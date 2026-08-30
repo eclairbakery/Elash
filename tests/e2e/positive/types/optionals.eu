@@ -1,0 +1,61 @@
+typedef Box as struct {
+    int p, q;
+};
+
+
+int main() {
+    int? opt1 = 2022;
+    if (opt1 == null)
+        return 1;
+    if (opt1 != 2022)
+        return 2;
+
+    //////// fallback operator ////////
+    int? opt2 = opt1 ?? 99;
+    if (opt2 != 2022)
+        return 3;
+
+    opt1 = null;
+    if (opt1 != null)
+        return 4;
+
+    int? opt3 = opt1 ?? 77;
+    if (opt3 != 77)
+        return 5;
+
+    ///////// map operator /////////
+    int? opt4 = opt3 ?> 872;
+    if (opt4 != 872)
+        return 6;
+
+    int? opt5 = opt1 ?> 482;
+    if (opt5 != null)
+        return 7;
+
+    ///////// member operator ////////
+    Box? box = null;
+    if (box?.p != null || box?.q != null)
+        return 8;
+
+    box = { .p = 91, .q = 37 };
+    if (box?.p != 91 || box?.q != 37)
+        return 9;
+
+    ///////// optional references /////////
+    int&? ref = null;
+    if (ref != null)
+        return 10;
+
+    int xyz = 81;
+    ref = &xyz;
+    if (ref != &xyz)
+        return 11;
+    if (ref!^ != 81)
+        return 12;
+
+    ref!^ = 100;
+    if (xyz != 100)
+        return 13;
+
+    return 0;
+}
