@@ -18,7 +18,7 @@
 // the corresponding .c file defines `_EL_I128_API` as an empty macro, so including the header pulls ib the function definitions
 // making them present in the object file with external linkage. By default when included by other files, this header defines `_EL_I128_API`
 // as `inline`, which basically means if the compiler wants to inline it does, if it doesn't, it emits a regular out-of-line call referencing
-// the symbols from object file that ElInt128.c was compiled to.
+// the symbols from object file that int128.c was compiled to.
 //
 // The funny thing is that C++ tries to fix it, which effectively removes this useful behavior from the language completly,
 // there is no equivalent form to this in C++. C++ community knows nothing about C (and language design in general). Not a big surprise again!
