@@ -1,4 +1,5 @@
 #include <elash/ast/equal.h>
+#include <elash/util/assert.h>
 
 bool el_ast_equal_designator(const ElAstDesignator* a, const ElAstDesignator* b);
 
@@ -41,7 +42,7 @@ bool el_ast_equal_type(const ElAstType* a, const ElAstType* b) {
         return el_ast_equal_type(a->as.slice.base, b->as.slice.base) &&
                a->as.slice.is_raw == b->as.slice.is_raw;
     }
-    return false;
+    EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, a->kind);
 }
 
 bool el_ast_equal_expr(const ElAstExpr* a, const ElAstExpr* b) {
@@ -67,7 +68,7 @@ bool el_ast_equal_expr(const ElAstExpr* a, const ElAstExpr* b) {
         case EL_AST_LIT_BOOL: return a->as.literal.of.bool_ == b->as.literal.of.bool_;
         case EL_AST_LIT_NULL: return true;
         }
-        return false;
+        EL_UNREACHABLE_ENUM_VAL(ElAstLiteralKind, a->as.literal.kind);
     case EL_AST_EXPR_TYPEDINIT:
         return a->as.typedinit.scls == b->as.typedinit.scls &&
                el_ast_equal_type(a->as.typedinit.type, b->as.typedinit.type) &&
@@ -97,7 +98,7 @@ bool el_ast_equal_expr(const ElAstExpr* a, const ElAstExpr* b) {
         return el_ast_equal_expr(a->as.tmember.expr, b->as.tmember.expr) &&
                a->as.tmember.index == b->as.tmember.index;
     }
-    return false;
+    EL_UNREACHABLE_ENUM_VAL(ElAstExprType, a->type);
 }
 
 bool el_ast_equal_func_param(const ElAstFuncParam* a, const ElAstFuncParam* b) {
@@ -165,7 +166,7 @@ bool el_ast_equal_decl(const ElAstDecl* a, const ElAstDecl* b) {
     case EL_AST_DECL_FUNC_DECL:
         return el_ast_equal_func_signature(&a->as.func_decl.sig, &b->as.func_decl.sig);
     }
-    return false;
+    EL_UNREACHABLE_ENUM_VAL(ElAstDeclType, a->type);
 }
 
 bool el_ast_equal_stmt(const ElAstStmt* a, const ElAstStmt* b) {
@@ -174,41 +175,41 @@ bool el_ast_equal_stmt(const ElAstStmt* a, const ElAstStmt* b) {
     if (a->type != b->type) return false;
 
     switch (a->type) {
-        case EL_AST_STMT_EXPR:
-            return el_ast_equal_expr(a->as.expr, b->as.expr);
-        case EL_AST_STMT_RETURN:
-            return el_ast_equal_init(a->as.return_.value, b->as.return_.value);
-        case EL_AST_STMT_DECL:
-            return el_ast_equal_decl(a->as.decl, b->as.decl);
-        case EL_AST_STMT_ASSIGN:
-            return el_ast_equal_expr(a->as.assign.target, b->as.assign.target) &&
-                   el_ast_equal_init(a->as.assign.value, b->as.assign.value);
-        case EL_AST_STMT_BLOCK: {
-            ElAstStmt* sa = a->as.block.stmts;
-            ElAstStmt* sb = b->as.block.stmts;
-            while (sa != NULL && sb != NULL) {
-                if (!el_ast_equal_stmt(sa, sb)) return false;
-                sa = sa->next;
-                sb = sb->next;
-            }
-            return sa == sb;
+    case EL_AST_STMT_EXPR:
+        return el_ast_equal_expr(a->as.expr, b->as.expr);
+    case EL_AST_STMT_RETURN:
+        return el_ast_equal_init(a->as.return_.value, b->as.return_.value);
+    case EL_AST_STMT_DECL:
+        return el_ast_equal_decl(a->as.decl, b->as.decl);
+    case EL_AST_STMT_ASSIGN:
+        return el_ast_equal_expr(a->as.assign.target, b->as.assign.target) &&
+               el_ast_equal_init(a->as.assign.value, b->as.assign.value);
+    case EL_AST_STMT_BLOCK: {
+        ElAstStmt* sa = a->as.block.stmts;
+        ElAstStmt* sb = b->as.block.stmts;
+        while (sa != NULL && sb != NULL) {
+            if (!el_ast_equal_stmt(sa, sb)) return false;
+            sa = sa->next;
+            sb = sb->next;
         }
-        case EL_AST_STMT_COMPOUND_ASSIGN:
-            return a->as.cassign.op == b->as.cassign.op &&
-                   el_ast_equal_expr(a->as.cassign.target, b->as.cassign.target) &&
-                   el_ast_equal_init(a->as.cassign.value, b->as.cassign.value);
-        case EL_AST_STMT_IF:
-            return el_ast_equal_expr(a->as.if_.cond, b->as.if_.cond) &&
-                   el_ast_equal_stmt(a->as.if_.then, b->as.if_.then) &&
-                   el_ast_equal_stmt(a->as.if_.else_, b->as.if_.else_);
-        case EL_AST_STMT_WHILE:
-            return el_ast_equal_expr(a->as.while_.cond, b->as.while_.cond) &&
-                   el_ast_equal_stmt(a->as.while_.body, b->as.while_.body);
-        case EL_AST_STMT_BREAK:
-        case EL_AST_STMT_CONTINUE:
-            return true;
+        return sa == sb;
     }
-    return false;
+    case EL_AST_STMT_COMPOUND_ASSIGN:
+        return a->as.cassign.op == b->as.cassign.op &&
+               el_ast_equal_expr(a->as.cassign.target, b->as.cassign.target) &&
+               el_ast_equal_init(a->as.cassign.value, b->as.cassign.value);
+    case EL_AST_STMT_IF:
+        return el_ast_equal_expr(a->as.if_.cond, b->as.if_.cond) &&
+               el_ast_equal_stmt(a->as.if_.then, b->as.if_.then) &&
+               el_ast_equal_stmt(a->as.if_.else_, b->as.if_.else_);
+    case EL_AST_STMT_WHILE:
+        return el_ast_equal_expr(a->as.while_.cond, b->as.while_.cond) &&
+               el_ast_equal_stmt(a->as.while_.body, b->as.while_.body);
+    case EL_AST_STMT_BREAK:
+    case EL_AST_STMT_CONTINUE:
+        return true;
+    }
+    EL_UNREACHABLE_ENUM_VAL(ElAstStmtType, a->type);
 }
 
 bool el_ast_equal_designator(const ElAstDesignator* a, const ElAstDesignator* b) {
@@ -216,14 +217,14 @@ bool el_ast_equal_designator(const ElAstDesignator* a, const ElAstDesignator* b)
     if (!a || !b) return false;
     if (a->kind != b->kind) return false;
     switch (a->kind) {
-        case EL_AST_DESIGNATOR_MEMBER:
-            return el_sv_eql(a->as.member, b->as.member);
-        case EL_AST_DESIGNATOR_TMEMBER:
-            return a->as.tmember == b->as.tmember;
-        case EL_AST_DESIGNATOR_INDEX:
-            return el_ast_equal_expr(a->as.index, b->as.index);
+    case EL_AST_DESIGNATOR_MEMBER:
+        return el_sv_eql(a->as.member, b->as.member);
+    case EL_AST_DESIGNATOR_TMEMBER:
+        return a->as.tmember == b->as.tmember;
+    case EL_AST_DESIGNATOR_INDEX:
+        return el_ast_equal_expr(a->as.index, b->as.index);
     }
-    return false;
+    EL_UNREACHABLE_ENUM_VAL(ElAstDesignatorKind, a->kind);
 }
 
 bool el_ast_equal_init(const ElAstInit* a, const ElAstInit* b) {
@@ -267,7 +268,7 @@ bool el_ast_equal_init(const ElAstInit* a, const ElAstInit* b) {
     case EL_AST_INIT_EMPTY:
         return true;
     }
-    return false;
+    EL_UNREACHABLE_ENUM_VAL(ElAstInitKind, a->kind);
 }
 
 bool el_ast_equal_module(const ElAstModule* a, const ElAstModule* b) {
@@ -291,14 +292,14 @@ bool el_ast_equal_unr(const ElAstUnr* a, const ElAstUnr* b) {
     if (!a || !b) return false;
     if (a->kind != b->kind) return false;
     switch (a->kind) {
-        case EL_AST_UNR_IDENT:
-            return el_sv_eql(a->as.ident->name, b->as.ident->name);
-        case EL_AST_UNR_INDEX:
-            return el_ast_equal_unr(a->as.index.base, b->as.index.base) &&
-                   el_ast_equal_unr(a->as.index.index, b->as.index.index) &&
-                   el_ast_equal_expr(a->as.index.index_expr, b->as.index.index_expr);
+    case EL_AST_UNR_IDENT:
+        return el_sv_eql(a->as.ident->name, b->as.ident->name);
+    case EL_AST_UNR_INDEX:
+        return el_ast_equal_unr(a->as.index.base, b->as.index.base) &&
+               el_ast_equal_unr(a->as.index.index, b->as.index.index) &&
+               el_ast_equal_expr(a->as.index.index_expr, b->as.index.index_expr);
     }
-    return false;
+    EL_UNREACHABLE_ENUM_VAL(ElAstUnrKind, a->kind);
 }
 
 bool el_ast_equal_toe(const ElAstToE* a, const ElAstToE* b) {
@@ -306,14 +307,14 @@ bool el_ast_equal_toe(const ElAstToE* a, const ElAstToE* b) {
     if (!a || !b) return false;
     if (a->kind != b->kind) return false;
     switch (a->kind) {
-        case EL_AST_TOE_TYPE:
-            return el_ast_equal_type(a->as.type, b->as.type);
-        case EL_AST_TOE_EXPR:
-            return el_ast_equal_expr(a->as.expr, b->as.expr);
-        case EL_AST_TOE_UNR:
-            return el_ast_equal_unr(a->as.unr, b->as.unr);
+    case EL_AST_TOE_TYPE:
+        return el_ast_equal_type(a->as.type, b->as.type);
+    case EL_AST_TOE_EXPR:
+        return el_ast_equal_expr(a->as.expr, b->as.expr);
+    case EL_AST_TOE_UNR:
+        return el_ast_equal_unr(a->as.unr, b->as.unr);
     }
-    return false;
+    EL_UNREACHABLE_ENUM_VAL(ElAstToEKind, a->kind);
 }
 
 bool el_ast_equal_toi(const ElAstToI* a, const ElAstToI* b) {
@@ -321,12 +322,12 @@ bool el_ast_equal_toi(const ElAstToI* a, const ElAstToI* b) {
     if (!a || !b) return false;
     if (a->kind != b->kind) return false;
     switch (a->kind) {
-        case EL_AST_TOI_TYPE:
-            return el_ast_equal_type(a->as.type, b->as.type);
-        case EL_AST_TOI_INIT:
-            return el_ast_equal_init(a->as.init, b->as.init);
-        case EL_AST_TOI_UNR:
-            return el_ast_equal_unr(a->as.unr, b->as.unr);
+    case EL_AST_TOI_TYPE:
+        return el_ast_equal_type(a->as.type, b->as.type);
+    case EL_AST_TOI_INIT:
+        return el_ast_equal_init(a->as.init, b->as.init);
+    case EL_AST_TOI_UNR:
+        return el_ast_equal_unr(a->as.unr, b->as.unr);
     }
-    return false;
+    EL_UNREACHABLE_ENUM_VAL(ElAstToIKind, a->kind);
 }
