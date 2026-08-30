@@ -9,7 +9,6 @@
 - [ ] Support `if let` and `while let` for optionals
 
 ### Declarations
-- [ ] Make function parameter definitions semicolon-separated and represent them as decl AST mode
 - [ ] Support unnamed function params in declarations
 - [x] Multiple declarators in a single declaration (comma separated, e.g. `int x, y;`)
 - [x] Forward-declared typedefs / opaque types (e.g. `typedef Name;`), better incomplete types semantics
@@ -31,7 +30,7 @@
 
 - [x] Make string literals untyped
 - [x] Support passing types as function arguments (for builtins)
-- [ ] Support escape sequences in string and char literals
+- [x] Support escape sequences in string and char literals
 
 ### Builtins
 - [x] Support passing array types directly in len() function
