@@ -10,11 +10,15 @@ typedef enum ElHirIntrKind {
     EL_HIR_INTR_SLICE_LEN,
     EL_HIR_INTR_SLICE_DATA,
     EL_HIR_INTR_MAKE_SLICE,
+
+    EL_HIR_INTR_NULL_OPT,
+    EL_HIR_INTR_SOME_OPT,
 } ElHirIntrKind;
 
 typedef struct ElHirIntrExpr {
     ElHirIntrKind kind;
     union {
+        ElHirExpr* value;
         ElHirExpr* slice;
         struct {
             ElHirExpr* rwslice;
@@ -26,3 +30,6 @@ typedef struct ElHirIntrExpr {
 ElHirExpr* el_hir_new_slice_len_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* usize_type, ElHirExpr* slice);
 ElHirExpr* el_hir_new_slice_data_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* rwslice_type, ElHirExpr* slice);
 ElHirExpr* el_hir_new_make_slice_intr(ElDynArena* arena, ElSourceSpan span, ElHirExpr* rwslice, ElHirExpr* len);
+
+ElHirExpr* el_hir_new_null_opt_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* opt_type);
+ElHirExpr* el_hir_new_some_opt_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* opt_type, ElHirExpr* value);

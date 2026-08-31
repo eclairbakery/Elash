@@ -302,6 +302,7 @@ void elc_llvm_compile_unary_instr(Context* ctx, FunctionContext* func, ElMirInst
     case EL_SEMA_UNARY_OP_POST_DEC:
     case EL_SEMA_UNARY_OP_DEREF:
     case EL_SEMA_UNARY_OP_ADDROF:
+    case EL_SEMA_UNARY_OP_OPT_UNWRAP:
         EL_UNREACHABLE("should be lowered before codegen");
         break;
 

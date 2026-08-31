@@ -22,6 +22,9 @@ ElStringView el_sema_bin_op_to_string(ElSemaBinOp type) {
     case EL_SEMA_BIN_OP_OR : return EL_SV("||");
     case EL_SEMA_BIN_OP_IMP: return EL_SV("=>");
 
+    case EL_SEMA_BIN_OP_OPT_FB:  return EL_SV("??");
+    case EL_SEMA_BIN_OP_OPT_MAP: return EL_SV("?>");
+
     case EL_SEMA_BIN_OP_BW_AND: return EL_SV("&");
     case EL_SEMA_BIN_OP_BW_OR:  return EL_SV("|");
     case EL_SEMA_BIN_OP_BW_XOR: return EL_SV("<>");

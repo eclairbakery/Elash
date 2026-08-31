@@ -13,6 +13,8 @@ typedef struct ElTypeCache {
     ElGHM mir_to_bst; // MIR Type -> BS Type
 
     ElMirType* usize_type;
+    ElMirType* bool_type;
+
     ElDynArena* arena;
 
     ElBSQuery* query;

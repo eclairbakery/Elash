@@ -56,6 +56,10 @@ void el_sema_format_type_internal(const ElHirType* type, void (*write)(const cha
         el_sema_format_type_internal(type->as.ref.base, write, ctx);
         write("&", ctx);
         return;
+    case EL_HIR_TYPE_OPT:
+        el_sema_format_type_internal(type->as.opt.base, write, ctx);
+        write("?", ctx);
+        return;
     case EL_HIR_TYPE_DISTINCT: {
         ElStringView name = type->as.distinct.name;
         char buf[2] = { '\0', '\0' };
@@ -140,6 +144,8 @@ bool el_hir_type_eql(const ElHirType* lhs, const ElHirType* rhs) {
         EL_UNREACHABLE("unknown primitive type kind");
     case EL_HIR_TYPE_REF:
         return el_hir_type_eql(lhs->as.ref.base, rhs->as.ref.base);
+    case EL_HIR_TYPE_OPT:
+        return el_hir_type_eql(lhs->as.opt.base, rhs->as.opt.base);
     case EL_HIR_TYPE_SLICE:
         return el_hir_type_eql(lhs->as.slice.base, rhs->as.slice.base);
     case EL_HIR_TYPE_RWSLICE:
@@ -193,6 +199,9 @@ uhash el_hir_type_hash(const ElHirType* type) {
         break;
     case EL_HIR_TYPE_REF:
         hash = el_hash_mix(hash, el_hir_type_hash(type->as.ref.base));
+        break;
+    case EL_HIR_TYPE_OPT:
+        hash = el_hash_mix(hash, el_hir_type_hash(type->as.opt.base));
         break;
     case EL_HIR_TYPE_SLICE:
         hash = el_hash_mix(hash, el_hir_type_hash(type->as.slice.base));

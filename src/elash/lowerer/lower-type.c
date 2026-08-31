@@ -4,12 +4,20 @@
 #include <elash/util/todo.h>
 #include <elash/mir/type.h>
 
-static ElMirType* make_slice_type(ElDynArena* arena, ElTypeCache* tcache, const ElHirSliceType* slice) {
-    ElMirType** items = EL_DYNARENA_NEW_ARR(arena, ElMirType*, 2);
+static ElMirType* make_slice_type(ElTypeCache* tcache, const ElHirSliceType* slice) {
+    ElMirType** items = EL_DYNARENA_NEW_ARR(tcache->arena, ElMirType*, 2);
     ElMirType*  base   = el_tcache_get_mir(tcache, slice->base);
-    items[EL_MIR_SLICE_FIELD_DATA] = el_mir_new_ptr_type(arena, base);
+    items[EL_MIR_SLICE_FIELD_DATA] = el_mir_new_ptr_type(tcache->arena, base);
     items[EL_MIR_SLICE_FIELD_LEN]  = tcache->usize_type;
-    return el_mir_new_tuple_type(arena, items, 2);
+    return el_mir_new_tuple_type(tcache->arena, items, 2);
+}
+
+static ElMirType* make_optional_type(ElTypeCache* tcache, const ElHirOptType* opt) {
+    ElMirType** items = EL_DYNARENA_NEW_ARR(tcache->arena, ElMirType*, 2);
+    ElMirType*  base   = el_tcache_get_mir(tcache, opt->base);
+    items[OPT_FIELD_HAS_VALUE] = tcache->bool_type;
+    items[OPT_FIELD_VALUE]     = base;
+    return el_mir_new_tuple_type(tcache->arena, items, 2);
 }
 
 ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type) {
@@ -84,7 +92,13 @@ ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type) {
     case EL_HIR_TYPE_RWSLICE:
         return el_mir_new_ptr_type(tcache->arena, el_tcache_get_mir(tcache, type->as.rwslice.base));
     case EL_HIR_TYPE_SLICE:
-        return make_slice_type(tcache->arena, tcache, &type->as.slice);
+        return make_slice_type(tcache, &type->as.slice);
+    case EL_HIR_TYPE_OPT:
+        if (type->as.opt.base->kind == EL_HIR_TYPE_REF)
+            return el_mir_new_ptr_type(tcache->arena, el_tcache_get_mir(tcache, type->as.opt.base->as.ref.base));
+        if (type->as.opt.base->kind == EL_HIR_TYPE_RWSLICE)
+            return el_mir_new_ptr_type(tcache->arena, el_tcache_get_mir(tcache, type->as.opt.base->as.ref.base));
+        return make_optional_type(tcache, &type->as.opt);
     case EL_HIR_TYPE_DISTINCT:
         if (type->as.distinct.orig == NULL)
             return el_mir_new_void_type(tcache->arena);

@@ -1,0 +1,3 @@
+usize foobar(int&? optref) {
+    return optref bitcast usize;
+}

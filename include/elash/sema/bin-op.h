@@ -44,6 +44,9 @@ static inline bool el_sema_bin_op_is_arithmetic(ElSemaBinOp op) {
 static inline bool el_sema_bin_op_is_comparison(ElSemaBinOp op) {
     return op >= EL_SEMA_BIN_OP_EQ && op <= EL_SEMA_BIN_OP_GTE;
 }
+static inline bool el_sema_bin_op_is_equality(ElSemaBinOp op) {
+    return op == EL_SEMA_BIN_OP_EQ || op == EL_SEMA_BIN_OP_NEQ;
+}
 static inline bool el_sema_bin_op_is_logical(ElSemaBinOp op) {
     return op == EL_SEMA_BIN_OP_AND || op == EL_SEMA_BIN_OP_OR || op == EL_SEMA_BIN_OP_IMP;
 }

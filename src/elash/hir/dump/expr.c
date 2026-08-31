@@ -95,16 +95,21 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
 
     case EL_HIR_EXPR_INTR:
         switch (node->as.intr.kind) {
-            case EL_HIR_INTR_SLICE_LEN:  fputs("intr 'slice-len'", out);  break;
-            case EL_HIR_INTR_SLICE_DATA: fputs("intr 'slice-data'", out); break;
-            case EL_HIR_INTR_MAKE_SLICE: fputs("intr 'make-slice'", out); break;
+        case EL_HIR_INTR_SLICE_LEN:  fputs("intr 'slice-len'", out);  break;
+        case EL_HIR_INTR_SLICE_DATA: fputs("intr 'slice-data'", out); break;
+        case EL_HIR_INTR_MAKE_SLICE: fputs("intr 'make-slice'", out); break;
+        case EL_HIR_INTR_NULL_OPT:   fputs("intr 'null-opt'", out);   break;
+        case EL_HIR_INTR_SOME_OPT:   fputs("intr 'some-opt'", out);   break;
         }
+
         fputs(" (", out);
         if (node->as.intr.kind == EL_HIR_INTR_MAKE_SLICE) {
             el_hir_dump_expr(node->as.intr.params.rwslice, 0, out);
             fputs(", ", out);
             el_hir_dump_expr(node->as.intr.params.len, 0, out);
-        } else {
+        } else if (node->as.intr.kind == EL_HIR_INTR_SOME_OPT) {
+            el_hir_dump_expr(node->as.intr.params.value, 0, out);
+        } else if (node->as.intr.kind != EL_HIR_INTR_NULL_OPT) {
             el_hir_dump_expr(node->as.intr.params.slice, 0, out);
         }
         fputs(")", out);
@@ -128,6 +133,7 @@ void el_hir_dump_expr(ElHirExpr* node, usize indent, FILE* out) {
         case EL_HIR_LITERAL_CHAR:   fprintf(out, "'%c'", node->as.literal.of.char_);          break;
         case EL_HIR_LITERAL_BOOL:   fputs(node->as.literal.of.bool_ ? "true" : "false", out); break;
         case EL_HIR_LITERAL_STRING: el_sv_print(node->as.literal.of.str_, out);               break;
+        case EL_HIR_LITERAL_NULL:   fputs("null", out);                                        break;
         }
         break;
 

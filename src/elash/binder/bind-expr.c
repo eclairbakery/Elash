@@ -5,6 +5,8 @@
 #include <elash/util/todo.h>
 
 #include <elash/hir/type/prim.h>
+#include <elash/hir/type/opt.h>
+#include <elash/hir/tree/expr/intr.h>
 #include <elash/ast/tree/toi.h>
 
 #define IMPLICIT_CAST_IF_NEEDED(THING, SPAN, TO) \
@@ -24,6 +26,128 @@ static bool is_distinct_related(ElHirType* a, ElHirType* b) {
     if (a->kind == EL_HIR_TYPE_DISTINCT && el_hir_type_eql(a->as.distinct.orig, b)) return true;
     if (b->kind == EL_HIR_TYPE_DISTINCT && el_hir_type_eql(b->as.distinct.orig, a)) return true;
     return false;
+}
+
+static bool is_null_lit(const ElHirExpr* expr) {
+    return expr->kind == EL_HIR_EXPR_LITERAL && expr->as.literal.kind == EL_HIR_LITERAL_NULL;
+}
+
+static bool types_opt_base_match(const ElHirType* opt, const ElHirType* other) {
+    if (opt->kind != EL_HIR_TYPE_OPT) return false;
+
+    ElHirType* base = opt->as.opt.base;
+    if (el_hir_type_eql(base, other)) return true;
+
+    return base->kind == EL_HIR_TYPE_REF && other->kind == EL_HIR_TYPE_REF
+        && el_hir_type_eql(base->as.ref.base, other->as.ref.base);
+}
+
+static bool bind_opt_side(
+    ElBinder* binder, ElSourceSpan span, ElHirExpr* opt, ElHirExpr** other
+) {
+    if (opt->type == NULL)                  return false;
+    if (opt->type->kind != EL_HIR_TYPE_OPT) return false;
+
+    ElHirType* base = opt->type->as.opt.base;
+    if ((*other)->type == NULL) {
+        *other = _el_binder_implicit_cast(binder, span, *other, base);
+        if (*other == NULL) return false;
+    }
+
+    if (el_hir_type_eql(base, (*other)->type)) {
+        return true;
+    }
+
+    if ((*other)->type != NULL && !el_hir_type_eql((*other)->type, opt->type)) {
+        ElHirExpr* casted = _el_binder_implicit_cast(binder, span, *other, base);
+        if (casted != NULL) {
+            *other = casted;
+            return true;
+        }
+    }
+
+    if (base->kind != EL_HIR_TYPE_REF)           return false;
+    if ((*other)->type == NULL)                  return false;
+    if ((*other)->type->kind != EL_HIR_TYPE_REF) return false;
+
+    return el_hir_type_eql(base->as.ref.base, (*other)->type->as.ref.base);
+}
+
+static ElHirExpr* bind_optional_eql(
+    ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin, ElHirExpr* left, ElHirExpr* right
+) {
+    // untyped null -> null as T?
+    if (is_null_lit(left) && right->type != NULL && right->type->kind == EL_HIR_TYPE_OPT) {
+        left = _el_binder_implicit_cast(binder, bin->left->span, left, right->type);
+        if (left == NULL) return NULL;
+    }
+    if (is_null_lit(right) && left->type != NULL && left->type->kind == EL_HIR_TYPE_OPT) {
+        right = _el_binder_implicit_cast(binder, bin->right->span, right, left->type);
+        if (right == NULL) return NULL;
+    }
+
+    bool compatible = false;
+    if (left->type != NULL && right->type != NULL) {
+        compatible |= types_opt_base_match(left->type, right->type)
+                   || types_opt_base_match(right->type, left->type);
+    }
+
+    if (!compatible) {
+        compatible |= bind_opt_side(binder, bin->right->span, left, &right)
+                   || bind_opt_side(binder, bin->left->span, right, &left);
+    }
+
+    if (compatible) {
+        return el_hir_new_bin_expr(
+            binder->arena, in->span, binder->builtins->type_bool, bin->op, left, right
+        );
+    }
+
+    return NULL;
+}
+
+static ElHirExpr* bind_optional_bin_op(
+    ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin, ElHirExpr* left, ElHirExpr* right
+) {
+    if (left->type == NULL || left->type->kind != EL_HIR_TYPE_OPT) {
+        return el_diag_report(
+            binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+            bin->left->span, "left operand of optional operator must be an optional type"
+        );
+    }
+
+    ElHirType* otype = left->type;
+    ElHirType* base  = otype->as.opt.base;
+
+    if (bin->op == EL_SEMA_BIN_OP_OPT_FB) {
+        if (right->type == NULL) {
+            right = _el_binder_implicit_cast(binder, bin->right->span, right, base);
+        } else if (right->type->kind == EL_HIR_TYPE_OPT) {
+            if (!el_hir_type_eql(right->type->as.opt.base, base)) {
+                return el_diag_report(
+                    binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+                    in->span, "optional fallback operands have incompatible types"
+                );
+            }
+        } else if (!el_hir_type_eql(right->type, base)) {
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+                in->span, "optional fallback operands have incompatible types"
+            );
+        }
+        if (right == NULL) return NULL;
+
+        if (right->type->kind != EL_HIR_TYPE_OPT) {
+            right = el_hir_new_some_opt_intr(binder->arena, bin->right->span, otype, right);
+        }
+        return el_hir_new_bin_expr(binder->arena, in->span, otype, bin->op, left, right);
+    }
+
+    if (right->type == NULL)
+        right = _el_binder_apply_default_type(binder, right);
+
+    ElHirType* result_type = el_hir_new_opt_type(binder->arena, right->type);
+    return el_hir_new_bin_expr(binder->arena, in->span, result_type, bin->op, left, right);
 }
 
 static ElHirType* bind_arith_op(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* bin, ElHirExpr** left, ElHirExpr** right) {
@@ -52,7 +176,7 @@ static ElHirType* bind_arith_op(ElBinder* binder, ElAstExpr* in, ElAstBinExpr* b
     if (!el_hir_type_eql((*left)->type, (*right)->type))
         return el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
-            in->span, "left and right operand types must be identical"
+            in->span, "left and right hand side types are incompatible"
         );
 
     if (el_sema_bin_op_is_comparison(bin->op)) {
@@ -70,7 +194,12 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
     if (left == NULL || right == NULL) return NULL;
 
     if (el_sema_bin_op_is_optional(bin->op))
-        EL_TODO("implement optionals");
+        return bind_optional_bin_op(binder, in, bin, left, right);
+
+    if (el_sema_bin_op_is_equality(bin->op)) {
+        ElHirExpr* result = bind_optional_eql(binder, in, bin, left, right);
+        if (result != NULL) return result;
+    }
 
     ElHirType* type = left->type;
     if (bin->op != EL_SEMA_BIN_OP_INDEX) {
@@ -111,6 +240,7 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
     return el_hir_new_bin_expr(binder->arena, in->span, type, bin->op, left, right);
 }
 
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnaryExpr* unary) {
     ElHirExpr* operand = el_binder_bind_expr(binder, unary->operand);
     if (operand == NULL) return NULL;
@@ -127,6 +257,14 @@ ElHirExpr* _el_binder_bind_unary_expr(ElBinder* binder, ElAstExpr* in, ElAstUnar
                 in->span, "operand of logical NOT must be boolean"
             );
         type = binder->builtins->type_bool;
+    } else if (unary->op == EL_SEMA_UNARY_OP_OPT_UNWRAP) {
+        if (type == NULL || type->kind != EL_HIR_TYPE_OPT) {
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+                in->span, "operand of optional unwrap operator must be an optional"
+            );
+        }
+        type = type->as.opt.base;
     } else if (type == NULL) {
         if (unary->op == EL_SEMA_UNARY_OP_ADDROF || unary->op == EL_SEMA_UNARY_OP_DEREF)
             return el_diag_report(
@@ -168,9 +306,10 @@ ElHirExpr* _el_binder_bind_literal(ElBinder* binder, ElAstExpr* in, ElAstLiteral
         return el_hir_new_float_lit(binder->arena, in->span, lit->of.float_);
     case EL_AST_LIT_STRING:
         return el_hir_new_str_lit(binder->arena, in->span, lit->of.str_);
-    default:
-        EL_TODO("support all literal types");
+    case EL_AST_LIT_NULL:
+        return el_hir_new_null_lit(binder->arena, in->span);
     }
+    EL_UNREACHABLE_ENUM_VAL(ElAstLiteralKind, lit->kind);
 }
 
 ElHirExpr* _el_binder_bind_ident(ElBinder* binder, ElAstExpr* in, ElAstIdent* ident) {
@@ -178,8 +317,7 @@ ElHirExpr* _el_binder_bind_ident(ElBinder* binder, ElAstExpr* in, ElAstIdent* id
     if (sym == NULL) {
         el_diag_report(
             binder->diag, EL_DIAG_ERROR, "sema.undefined-symbol",
-            in->span,
-            "undefined symbol '${name}'",
+            in->span, "undefined symbol '${name}'",
             EL_DIAG_STRING("name", ident->name)
         );
         return NULL;
@@ -260,6 +398,7 @@ ElHirExpr* _el_binder_bind_cast(ElBinder* binder, ElAstExpr* in, ElAstCastExpr* 
         return NULL;
 
     expr = _el_binder_apply_default_type(binder, expr);
+    if (expr == NULL) return NULL;
 
     if (cast->kind == EL_SEMCAST) {
         return _el_binder_explicit_cast(binder, in->span, expr, type);
@@ -287,15 +426,21 @@ ElHirExpr* el_binder_bind_typedinit(ElBinder* binder, ElAstExpr* in, ElAstTypedI
 }
 
 ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* member) {
-    if (member->is_optional) {
-        EL_TODO("implement optional member access operator");
-    }
-
     ElHirExpr* expr = el_binder_bind_expr(binder, member->expr);
     if (expr == NULL) return NULL;
 
     ElHirType* type = expr->type;
     if (type != NULL) type = el_hir_type_unwrap_distinct(type);
+
+    if (member->is_optional) {
+        if (type == NULL || type->kind != EL_HIR_TYPE_OPT) {
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+                member->expr->span, "optional member access requires an optional operand"
+            );
+        }
+        type = el_hir_type_unwrap_distinct(type->as.opt.base);
+    }
 
     if (type == NULL || type->kind != EL_HIR_TYPE_STRUCT) {
         el_diag_report(
@@ -327,6 +472,19 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
         );
     }
 
+    if (member->is_optional) {
+        ElHirType* field_type = stype->fields[field_index].type;
+
+        // expr ?> expr!.field
+        ElHirType* result_type = el_hir_new_opt_type(binder->arena, field_type);
+        return el_hir_new_bin_expr(binder->arena, in->span, result_type, EL_SEMA_BIN_OP_OPT_MAP, expr,
+                el_hir_new_member_expr(
+                    binder->arena, in->span, field_type, el_hir_new_unary_expr(
+                        binder->arena, in->span, expr->type->as.opt.base, EL_SEMA_UNARY_OP_OPT_UNWRAP, expr),
+            member->name, field_index
+        ));
+    }
+
     return el_hir_new_member_expr(
         binder->arena, in->span, stype->fields[field_index].type,
         expr, member->name, field_index
@@ -335,15 +493,21 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
 
 ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr* tmember) {
     (void) in;
-    if (tmember->is_optional) {
-        EL_TODO("implement optional member access operator");
-    }
-
     ElHirExpr* expr = el_binder_bind_expr(binder, tmember->expr);
     if (expr == NULL) return NULL;
 
     ElHirType* type = expr->type;
     if (type != NULL) type = el_hir_type_unwrap_distinct(type);
+
+    if (tmember->is_optional) {
+        if (type == NULL || type->kind != EL_HIR_TYPE_OPT) {
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.type-mismatch",
+                tmember->expr->span, "optional member access requires an optional operand"
+            );
+        }
+        type = el_hir_type_unwrap_distinct(type->as.opt.base);
+    }
 
     if (type == NULL || type->kind != EL_HIR_TYPE_TUPLE) {
         el_diag_report(
@@ -373,6 +537,21 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
             EL_DIAG_INT("count", ttype->count),
         );
         return NULL;
+    }
+
+    if (tmember->is_optional) {
+        ElHirType* elem_type   = ttype->elements[tmember->index];
+        ElHirType* result_type = el_hir_new_opt_type(binder->arena, elem_type);
+
+        // expr ?> expr!.index
+        return el_hir_new_bin_expr(
+            binder->arena, in->span, result_type, EL_SEMA_BIN_OP_OPT_MAP, expr,
+                el_hir_new_tmember_expr(
+                    binder->arena, in->span, elem_type, el_hir_new_unary_expr(
+                        binder->arena, in->span, type, EL_SEMA_UNARY_OP_OPT_UNWRAP, expr),
+                tmember->index
+            )
+        );
     }
 
     return el_hir_new_tmember_expr(

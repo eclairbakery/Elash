@@ -125,6 +125,9 @@ ElMirValue* el_lowerer_get_lvalue(ElLowerer* lw, ElHirExpr* hir) {
             // from what i understand, lvalue of *p is effectively the value p
             return el_lowerer_lower_expr(lw, hir->as.unary.operand);
         }
+        if (hir->as.unary.op == EL_SEMA_UNARY_OP_OPT_UNWRAP) {
+            return _el_lowerer_get_opt_lvalue(lw, hir->as.unary.operand);
+        }
         break;
 
     case EL_HIR_EXPR_AGGINIT: {

@@ -17,11 +17,13 @@ typedef enum ElSemaUnaryOp {
     EL_SEMA_UNARY_OP_POST_INC, // x++
     EL_SEMA_UNARY_OP_POST_DEC, // x--
 
-    EL_SEMA_BIN_OP_OPT_UNWRAP, // !
+    EL_SEMA_UNARY_OP_OPT_UNWRAP, // x!
 } ElSemaUnaryOp;
 
 static inline bool el_sema_unary_op_is_post(ElSemaUnaryOp op) {
-    return op == EL_SEMA_UNARY_OP_POST_INC || op == EL_SEMA_UNARY_OP_POST_DEC;
+    return op == EL_SEMA_UNARY_OP_POST_INC
+        || op == EL_SEMA_UNARY_OP_POST_DEC
+        || op == EL_SEMA_UNARY_OP_OPT_UNWRAP;
 }
 
 ElStringView el_sema_unary_op_format(ElSemaUnaryOp type);

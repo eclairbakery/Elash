@@ -1,0 +1,15 @@
+usize foobar(int&? optref);
+
+int main() {
+    if (sizeof(int&?) != sizeof(int&))
+        return 1;
+
+    int&? optref = null;
+    usize addr = foobar(optref);
+
+    int&? recovered = addr bitcast int&?;
+    if (recovered != optref)
+        return 2;
+
+    return 0;
+}
