@@ -69,7 +69,7 @@ ifeq ($(CCKIND),gcc)
 endif
 
 COMMON_CFLAGS  := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
-COMMON_LDFLAGS := -lc -lm
+COMMON_LDFLAGS := -lm
 
 IS_DEBUG := $(filter debug rel-debug debug-san rel-debug-san,$(BUILD))
 IS_SAN   := $(filter debug-san rel-debug-san,$(BUILD))
