@@ -167,6 +167,25 @@ static ElLexerStatus lex_op3(ElLexer* lexer, char expect1, char expect2, ElToken
 
 static ElLexerStatus lex_operator(ElLexer* lexer, char c, ElToken* out) {
     switch (c) {
+    case '?':
+        if (peek(lexer) == '?') {
+            next(lexer);
+            if (peek(lexer) == '=') {
+                next(lexer);
+                return ret_tok_with_lexeme_auto(lexer, EL_TT_OPT_FB_ASSIGN, out);
+            }
+            return ret_tok_with_lexeme_auto(lexer, EL_TT_OPT_FB, out);
+        }
+        if (peek(lexer) == '>') {
+            next(lexer);
+            return ret_tok_with_lexeme_auto(lexer, EL_TT_OPT_MAP, out);
+        }
+        if (peek(lexer) == '.') {
+            next(lexer);
+            return ret_tok_with_lexeme_auto(lexer, EL_TT_OPT_DOT, out);
+        }
+        return ret_tok_with_lexeme_auto(lexer, EL_TT_OPT, out);
+
     case '+':
         if (peek(lexer) == '+') {
             next(lexer);

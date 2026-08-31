@@ -1,0 +1,16 @@
+int main() {
+    int[&]? p = null;
+    int&? q = p bitcast int&?;
+
+    if (q != null)
+        return 1;
+
+    int[3] array = { 1, 2, 3 };
+    p = array;
+    q = p bitcast int&?;
+
+    if (p != array)
+        return 2;
+
+    return 0;
+}

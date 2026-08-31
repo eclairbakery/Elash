@@ -50,6 +50,9 @@ ElAstType* _el_parser_parse_type_suffixes(ElParser* parser, ElAstType* type) {
         if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
             ElToken amp_tok = el_parser_advance(parser);
             type = el_ast_new_type_ref(parser->aarena, el_srcspan_merge(type->span, amp_tok.span), type);
+        } else if (el_parser_check(parser, EL_TT_OPT)) {
+            ElToken opt_tok = el_parser_advance(parser);
+            type = el_ast_new_type_opt(parser->aarena, el_srcspan_merge(type->span, opt_tok.span), type);
         } else if (el_parser_check(parser, EL_TT_LBRACKET)) {
             el_parser_advance(parser); // '['
 

@@ -7,6 +7,7 @@
 
 #include <elash/hir/type/ref.h>
 #include <elash/hir/tree/expr.h>
+#include <elash/hir/tree/expr/intr.h>
 
 // to reduce boilerplate.
 #define type_eql el_hir_type_eql
@@ -208,10 +209,26 @@ static ElHirExpr* implicit_cast_prim(ElBinder* binder, ElHirExpr* expr, ElHirTyp
 
 ElHirExpr* _el_binder_implicit_cast(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, ElHirType* to) {
     ElHirType* from = expr->type;
-    if (from == NULL)
+    if (from == NULL) {
+        if (to->kind == EL_HIR_TYPE_OPT) {
+            if (expr->kind == EL_HIR_EXPR_LITERAL && expr->as.literal.kind == EL_HIR_LITERAL_NULL) {
+                return el_hir_new_null_opt_intr(binder->arena, span, to);
+            }
+            ElHirExpr* base = _cast_untyped(binder, span, expr, to->as.opt.base);
+            if (base == NULL) return NULL;
+            return el_hir_new_some_opt_intr(binder->arena, span, to, base);
+        }
         return _cast_untyped(binder, span, expr, to);
+    }
 
     if (type_eql(from, to)) return expr;
+
+    if (to->kind == EL_HIR_TYPE_OPT) {
+        ElHirExpr* casted = _el_binder_implicit_cast(binder, span, expr, to->as.opt.base);
+        if (casted != NULL) {
+            return el_hir_new_some_opt_intr(binder->arena, span, to, casted);
+        }
+    }
 
     if (from->kind == EL_HIR_TYPE_ARRAY) {
         bool bad;
@@ -276,7 +293,8 @@ static ElHirExpr* cast_untyped_compound(ElBinder* binder, ElSourceSpan span, ElH
         ElSemaUnaryOp op = expr->as.unary.op;
         if (op == EL_SEMA_UNARY_OP_PRE_INC || op == EL_SEMA_UNARY_OP_PRE_DEC
             || op == EL_SEMA_UNARY_OP_POST_INC || op == EL_SEMA_UNARY_OP_POST_DEC
-            || op == EL_SEMA_UNARY_OP_ADDROF || op == EL_SEMA_UNARY_OP_DEREF) {
+            || op == EL_SEMA_UNARY_OP_ADDROF || op == EL_SEMA_UNARY_OP_DEREF
+            || op == EL_SEMA_UNARY_OP_OPT_UNWRAP) {
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.invalid-cast", span,
                 "operator cannot be used in this context"
@@ -345,7 +363,7 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
                 return el_hir_new_int_constant(binder->arena, expr->span, to, wrapped);
             }
             break;
-        case EL_HIR_LITERAL_STRING:
+        default:
             break; // handled below
         }
     }
@@ -366,9 +384,30 @@ ElHirExpr* _cast_untyped(ElBinder* binder, ElSourceSpan span, ElHirExpr* expr, E
         }
     }
 
+    if (lit->kind == EL_HIR_LITERAL_NULL) {
+        if (to->kind == EL_HIR_TYPE_OPT) {
+            return el_hir_new_null_opt_intr(binder->arena, expr->span, to);
+        } else if (to->kind == EL_HIR_TYPE_REF) {
+            el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.invalid-cast",
+                span, "untyped ${of} literal cannot be converted to reference type '${to}'",
+                EL_DIAG_STRING("of", el_hir_literal_kind_to_string(lit->kind)),
+                EL_DIAG_TYPE("to", to),
+            );
+            el_diag_help(
+                binder->diag, "in elash, references are non-nullable by default",
+            );
+            el_diag_help(
+                binder->diag, "use '${type}?' if you need nullability",
+                EL_DIAG_TYPE("type", to),
+            );
+            return NULL;
+        }
+    }
+
     return el_diag_report(
         binder->diag, EL_DIAG_ERROR, "sema.invalid-cast",
-        span, "untyped ${of} literal cannot be converted to type ${to}",
+        span, "untyped ${of} literal cannot be converted to type '${to}'",
         EL_DIAG_STRING("of", el_hir_literal_kind_to_string(lit->kind)),
         EL_DIAG_TYPE("to", to),
     );
@@ -391,6 +430,11 @@ ElHirExpr* _el_binder_apply_default_type(ElBinder* binder, ElHirExpr* expr) {
             return el_hir_new_bool_constant(binder->arena, expr->span, binder->builtins->type_bool, lit->of.bool_);
         case EL_HIR_LITERAL_FLOAT:
             return el_hir_new_float_constant(binder->arena, expr->span, binder->builtins->type_float, lit->of.float_);
+        case EL_HIR_LITERAL_NULL:
+            return el_diag_report(
+                binder->diag, EL_DIAG_ERROR, "sema.invalid-cast",
+                expr->span, "untyped null literal requires a target type"
+            );
         }
         EL_UNREACHABLE_ENUM_VAL(ElHirLiteralKind, lit->kind);
     }

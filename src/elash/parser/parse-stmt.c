@@ -105,6 +105,7 @@ static bool match_compound_op(ElParser* parser, ElSemaBinOp* op) {
     else if (el_parser_match(parser, EL_TT_LOGICAL_OR_ASSIGN))  { return *op = EL_SEMA_BIN_OP_OR,     true; }
     else if (el_parser_match(parser, EL_TT_LOGICAL_IMP_ASSIGN)) { return *op = EL_SEMA_BIN_OP_IMP,    true; }
     else if (el_parser_match(parser, EL_TT_BITWISE_IMP_ASSIGN)) { return *op = EL_SEMA_BIN_OP_BW_IMP, true; }
+    else if (el_parser_match(parser, EL_TT_OPT_FB_ASSIGN))      { return *op = EL_SEMA_BIN_OP_OPT_FB, true; }
     else if (el_parser_match(parser, EL_TT_SHL_ASSIGN))         { return *op = EL_SEMA_BIN_OP_SHL,    true; }
     else if (el_parser_match(parser, EL_TT_SHR_ASSIGN))         { return *op = EL_SEMA_BIN_OP_SHR,    true; }
     return false;

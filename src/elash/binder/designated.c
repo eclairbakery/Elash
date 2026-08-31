@@ -5,6 +5,7 @@
 #include <elash/util/todo.h>
 
 #include <elash/hir/tree/expr/agginit.h>
+#include <elash/hir/tree/expr/intr.h>
 
 #define REPORT_TUPLE_OUT_OF_BOUNDS(BINDER, SPAN, COUNT) do { \
     el_diag_report( \
@@ -87,7 +88,7 @@ typedef struct {
 } InitBucket;
 
 static ElHirExpr* validate(
-    ElBinder* binder, ElHirType* expected_type, ElHirType* actual_type,
+    ElBinder* binder, ElHirType* init_type, ElHirType* actual_type,
     usize count, InitBucket* buckets, ElAstInit* in, ElStorageClass scls
 ) {
     ElHirExpr** values = EL_DYNARENA_NEW_ARR_ZEROED(binder->arena, ElHirExpr*, count);
@@ -113,7 +114,7 @@ static ElHirExpr* validate(
         }
     }
 
-    return el_hir_new_agg_init(binder->arena, in->span, expected_type, values, count, scls);
+    return el_hir_new_agg_init(binder->arena, in->span, init_type, values, count, scls);
 }
 
 static ElHirExpr* bind_designated_elems(
@@ -123,6 +124,11 @@ static ElHirExpr* bind_designated_elems(
     ElStorageClass scls
 ) {
     ElHirType* actual_type = el_hir_type_unwrap_distinct(expected_type);
+    ElHirType* opt_wrapper = NULL;
+    if (actual_type->kind == EL_HIR_TYPE_OPT) {
+        opt_wrapper = actual_type;
+        actual_type = el_hir_type_unwrap_distinct(actual_type->as.opt.base);
+    }
     usize count = 0;
 
     if (actual_type->kind == EL_HIR_TYPE_STRUCT) {
@@ -207,7 +213,11 @@ static ElHirExpr* bind_designated_elems(
     }
 
 
-    return validate(binder, expected_type, actual_type, count, buckets, in, scls);
+    ElHirExpr* result = validate(
+        binder, opt_wrapper != NULL ? actual_type : expected_type, actual_type, count, buckets, in, scls
+    );
+    if (result == NULL || opt_wrapper == NULL) return result;
+    return el_hir_new_some_opt_intr(binder->arena, in->span, opt_wrapper, result);
 }
 
 ElHirExpr* el_binder_bind_designated(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {

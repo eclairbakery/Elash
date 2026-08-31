@@ -11,6 +11,7 @@
 #include "type/slice.h"
 #include "type/array.h"
 #include "type/ref.h"
+#include "type/opt.h"
 
 typedef struct ElAstExpr ElAstExpr;
 typedef struct ElAstType ElAstType;
@@ -18,6 +19,7 @@ typedef struct ElAstType ElAstType;
 typedef enum ElAstTypeKind {
     EL_AST_TYPE_NAME,
     EL_AST_TYPE_REF,
+    EL_AST_TYPE_OPT,
     EL_AST_TYPE_ARRAY,
     EL_AST_TYPE_SLICE,
     EL_AST_TYPE_STRUCT,
@@ -30,6 +32,7 @@ struct ElAstType {
     union {
         ElAstIdent*     name;
         ElAstRefType    ref;
+        ElAstOptType    opt;
         ElAstArrayType  array;
         ElAstSliceType  slice;
         ElAstStructType struct_;

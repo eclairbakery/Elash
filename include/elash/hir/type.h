@@ -3,8 +3,9 @@
 #include <elash/util/strbuf.h>
 #include <stdio.h>
 
-#include "type/prim.h"
+#include "type/opt.h"
 #include "type/ref.h"
+#include "type/prim.h"
 #include "type/func.h"
 #include "type/array.h"
 #include "type/slice.h"
@@ -16,6 +17,7 @@
 typedef enum ElHirTypeKind {
     EL_HIR_TYPE_PRIM,
     EL_HIR_TYPE_REF,
+    EL_HIR_TYPE_OPT,
     EL_HIR_TYPE_FUNC,
     EL_HIR_TYPE_ARRAY,
     EL_HIR_TYPE_SLICE,
@@ -31,6 +33,7 @@ struct ElHirType {
     union {
         ElHirPrimType     prim;
         ElHirRefType      ref;
+        ElHirOptType      opt;
         ElHirSliceType    slice;
         ElHirArrayType    array;
         ElHirRawSliceType rwslice;

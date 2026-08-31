@@ -50,6 +50,8 @@ static bool lookahead_skip_type_suffixes(ElParser* parser, usize* idx) {
 
         if (tok.type == EL_TT_BITWISE_AND) {
             (*idx)++;
+        } else if (tok.type == EL_TT_OPT) {
+            (*idx)++;
         } else if (tok.type == EL_TT_LBRACKET) {
             if (!lookahead_skip_balanced(parser, idx))
                 return false;

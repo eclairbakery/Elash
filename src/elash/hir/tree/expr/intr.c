@@ -52,3 +52,26 @@ ElHirExpr* el_hir_new_make_slice_intr(ElDynArena* arena, ElSourceSpan span, ElHi
         }
     });
 }
+
+ElHirExpr* el_hir_new_null_opt_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* opt_type) {
+     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
+        .kind = EL_HIR_EXPR_INTR,
+        .type = opt_type,
+        .span = span,
+        .as.intr = {
+            .kind = EL_HIR_INTR_NULL_OPT,
+        },
+    });
+}
+
+ElHirExpr* el_hir_new_some_opt_intr(ElDynArena* arena, ElSourceSpan span, ElHirType* opt_type, ElHirExpr* value) {
+     return EL_DYNARENA_NEW_STRUCT(arena, ElHirExpr, {
+        .kind = EL_HIR_EXPR_INTR,
+        .type = opt_type,
+        .span = span,
+        .as.intr = {
+            .kind = EL_HIR_INTR_SOME_OPT,
+            .params.value = value,
+        },
+    });
+}

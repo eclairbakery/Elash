@@ -15,6 +15,10 @@ void el_ast_dump_type(ElAstType* node, usize indent, FILE* out) {
         fprintf(out, "ReferenceType:\n");
         el_ast_dump_type(node->as.ref.base, indent + 1, out);
         return;
+    case EL_AST_TYPE_OPT:
+        fprintf(out, "OptionalType:\n");
+        el_ast_dump_type(node->as.opt.base, indent + 1, out);
+        return;
     case EL_AST_TYPE_SLICE:
         fprintf(out, "%sSliceType:\n", node->as.slice.is_raw ? "Raw" : "");
         el_ast_dump_type(node->as.slice.base, indent + 1, out);

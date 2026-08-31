@@ -5,6 +5,8 @@
 #include <elash/util/assert.h>
 #include <elash/util/int128.h>
 
+// NOLINTBEGIN(readability-magic-numbers)
+
 static unsigned prim_int_bits(const ElHirPrimType* prim) {
     switch (prim->as.integral.width) {
     case EL_HIR_IWIDTH_8:         return 8;
@@ -57,6 +59,8 @@ ElInt128 _el_binder_wrap_typed_int(ElBinder* binder, ElSourceSpan span, ElHirTyp
     }
     return el_u128_bitcast_i128(uv);
 }
+
+// NOLINTEND(readability-magic-numbers)
 
 #define TYPED_INT_RET(type, val, span) \
     el_hir_new_int_constant(binder->arena, span, type, _el_binder_wrap_typed_int(binder, span, type, val))

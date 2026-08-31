@@ -119,6 +119,14 @@ static struct {
     [EL_TT_DOT]         = F("DOT", "'.'"),
     [EL_TT_DOUBLECOLON] = F("DOUBLECOLON", "'::'"),
 
+    // i just found out that thigraphs are also substituted in string literals
+    // this is crazy.
+    [EL_TT_OPT]           = F("OPT", "'\?'"),
+    [EL_TT_OPT_FB]        = F("OPT_FB", "'\?\?'"),
+    [EL_TT_OPT_FB_ASSIGN] = F("OPT_FB_ASSIGN", "'\?\?='"),
+    [EL_TT_OPT_MAP]       = F("OPT_MAP", "'\?>'"),
+    [EL_TT_OPT_DOT]       = F("OPT_DOT", "'\?.'"),
+
     [EL_TT_HASH] = F("HASH", "'#'"),
 
     [EL_TT_ELLIPSIS]      = F("ELLIPSIS", "'...'"),

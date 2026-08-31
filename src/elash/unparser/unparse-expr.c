@@ -10,26 +10,29 @@
 
 enum {
     PREC_NONE     = 0,
-    PREC_IMP      = 1,  // =>
-    PREC_OR       = 2,  // ||
-    PREC_AND      = 3,  // &&
-    PREC_BW_IMP   = 4,  // ~>
-    PREC_BW_OR    = 5,  // |
-    PREC_BW_XOR   = 6,  // <>
-    PREC_BW_AND   = 7,  // &
-    PREC_EQ       = 8,  // == !=
-    PREC_REL      = 9,  // < <= > >=
-    PREC_SHIFT    = 10, // << >>
-    PREC_ADD      = 11, // + -
-    PREC_MUL      = 12, // * / %
-    PREC_CAST     = 13, // as
-    PREC_UNARY    = 14, // guess
-    PREC_POSTFIX  = 15, // also this
-    PREC_PRIMARY  = 16, // this too
+    PREC_OPT      = 1,  // ?? ?>
+    PREC_IMP      = 2,  // =>
+    PREC_OR       = 3,  // ||
+    PREC_AND      = 4,  // &&
+    PREC_BW_IMP   = 5,  // ~>
+    PREC_BW_OR    = 6,  // |
+    PREC_BW_XOR   = 7,  // <>
+    PREC_BW_AND   = 8,  // &
+    PREC_EQ       = 9,  // == !=
+    PREC_REL      = 10, // < <= > >=
+    PREC_SHIFT    = 11, // << >>
+    PREC_ADD      = 12, // + -
+    PREC_MUL      = 13, // * / %
+    PREC_CAST     = 14, // as
+    PREC_UNARY    = 15, // guess
+    PREC_POSTFIX  = 16, // also this
+    PREC_PRIMARY  = 17, // this too
 };
 
 static int bin_op_prec(ElAstBinOp op) {
     switch (op) {
+    case EL_SEMA_BIN_OP_OPT_FB:
+    case EL_SEMA_BIN_OP_OPT_MAP: return PREC_OPT;
     case EL_SEMA_BIN_OP_IMP:    return PREC_IMP;
     case EL_SEMA_BIN_OP_OR:     return PREC_OR;
     case EL_SEMA_BIN_OP_AND:    return PREC_AND;
@@ -57,27 +60,29 @@ static int bin_op_prec(ElAstBinOp op) {
 
 static ElTokenType bin_op_token(ElAstBinOp op) {
     switch (op) {
-    case EL_SEMA_BIN_OP_ADD:    return EL_TT_PLUS;
-    case EL_SEMA_BIN_OP_SUB:    return EL_TT_MINUS;
-    case EL_SEMA_BIN_OP_MUL:    return EL_TT_STAR;
-    case EL_SEMA_BIN_OP_DIV:    return EL_TT_SLASH;
-    case EL_SEMA_BIN_OP_MOD:    return EL_TT_PERCENT;
-    case EL_SEMA_BIN_OP_EQ:     return EL_TT_EQL;
-    case EL_SEMA_BIN_OP_NEQ:    return EL_TT_NEQ;
-    case EL_SEMA_BIN_OP_LT:     return EL_TT_LT;
-    case EL_SEMA_BIN_OP_LTE:    return EL_TT_LTE;
-    case EL_SEMA_BIN_OP_GT:     return EL_TT_GT;
-    case EL_SEMA_BIN_OP_GTE:    return EL_TT_GTE;
-    case EL_SEMA_BIN_OP_AND:    return EL_TT_LOGICAL_AND;
-    case EL_SEMA_BIN_OP_OR:     return EL_TT_LOGICAL_OR;
-    case EL_SEMA_BIN_OP_IMP:    return EL_TT_LOGICAL_IMP;
-    case EL_SEMA_BIN_OP_BW_AND: return EL_TT_BITWISE_AND;
-    case EL_SEMA_BIN_OP_BW_OR:  return EL_TT_BITWISE_OR;
-    case EL_SEMA_BIN_OP_BW_XOR: return EL_TT_BITWISE_XOR;
-    case EL_SEMA_BIN_OP_BW_IMP: return EL_TT_BITWISE_IMP;
-    case EL_SEMA_BIN_OP_SHL:    return EL_TT_SHL;
-    case EL_SEMA_BIN_OP_SHR:    return EL_TT_SHR;
-    case EL_SEMA_BIN_OP_INDEX:  EL_UNREACHABLE("index is not a single token");
+    case EL_SEMA_BIN_OP_ADD:     return EL_TT_PLUS;
+    case EL_SEMA_BIN_OP_SUB:     return EL_TT_MINUS;
+    case EL_SEMA_BIN_OP_MUL:     return EL_TT_STAR;
+    case EL_SEMA_BIN_OP_DIV:     return EL_TT_SLASH;
+    case EL_SEMA_BIN_OP_MOD:     return EL_TT_PERCENT;
+    case EL_SEMA_BIN_OP_EQ:      return EL_TT_EQL;
+    case EL_SEMA_BIN_OP_NEQ:     return EL_TT_NEQ;
+    case EL_SEMA_BIN_OP_LT:      return EL_TT_LT;
+    case EL_SEMA_BIN_OP_LTE:     return EL_TT_LTE;
+    case EL_SEMA_BIN_OP_GT:      return EL_TT_GT;
+    case EL_SEMA_BIN_OP_GTE:     return EL_TT_GTE;
+    case EL_SEMA_BIN_OP_AND:     return EL_TT_LOGICAL_AND;
+    case EL_SEMA_BIN_OP_OR:      return EL_TT_LOGICAL_OR;
+    case EL_SEMA_BIN_OP_IMP:     return EL_TT_LOGICAL_IMP;
+    case EL_SEMA_BIN_OP_OPT_FB:  return EL_TT_OPT_FB;
+    case EL_SEMA_BIN_OP_OPT_MAP: return EL_TT_OPT_MAP;
+    case EL_SEMA_BIN_OP_BW_AND:  return EL_TT_BITWISE_AND;
+    case EL_SEMA_BIN_OP_BW_OR:   return EL_TT_BITWISE_OR;
+    case EL_SEMA_BIN_OP_BW_XOR:  return EL_TT_BITWISE_XOR;
+    case EL_SEMA_BIN_OP_BW_IMP:  return EL_TT_BITWISE_IMP;
+    case EL_SEMA_BIN_OP_SHL:     return EL_TT_SHL;
+    case EL_SEMA_BIN_OP_SHR:     return EL_TT_SHR;
+    case EL_SEMA_BIN_OP_INDEX:   EL_UNREACHABLE("index is not a single token");
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstBinOp, op);
 }
@@ -194,6 +199,7 @@ static bool unparse_unary(ElUnparser* unpar, ElAstExpr* expr) {
         case EL_SEMA_UNARY_OP_POST_INC: return el_unparser_push_punct(unpar, EL_TT_INC);
         case EL_SEMA_UNARY_OP_POST_DEC: return el_unparser_push_punct(unpar, EL_TT_DEC);
         case EL_SEMA_UNARY_OP_DEREF:    return el_unparser_push_punct(unpar, EL_TT_CARET);
+        case EL_SEMA_UNARY_OP_OPT_UNWRAP: return el_unparser_push_punct(unpar, EL_TT_LOGICAL_NOT);
         default: EL_UNREACHABLE("not a postfix unary");
         }
     }

@@ -6,7 +6,7 @@
 - [ ] Post-iteration statement in `while` loop
 - [x] Initializers as `return` values
 - [ ] Warn when the result or an expression without side effects is ignored
-- [ ] Support `if let` and `while let` for optionals
+- [ ] Support `if case` and `while case` for optionals
 
 ### Declarations
 - [ ] Support unnamed function params in declarations
@@ -16,17 +16,17 @@
 ### Type system
 - [ ] ~~Enum types~~ *(moved to 0.3.0)*
 - [ ] ~~Union types~~ *(moved to 0.3.0)*
-- [ ] Optional types
+- [x] Optional types
 - [ ] Read-only types
 - [ ] Write-only types
 
 ### Expressions
 - [x] Bitcast operator (`bitcast`)
 
-- [ ] Optional fallback operator (`??`)
-- [ ] Optional map operator (`?:`)
-- [ ] Optional unwrap operator (`!`)
-- [ ] Optional member operator (`?.`)
+- [x] Optional fallback operator (`??`)
+- [x] Optional map operator (`?>`)
+- [x] Optional unwrap operator (`!`)
+- [x] Optional member operator (`?.`)
 
 - [x] Make string literals untyped
 - [x] Support passing types as function arguments (for builtins)
@@ -84,7 +84,7 @@
 - [x] Verify module after passes
 
 #### Frontend
-- [ ] Lower `T&?` and `T[&]?` to just `T*` in MIR
+- [x] Lower `T&?` and `T[&]?` to just `T*` in MIR
 - [ ] Omit null checks in release mode
 
 ## Documentation

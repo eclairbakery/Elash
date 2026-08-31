@@ -129,6 +129,11 @@ ElHirType* el_binder_bind_type(ElBinder* binder, ElAstType* in) {
         if (base == NULL) return NULL;
         return el_hir_new_ref_type(binder->arena, base);
     }
+    case EL_AST_TYPE_OPT: {
+        ElHirType* base = el_binder_bind_type(binder ,in->as.ref.base);
+        if (base == NULL) return NULL;
+        return el_hir_new_opt_type(binder->arena, base);
+    }
     case EL_AST_TYPE_SLICE: {
         ElHirType* base = el_binder_bind_type(binder, in->as.slice.base);
         if (base == NULL) return NULL;

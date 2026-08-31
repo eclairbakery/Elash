@@ -67,10 +67,7 @@ static ElAstType* gen_type(ElDynArena* arena, int depth) {
 }
 
 static ElAstExpr* gen_literal(ElDynArena* arena) {
-    // TODO: null is currently excluded as it is not handled in the binder
-    //       and causes assertion errors. change that 5 to 6 once null
-    //       literals have been implemented.
-    switch (rand() % 5) {
+    switch (rand() % 6) {
     case 0: return el_ast_new_int_lit(arena, NSPAN, EL_INT128(rand() % 100));
     case 1: return el_ast_new_float_lit(arena, NSPAN, (double)(rand() % 100) / 10.0);
     case 2: return el_ast_new_char_lit(arena, NSPAN, (char)('a' + (rand() % 26)));
@@ -101,8 +98,8 @@ static ElAstExpr* gen_expr(ElDynArena* arena, int depth) {
     case 4: return el_ast_new_typedinit(arena, NSPAN, EL_STORAGECLS_LOCAL, gen_type(arena, depth - 1), gen_brace_init(arena, depth - 1));
     case 5: return el_ast_new_call_expr(arena, NSPAN, gen_expr(arena, depth - 1), gen_toi(arena, depth - 1), 1);
     case 6: return el_ast_new_cast_expr(arena, NSPAN, rand() % 2, gen_expr(arena, depth - 1), gen_type(arena, depth - 1));
-    case 7: return el_ast_new_member_expr(arena, NSPAN, gen_expr(arena, depth - 1), gen_ident(arena)->name);
-    case 8: return el_ast_new_tmember_expr(arena, NSPAN, gen_expr(arena, depth - 1), rand() % 5, NSPAN);
+    case 7: return el_ast_new_member_expr(arena, NSPAN, gen_expr(arena, depth - 1), gen_ident(arena)->name, rand() % 2 == 0);
+    case 8: return el_ast_new_tmember_expr(arena, NSPAN, gen_expr(arena, depth - 1), rand() % 5, NSPAN, rand() % 2 == 0);
     }
     EL_UNREACHABLE("shouldn't get here");
 }

@@ -2,6 +2,7 @@
 
 #include <elash/sema/bin-op.h>
 #include <elash/sema/unary-op.h>
+#include <elash/hir/type.h>
 #include <elash/util/assert.h>
 #include <elash/util/todo.h>
 
@@ -148,6 +149,24 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
          return reg;
     }
 
+    if (el_sema_bin_op_is_optional(bin->op))
+        return bin->op == EL_SEMA_BIN_OP_OPT_FB
+            ? _el_lowerer_lower_opt_fb(lw, hir, bin)
+            : _el_lowerer_lower_opt_map(lw, hir, bin);
+
+    if (el_sema_bin_op_is_comparison(bin->op)) {
+        ElHirType* left_ty = bin->left->type;
+        ElHirType* right_ty = bin->right->type;
+        if (left_ty != NULL && right_ty != NULL && el_hir_type_eql(left_ty, right_ty)
+            && left_ty->kind == EL_HIR_TYPE_OPT) {
+            return _el_lowerer_lower_opt_opt_cmp(lw, hir, bin);
+        }
+        if (left_ty != NULL && right_ty != NULL && left_ty->kind == EL_HIR_TYPE_OPT
+            && !el_hir_type_eql(left_ty, right_ty)) {
+            return _el_lowerer_lower_opt_base_cmp(lw, hir, bin);
+        }
+    }
+
     if (bin->op == EL_SEMA_BIN_OP_AND || bin->op == EL_SEMA_BIN_OP_OR || bin->op == EL_SEMA_BIN_OP_IMP) {
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirValue* res_ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
@@ -206,6 +225,11 @@ ElMirValue* _el_lowerer_lower_unary_expr(ElLowerer* lw, ElHirExpr* hir, ElHirUna
         ElMirValue* reg = el_mir_new_reg(lw->arena, mir_type, lw->current_func->reg_count++);
         el_mir_ibuf_push(&lw->ibuf, el_mir_new_load_instr(lw->arena, reg, ptr));
         return reg;
+    }
+
+    if (unary->op == EL_SEMA_UNARY_OP_OPT_UNWRAP) {
+        ElMirValue* val = _el_lowerer_opt_get_value(lw, unary->operand->type, el_lowerer_lower_expr(lw, unary->operand));
+        return val;
     }
 
     if (_el_lowerer_is_incdec(unary->op)) {
@@ -269,6 +293,13 @@ ElMirValue* _el_lowerer_lower_intr_expr(ElLowerer* lw, ElHirExpr* hir) {
         ElMirValue* fields[] = { data, len };
         return _el_lowerer_make_tuple(lw, slice_type, fields);
     }
+
+    case EL_HIR_INTR_SOME_OPT:
+        return _el_lowerer_make_some_opt(
+            lw, hir->type, el_lowerer_lower_expr(lw, hir->as.intr.params.value)
+        );
+    case EL_HIR_INTR_NULL_OPT:
+        return _el_lowerer_make_null_opt(lw, hir->type);
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirIntrKind, hir->as.intr.kind);
 }
@@ -301,7 +332,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_UNARY:     return _el_lowerer_lower_unary_expr(lw, hir, &hir->as.unary);
     case EL_HIR_EXPR_CALL:      return _el_lowerer_lower_call_expr(lw, hir, &hir->as.call);
     case EL_HIR_EXPR_INTR:      return _el_lowerer_lower_intr_expr(lw, hir);
-    case EL_HIR_EXPR_AGGINIT:  return _el_lowerer_lower_agginit_expr(lw, hir);
+    case EL_HIR_EXPR_AGGINIT:   return _el_lowerer_lower_agginit_expr(lw, hir);
     case EL_HIR_EXPR_STRCONST:  return _el_lowerer_lower_strconst_expr(lw, hir);
     case EL_HIR_EXPR_CAST:      return _el_lowerer_lower_cast_expr(lw, hir);
     case EL_HIR_EXPR_SYMBOL:    return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);
