@@ -35,6 +35,8 @@ bool el_ast_equal_type(const ElAstType* a, const ElAstType* b) {
         return el_sv_eql(a->as.name->name, b->as.name->name);
     case EL_AST_TYPE_REF:
         return el_ast_equal_type(a->as.ref.base, b->as.ref.base);
+    case EL_AST_TYPE_OPT:
+        return el_ast_equal_type(a->as.opt.base, b->as.opt.base);
     case EL_AST_TYPE_ARRAY:
         return el_ast_equal_type(a->as.array.base, b->as.array.base) &&
                el_ast_equal_expr(a->as.array.size, b->as.array.size);

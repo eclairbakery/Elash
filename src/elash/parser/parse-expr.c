@@ -144,12 +144,12 @@ ElAstExpr* _el_parser_parse_primary(ElParser* parser) {
     return NULL;
 }
 
-ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr) {
+ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr, bool is_optional) {
     if (!expr) return NULL;
     if (el_parser_check(parser, EL_TT_IDENT)) {
         ElToken name_ident = el_parser_expect(parser, EL_TT_IDENT);
         ElSourceSpan span = el_srcspan_merge(expr->span, name_ident.span);
-        return el_ast_new_member_expr(parser->aarena, span, expr, name_ident.lexeme);
+        return el_ast_new_member_expr(parser->aarena, span, expr, name_ident.lexeme, is_optional);
     } else if (el_parser_check(parser, EL_TT_INT_LITERAL)) {
         ElToken index_tok = el_parser_advance(parser);
         usize index;
@@ -158,7 +158,7 @@ ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr) {
         }
 
         ElSourceSpan span = el_srcspan_merge(expr->span, index_tok.span);
-        return el_ast_new_tmember_expr(parser->aarena, span, expr, index, index_tok.span);
+        return el_ast_new_tmember_expr(parser->aarena, span, expr, index, index_tok.span, is_optional);
     } else {
         el_parser_expect(parser, EL_TT_IDENT);
         return NULL;
@@ -223,6 +223,9 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
         } else if (el_parser_check(parser, EL_TT_CARET)) {
             ElToken tok = el_parser_advance(parser);
             expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_DEREF, expr);
+        } else if (el_parser_check(parser, EL_TT_LOGICAL_NOT)) {
+            ElToken tok = el_parser_advance(parser);
+            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_OPT_UNWRAP, expr);
         } else if (el_parser_match(parser, EL_TT_LBRACKET)) {
             ElAstExpr* index = el_parser_parse_expr(parser);
             if (el_parser_has_errs(parser)) {
@@ -246,7 +249,9 @@ ElAstExpr* _el_parser_parse_postfix(ElParser* parser) {
                 EL_SEMA_BIN_OP_INDEX, expr, index
             );
         } else if (el_parser_match(parser, EL_TT_DOT)) {
-            expr = _el_parser_parse_member(parser, expr);
+            expr = _el_parser_parse_member(parser, expr, false);
+        } else if (el_parser_match(parser, EL_TT_OPT_DOT)) {
+            expr = _el_parser_parse_member(parser, expr, true);
         } else {
             break;
         }
@@ -532,6 +537,26 @@ ElAstExpr* _el_parser_parse_logical_imp(ElParser* parser) {
     return expr;
 }
 
+ElAstExpr* _el_parser_parse_optional(ElParser* parser) {
+    ElAstExpr* expr = _el_parser_parse_logical_imp(parser);
+    if (el_parser_has_errs(parser)) return NULL;
+
+    while (true) {
+        ElAstBinOp type;
+        if (el_parser_match(parser, EL_TT_OPT_FB)) type = EL_SEMA_BIN_OP_OPT_FB;
+        else if (el_parser_match(parser, EL_TT_OPT_MAP)) type = EL_SEMA_BIN_OP_OPT_MAP;
+        else break;
+
+        ElAstExpr* right = _el_parser_parse_logical_imp(parser);
+        if (el_parser_has_errs(parser)) {
+            el_parser_sync(parser, EL_PARSER_SYNC_EXPR);
+            break;
+        }
+        expr = el_ast_new_bin_expr(parser->aarena, el_srcspan_merge(expr->span, right->span), type, expr, right);
+    }
+    return expr;
+}
+
 ElAstExpr* el_parser_parse_expr(ElParser* parser) {
-    return _el_parser_parse_logical_imp(parser);
+    return _el_parser_parse_optional(parser);
 }

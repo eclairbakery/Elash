@@ -6,7 +6,7 @@
 - [ ] Post-iteration statement in `while` loop
 - [x] Initializers as `return` values
 - [ ] Warn when the result or an expression without side effects is ignored
-- [ ] Support `if let` and `while let` for optionals
+- [ ] Support `if case` and `while case` for optionals
 
 ### Declarations
 - [ ] Support unnamed function params in declarations

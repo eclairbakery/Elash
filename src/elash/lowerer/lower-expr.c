@@ -148,6 +148,9 @@ ElMirValue* _el_lowerer_lower_bin_expr(ElLowerer* lw, ElHirExpr* hir, ElHirBinEx
          return reg;
     }
 
+    if (el_sema_bin_op_is_optional(bin->op))
+        EL_TODO("implement optionals");
+
     if (bin->op == EL_SEMA_BIN_OP_AND || bin->op == EL_SEMA_BIN_OP_OR || bin->op == EL_SEMA_BIN_OP_IMP) {
         ElMirType* ptr_type = el_mir_new_ptr_type(lw->arena, mir_type);
         ElMirValue* res_ptr = el_mir_new_reg(lw->arena, ptr_type, lw->current_func->reg_count++);
@@ -301,7 +304,7 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
     case EL_HIR_EXPR_UNARY:     return _el_lowerer_lower_unary_expr(lw, hir, &hir->as.unary);
     case EL_HIR_EXPR_CALL:      return _el_lowerer_lower_call_expr(lw, hir, &hir->as.call);
     case EL_HIR_EXPR_INTR:      return _el_lowerer_lower_intr_expr(lw, hir);
-    case EL_HIR_EXPR_AGGINIT:  return _el_lowerer_lower_agginit_expr(lw, hir);
+    case EL_HIR_EXPR_AGGINIT:   return _el_lowerer_lower_agginit_expr(lw, hir);
     case EL_HIR_EXPR_STRCONST:  return _el_lowerer_lower_strconst_expr(lw, hir);
     case EL_HIR_EXPR_CAST:      return _el_lowerer_lower_cast_expr(lw, hir);
     case EL_HIR_EXPR_SYMBOL:    return el_lowerer_lower_symbol(lw, hir->as.symbol, hir->type);

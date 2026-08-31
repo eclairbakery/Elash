@@ -19,8 +19,8 @@ ElAstType*  _el_parser_parse_type_suffixes(ElParser* parser, ElAstType* type);
 
 ElAstExpr* _el_parser_parse_primary(ElParser* parser);
 ElAstExpr* _el_parser_parse_postfix(ElParser* parser);
-ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr);
 ElAstExpr* _el_parser_parse_call(ElParser* parser, ElAstExpr* callee);
+ElAstExpr* _el_parser_parse_member(ElParser* parser, ElAstExpr* expr, bool is_optional);
 
 bool _el_parser_parse_const_idx(ElParser* parser, ElToken tok, usize* out);
 

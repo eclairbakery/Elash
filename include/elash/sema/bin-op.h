@@ -15,10 +15,13 @@ typedef enum ElSemaBinOp {
     EL_SEMA_BIN_OP_LTE, // <=
     EL_SEMA_BIN_OP_GT,  // >
     EL_SEMA_BIN_OP_GTE, // >=
-    
+
     EL_SEMA_BIN_OP_AND, // &&
     EL_SEMA_BIN_OP_OR,  // ||
     EL_SEMA_BIN_OP_IMP, // =>
+
+    EL_SEMA_BIN_OP_OPT_FB,   // ??
+    EL_SEMA_BIN_OP_OPT_MAP,  // ?>
 
     EL_SEMA_BIN_OP_BW_AND, // &
     EL_SEMA_BIN_OP_BW_OR,  // |
@@ -32,6 +35,9 @@ typedef enum ElSemaBinOp {
 
 ElStringView el_sema_bin_op_to_string(ElSemaBinOp type);
 
+static inline bool el_sema_bin_op_is_optional(ElSemaBinOp op) {
+    return op == EL_SEMA_BIN_OP_OPT_FB || op == EL_SEMA_BIN_OP_OPT_MAP;
+}
 static inline bool el_sema_bin_op_is_arithmetic(ElSemaBinOp op) {
     return op >= EL_SEMA_BIN_OP_ADD && op <= EL_SEMA_BIN_OP_MOD;
 }

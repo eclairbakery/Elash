@@ -54,6 +54,9 @@ static ElAstExpr* continue_expr_postfixes(ElParser* parser, ElAstExpr* expr) {
         } else if (el_parser_check(parser, EL_TT_CARET)) {
             ElToken tok = el_parser_advance(parser);
             expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_DEREF, expr);
+        } else if (el_parser_check(parser, EL_TT_LOGICAL_NOT)) {
+            ElToken tok = el_parser_advance(parser);
+            expr = el_ast_new_unary_expr(parser->aarena, el_srcspan_merge(expr->span, tok.span), EL_SEMA_UNARY_OP_OPT_UNWRAP, expr);
         } else if (el_parser_match(parser, EL_TT_LBRACKET)) {
             ElAstExpr* index = el_parser_parse_expr(parser);
             if (el_parser_has_errs(parser)) {
@@ -77,7 +80,9 @@ static ElAstExpr* continue_expr_postfixes(ElParser* parser, ElAstExpr* expr) {
                 EL_SEMA_BIN_OP_INDEX, expr, index
             );
         } else if (el_parser_match(parser, EL_TT_DOT)) {
-            expr = _el_parser_parse_member(parser, expr);
+            expr = _el_parser_parse_member(parser, expr, false);
+        } else if (el_parser_match(parser, EL_TT_OPT_DOT)) {
+            expr = _el_parser_parse_member(parser, expr, true);
         } else {
             break;
         }
@@ -136,8 +141,8 @@ static ElParseAmbig parse_ambig_bracket_suffix(ElParser* parser, ElParseAmbig ba
 
 static ElParseAmbig parse_ambig_suffixes(ElParser* parser, ElParseAmbig node) {
     while (true) {
-        // slices and refs
-        if (el_parser_check(parser, EL_TT_BITWISE_AND)) {
+        // slices and refs and optional types
+        if (el_parser_check(parser, EL_TT_BITWISE_AND) || el_parser_check(parser, EL_TT_OPT)) {
             return force_type_with_suffixes(parser, node);
         }
         if (el_parser_check(parser, EL_TT_LBRACKET) && is_slice_brackets(parser)) {
@@ -181,7 +186,7 @@ static bool is_binary_op_or_cast(ElParser* parser, usize idx) {
         return true;
     case EL_TT_BITWISE_AND: {
         ElToken next = el_parser_peek_at(parser, idx + 1);
-        if (next.type == EL_TT_LBRACKET || next.type == EL_TT_BITWISE_AND) {
+        if (next.type == EL_TT_LBRACKET || next.type == EL_TT_BITWISE_AND || next.type == EL_TT_OPT) {
             return false;
         }
 

@@ -69,6 +69,9 @@ ElHirExpr* _el_binder_bind_bin_expr(ElBinder* binder, ElAstExpr* in, ElAstBinExp
     ElHirExpr* right = el_binder_bind_expr(binder, bin->right);
     if (left == NULL || right == NULL) return NULL;
 
+    if (el_sema_bin_op_is_optional(bin->op))
+        EL_TODO("implement optionals");
+
     ElHirType* type = left->type;
     if (bin->op != EL_SEMA_BIN_OP_INDEX) {
         if (el_sema_bin_op_is_logical(bin->op)) {
@@ -284,6 +287,10 @@ ElHirExpr* el_binder_bind_typedinit(ElBinder* binder, ElAstExpr* in, ElAstTypedI
 }
 
 ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMemberExpr* member) {
+    if (member->is_optional) {
+        EL_TODO("implement optional member access operator");
+    }
+
     ElHirExpr* expr = el_binder_bind_expr(binder, member->expr);
     if (expr == NULL) return NULL;
 
@@ -328,6 +335,10 @@ ElHirExpr* _el_binder_bind_member_expr(ElBinder* binder, ElAstExpr* in, ElAstMem
 
 ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTMemberExpr* tmember) {
     (void) in;
+    if (tmember->is_optional) {
+        EL_TODO("implement optional member access operator");
+    }
+
     ElHirExpr* expr = el_binder_bind_expr(binder, tmember->expr);
     if (expr == NULL) return NULL;
 

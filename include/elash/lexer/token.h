@@ -123,6 +123,12 @@ typedef enum ElTokenType {
     EL_TT_COMMA,                // ,
     EL_TT_DOT,                  // .
 
+    EL_TT_OPT,                  // ?
+    EL_TT_OPT_FB,               // ??
+    EL_TT_OPT_FB_ASSIGN,        // ??=
+    EL_TT_OPT_MAP,              // ?>
+    EL_TT_OPT_DOT,              // ?.
+
     EL_TT_HASH,                 // #
 
     EL_TT_ELLIPSIS,             // ...

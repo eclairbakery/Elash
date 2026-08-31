@@ -29,6 +29,7 @@ bool _el_unparser_unparse_type_base(ElUnparser* unpar, ElAstType* type) {
     }
 
     case EL_AST_TYPE_REF:
+    case EL_AST_TYPE_OPT:
     case EL_AST_TYPE_ARRAY:
     case EL_AST_TYPE_SLICE:
         EL_UNREACHABLE("type suffixes must be peeled before unparsing base");
@@ -46,12 +47,14 @@ static bool unparse_type_suffixes(ElUnparser* unpar, ElAstType* type) {
     // very advanced formatting (right?)
     while (0
      || type->kind == EL_AST_TYPE_REF
+     || type->kind == EL_AST_TYPE_OPT
      || type->kind == EL_AST_TYPE_ARRAY
      || type->kind == EL_AST_TYPE_SLICE
     ) {
         if (count >= MAX_SUFFIXES) return false;
         suffixes[count++] = type;
         if (type->kind == EL_AST_TYPE_REF) type = type->as.ref.base;
+        else if (type->kind == EL_AST_TYPE_OPT) type = type->as.opt.base;
         else if (type->kind == EL_AST_TYPE_ARRAY) type = type->as.array.base;
         else type = type->as.slice.base;
     }
@@ -63,6 +66,9 @@ static bool unparse_type_suffixes(ElUnparser* unpar, ElAstType* type) {
         switch (suf->kind) {
         case EL_AST_TYPE_REF:
             if (!el_unparser_push_punct(unpar, EL_TT_BITWISE_AND)) return false;
+            break;
+        case EL_AST_TYPE_OPT:
+            if (!el_unparser_push_punct(unpar, EL_TT_OPT)) return false;
             break;
         case EL_AST_TYPE_SLICE:
             if (!el_unparser_push_punct(unpar, EL_TT_LBRACKET)) return false;

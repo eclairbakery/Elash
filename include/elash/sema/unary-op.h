@@ -16,6 +16,8 @@ typedef enum ElSemaUnaryOp {
     EL_SEMA_UNARY_OP_PRE_DEC,  // --x
     EL_SEMA_UNARY_OP_POST_INC, // x++
     EL_SEMA_UNARY_OP_POST_DEC, // x--
+
+    EL_SEMA_BIN_OP_OPT_UNWRAP, // !
 } ElSemaUnaryOp;
 
 static inline bool el_sema_unary_op_is_post(ElSemaUnaryOp op) {
