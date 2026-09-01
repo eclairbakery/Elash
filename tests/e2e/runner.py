@@ -46,7 +46,7 @@ def main():
     args: CliArgs = typing.cast(CliArgs, parser.parse_args())
 
     timeouts = Timeouts(
-        compile = (args.compile_timeout or 1.5) * args.timeout,
+        compile = (args.compile_timeout or 2.0) * args.timeout,
         runtime = (args.runtime_timeout or 3.0) * args.timeout,
         link    = (args.link_timeout    or 5.0) * args.timeout,
     )
