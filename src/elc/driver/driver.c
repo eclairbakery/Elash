@@ -215,7 +215,7 @@ bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
         const char* path = el_dynarena_make_cstr(&driver->arena, out_path);
 
         bool needs_closing;
-        FILE* f = el_open_ifile(path, &needs_closing);
+        FILE* f = el_open_ofile(path, &needs_closing);
 
         fwrite(buffer.data, 1, buffer.size, f);
         if (needs_closing) fclose(f);

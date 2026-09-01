@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 static inline FILE* el_open_ifile(const char* path, bool* out_needs_closing) {
     if (strcmp(path, "-") == 0)
@@ -10,7 +11,10 @@ static inline FILE* el_open_ifile(const char* path, bool* out_needs_closing) {
 
     *out_needs_closing = true;
     FILE* f = fopen(path, "rb");
-    if (f == NULL) perror("fopen");
+    if (f == NULL) {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
     return f;
 }
 
@@ -20,6 +24,9 @@ static inline FILE* el_open_ofile(const char* path, bool* out_needs_closing) {
 
     *out_needs_closing = true;
     FILE* f = fopen(path, "wb");
-    if (f == NULL) perror("fopen");
+    if (f == NULL) {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
     return f;
 }
