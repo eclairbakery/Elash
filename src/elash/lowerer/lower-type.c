@@ -108,5 +108,8 @@ ElMirType* el_lowerer_map_type_raw(ElTypeCache* tcache, const ElHirType* type) {
 }
 
 ElMirType* el_lowerer_map_type(ElLowerer* lw, const ElHirType* type) {
-    return el_tcache_get_mir(lw->tcache, type);
+    el_prof_begin_sub(lw->prof, lw->pss_type);
+    ElMirType* result = el_tcache_get_mir(lw->tcache, type);
+    el_prof_finish_sub(lw->prof, lw->pss_type);
+    return result;
 }

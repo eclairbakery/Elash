@@ -1,7 +1,8 @@
 #include <elc/driver/observers/dump-tks.h>
 #include <elash/lexer/token.h>
+
+#include <elash/util/fopen.h>
 #include <stdio.h>
-#include <string.h>
 
 void elc_dump_tokens_observer_exec(
     void* user_data,
@@ -16,11 +17,8 @@ void elc_dump_tokens_observer_exec(
     if (artifact == NULL || artifact->kind != data->kind) return;
     if (event != ELC_OBS_END) return;
 
-    FILE* out = stdout;
-    if (data->path != NULL && strcmp(data->path, "-") != 0) {
-        out = fopen(data->path, "w");
-        if (out == NULL) return;
-    }
+    bool needs_closing;
+    FILE* out = el_open_ofile(data->path, &needs_closing);
 
     if (data->buffer != NULL) {
         for (usize i = 0; i < data->buffer->len; ++i) {
@@ -29,7 +27,7 @@ void elc_dump_tokens_observer_exec(
         }
     }
 
-    if (out != stdout) fclose(out);
+    if (needs_closing) fclose(out);
 }
 
 ElcObserver elc_make_dump_tokens_observer(ElcDumpTksData* data) {

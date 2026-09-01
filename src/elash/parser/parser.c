@@ -102,13 +102,24 @@ ElToken el_parser_expect(ElParser* parser, ElTokenType type) {
 
 void el_parser_init(
     ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine,
-    ElDynArena* farena, ElDynArena* aarena
+    ElDynArena* farena, ElDynArena* aarena, ElProfState* prof
 ) {
     parser->tokens = tokens;
     parser->diag = engine;
 
     parser->farena = farena;
     parser->aarena = aarena;
+    parser->prof = prof;
+
+    if (prof != NULL) {
+        parser->pss_expr = el_prof_new_sub(prof, EL_SV("Parsing expressions"));
+        parser->pss_stmt = el_prof_new_sub(prof, EL_SV("Parsing statements"));
+        parser->pss_decl = el_prof_new_sub(prof, EL_SV("Parsing declarations"));
+        parser->pss_type = el_prof_new_sub(prof, EL_SV("Parsing types"));
+        parser->pss_init = el_prof_new_sub(prof, EL_SV("Parsing initializers"));
+        parser->pss_toi  = el_prof_new_sub(prof, EL_SV("Parsing ToIs"));
+        parser->pss_toe  = el_prof_new_sub(prof, EL_SV("Parsing ToEs"));
+    }
 
     parser->current.type = EL_TT_UNKNOWN;
     el_tkque_init(&parser->lookahead);

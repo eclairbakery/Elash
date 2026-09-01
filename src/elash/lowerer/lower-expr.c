@@ -326,7 +326,7 @@ ElMirValue* _el_lowerer_lower_strconst_expr(ElLowerer* lw, ElHirExpr* hir) {
     return res;
 }
 
-ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
+static ElMirValue* _lower_expr_internal(ElLowerer* lw, ElHirExpr* hir) {
     switch (hir->kind) {
     case EL_HIR_EXPR_BINARY:    return _el_lowerer_lower_bin_expr(lw, hir, &hir->as.binary);
     case EL_HIR_EXPR_UNARY:     return _el_lowerer_lower_unary_expr(lw, hir, &hir->as.unary);
@@ -382,4 +382,11 @@ ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
         EL_UNREACHABLE("untyped literal in lowerer");
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirExprKind, hir->kind);
+}
+
+ElMirValue* el_lowerer_lower_expr(ElLowerer* lw, ElHirExpr* hir) {
+    el_prof_begin_sub(lw->prof, lw->pss_expr);
+    ElMirValue* result = _lower_expr_internal(lw, hir);
+    el_prof_finish_sub(lw->prof, lw->pss_expr);
+    return result;
 }

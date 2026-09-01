@@ -1,6 +1,7 @@
 #pragma once
 
 #include <elash/binder/builtin.h>
+#include <elash/prof/prof.h>
 
 #include <elash/hir/symbol.h>
 #include <elash/hir/scope.h>
@@ -31,6 +32,7 @@ typedef struct ElBinderInitOpts {
     ElDynArena*   arena;
     ElTypeCache*  tcache;
     ElBSQuery*    bsquery;
+    ElProfState* prof;
 } ElBinderInitOpts;
 
 typedef struct ElBinder {
@@ -38,6 +40,16 @@ typedef struct ElBinder {
     ElDiagEngine* diag;
     ElTypeCache*  tcache;
     ElBSQuery*    bsquery;
+
+    ElProfState* prof;
+    ElProfSubstage
+        *pss_expr,
+        *pss_stmt,
+        *pss_decl,
+        *pss_type,
+        *pss_init,
+        *pss_toi,
+        *pss_toe;
 
     ElBinderBuiltins* builtins;
 

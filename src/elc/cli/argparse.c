@@ -59,6 +59,36 @@ static bool handle_dump_switch(ElcArgParseContext* p, ElStringView arg, ElString
     return false;
 }
 
+static bool handle_time_report_flag(ElcArgParseContext* p, ElStringView arg) {
+    ElStringView flag_name;
+    ElcTimeReportFormat format = ELC_TREPORT_CONSOLE;
+
+    if (el_sv_starts_with(arg, EL_SV("--time-report-jsonl"))) {
+        flag_name = EL_SV("--time-report-jsonl");
+        format = ELC_TREPORT_JSONL;
+    } else if (el_sv_starts_with(arg, EL_SV("--time-report"))) {
+        flag_name = EL_SV("--time-report");
+    } else {
+        return false;
+    }
+
+    if (el_sv_eql(arg, flag_name)) {
+        p->out->time_reports.is_enabled = true;
+        p->out->time_reports.output = el_sv_from_cstr("-");
+        p->out->treport_format = format;
+        return true;
+    }
+
+    if (arg.len > flag_name.len && arg.data[flag_name.len] == '=') {
+        p->out->time_reports.is_enabled = true;
+        p->out->time_reports.output = el_sv_slice(arg, flag_name.len + 1, arg.len);
+        p->out->treport_format = format;
+        return true;
+    }
+
+    return false;
+}
+
 static ElcCliParseResult handle_artifact_flag(
     ElcArgParseContext* p, ElStringView arg,
     ElStringView flag, ElcArtifactKind* out,
@@ -153,7 +183,11 @@ static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView ar
     if (el_sv_eql(arg, EL_SV("--help")))    { p->out->help = true;    return ELC_CLI_PARSE_RESULT_OK; }
     if (el_sv_eql(arg, EL_SV("--version"))) { p->out->version = true; return ELC_CLI_PARSE_RESULT_OK; }
 
-    if (el_sv_eql(arg, EL_SV("--jsonl")))   { p->out->dformat = ELC_DIAG_JSONL; return ELC_CLI_PARSE_RESULT_OK; }
+    if (el_sv_eql(arg, EL_SV("--jsonl"))) {
+        p->out->dformat = ELC_DIAG_JSONL;
+        p->out->treport_format = ELC_TREPORT_JSONL;
+        return ELC_CLI_PARSE_RESULT_OK;
+    }
 
     if (el_sv_starts_with(arg, EL_SV("--output")))
         return handle_output_flag(p, arg);
@@ -175,6 +209,8 @@ static ElcCliParseResult handle_long_flag(ElcArgParseContext* p, ElStringView ar
     if (handle_dump_switch(p, arg, EL_SV("--dump-mir"),     &p->out->dump_mir))     return ELC_CLI_PARSE_RESULT_OK;
     if (handle_dump_switch(p, arg, EL_SV("--dump-lir"),     &p->out->dump_lir))     return ELC_CLI_PARSE_RESULT_OK;
     if (handle_dump_switch(p, arg, EL_SV("--dump-asm"),     &p->out->dump_asm))     return ELC_CLI_PARSE_RESULT_OK;
+
+    if (handle_time_report_flag(p, arg)) return ELC_CLI_PARSE_RESULT_OK;
 
     if (el_sv_eql(arg, EL_SV("--no-stdlib")))  { p->out->stdlib  = false; return ELC_CLI_PARSE_RESULT_OK; }
     if (el_sv_eql(arg, EL_SV("--no-corelib"))) { p->out->corelib = false; return ELC_CLI_PARSE_RESULT_OK; }

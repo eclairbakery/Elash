@@ -29,6 +29,8 @@ void elc_cli_print_usage(FILE* out, const char* program_name) {
     fprt(out, "  --dump-mir[=file]      dump ELMIR (default: -)"                     );
     fprt(out, "  --dump-lir[=file]      dump backend-specific LIR (default: -)"      );
     fprt(out, "  --dump-asm[=file]      dump assembly (default: -)"                  );
+    fprt(out, "  --time-report[=file]  print stage timing report (default: -)"       );
+    fprt(out, "  --time-report-jsonl[=file]  print timing report as JSONL"           );
     fprt(out, "\nOptimization Levels: 0, 1, 2, 3, g (debug), s (size), z, f (fast)"  );
     fprt(out, "\nPreference Options: never, auto, always"                            );
     fprt(out, "\nAdvanced Options (for inspect command):"                            );

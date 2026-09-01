@@ -87,6 +87,8 @@ ElAstType* _el_parser_parse_type_suffixes(ElParser* parser, ElAstType* type) {
 }
 
 ElAstType* _el_parser_parse_type(ElParser* parser) {
+    el_prof_begin_sub(parser->prof, parser->pss_type);
+
     ElAstType* type;
     if (el_parser_check(parser, EL_TT_KW_STRUCT)) {
         ElToken struct_tok = el_parser_advance(parser);
@@ -96,13 +98,19 @@ ElAstType* _el_parser_parse_type(ElParser* parser) {
             type = parse_struct_type(parser, struct_tok);
         } else {
             _el_parser_report_unexpected(parser, parser->current);
+            el_prof_finish_sub(parser->prof, parser->pss_type);
             return NULL;
         }
     } else {
         ElAstIdent* name = _el_parser_parse_ident(parser);
-        if (name == NULL) return NULL;
+        if (name == NULL) {
+            el_prof_finish_sub(parser->prof, parser->pss_type);
+            return NULL;
+        }
         type = el_ast_new_type_name(parser->aarena, name->span, name);
     }
 
-    return _el_parser_parse_type_suffixes(parser, type);
+    ElAstType* result = _el_parser_parse_type_suffixes(parser, type);
+    el_prof_finish_sub(parser->prof, parser->pss_type);
+    return result;
 }

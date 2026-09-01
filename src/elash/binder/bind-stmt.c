@@ -119,7 +119,7 @@ ElHirStmt* _el_binder_bind_compound_assign(ElBinder* binder, ElAstStmt* in, ElAs
     );
 }
 
-ElHirStmt* el_binder_bind_stmt(ElBinder* binder, ElAstStmt* in) {
+static ElHirStmt* _bind_stmt_internal(ElBinder* binder, ElAstStmt* in) {
     switch (in->type) {
     case EL_AST_STMT_BLOCK: {
         ElHirBlockStmt block = _el_binder_bind_block(binder, &in->as.block);
@@ -203,4 +203,12 @@ ElHirStmt* el_binder_bind_stmt(ElBinder* binder, ElAstStmt* in) {
     }
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstStmtType, in->type);
+}
+
+ElHirStmt* el_binder_bind_stmt(ElBinder* binder, ElAstStmt* in) {
+    EL_ASSERT(in != NULL, "should not be NULL");
+    el_prof_begin_sub(binder->prof, binder->pss_stmt);
+    ElHirStmt* result = _bind_stmt_internal(binder, in);
+    el_prof_finish_sub(binder->prof, binder->pss_stmt);
+    return result;
 }

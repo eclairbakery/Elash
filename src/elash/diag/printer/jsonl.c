@@ -2,32 +2,9 @@
 #include <elash/diag/engine.h>
 
 #include <elash/util/assert.h>
+#include <elash/util/json.h>
 #include <elash/util/strbuf.h>
 #include <elash/hir/type.h>
-
-#define MIN_PRINTABLE 0x20
-static void escape_json_str(FILE* out, ElStringView sv) {
-    fputc('"', out);
-    for (const char* c = sv.data; c < sv.data + sv.len; ++c) {
-        switch (*c) {
-        case '"':  fputs("\\\"", out); break;
-        case '\\': fputs("\\\\", out); break;
-        case '\b': fputs("\\b", out);  break;
-        case '\f': fputs("\\f", out);  break;
-        case '\n': fputs("\\n", out);  break;
-        case '\r': fputs("\\r", out);  break;
-        case '\t': fputs("\\t", out);  break;
-        default:
-            if ((unsigned char)*c < MIN_PRINTABLE) {
-                fprintf(out, "\\u%04x", *c);
-            } else {
-                fputc(*c, out);
-            }
-            break;
-        }
-    }
-    fputc('"', out);
-}
 
 void el_diag_jsonl_printer_begin(ElDiagPrinter* self, FILE* out) {
     (void)self;
@@ -53,10 +30,10 @@ static void dump_token(FILE* out, const ElToken* token) {
     fputc('{', out);
 
     fputs("\"type\":", out);
-    escape_json_str(out, el_token_type_to_string(token->type));
+    el_json_write_string(out, el_token_type_to_string(token->type));
 
     fputs(",\"lexeme\":", out);
-    escape_json_str(out, token->lexeme);
+    el_json_write_string(out, token->lexeme);
 
     fputs(",\"span\":", out);
     dump_src_span(out, &token->span);
@@ -70,18 +47,18 @@ static void dump_diag_meta(const ElDiagMetaEntry* entry, FILE* out) {
         ElStringBuf sb;
         el_strbuf_init(&sb);
         el_sema_format_type(entry->as.type, &sb);
-        escape_json_str(out, el_strbuf_view(&sb));
+        el_json_write_string(out, el_strbuf_view(&sb));
         el_strbuf_destroy(&sb);
         return;
     }
     case EL_DIAG_META_STR:
-        escape_json_str(out, entry->as.string);
+        el_json_write_string(out, entry->as.string);
         return;
     case EL_DIAG_META_INT:
         fprintf(out, "%d", entry->as.integer);
         return;
     case EL_DIAG_META_CHAR:
-        escape_json_str(out, el_sv_from_char(&entry->as.character));
+        el_json_write_string(out, el_sv_from_char(&entry->as.character));
         return;
     case EL_DIAG_META_TOK:
         dump_token(out, &entry->as.token);
@@ -98,13 +75,13 @@ void el_diag_jsonl_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnos
 
     // basic info
     fputs("\"severity\":", out);
-    escape_json_str(out, el_diag_severity_to_string(diag->sev));
+    el_json_write_string(out, el_diag_severity_to_string(diag->sev));
 
     fputs(",\"category\":", out);
     if (diag->category.len == 0) {
         fputs("null", out);
     } else {
-        escape_json_str(out, diag->category);
+        el_json_write_string(out, diag->category);
     }
     fputc(',', out);
 
@@ -112,10 +89,10 @@ void el_diag_jsonl_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnos
     dump_src_span(out, &diag->span);
 
     fputs(",\"formatted\":", out);
-    escape_json_str(out, diag->formatted);
+    el_json_write_string(out, diag->formatted);
 
     fputs(",\"template\":", out);
-    escape_json_str(out, diag->template);
+    el_json_write_string(out, diag->template);
 
     // template meta
     fputs(",\"meta\":{", out);
@@ -137,9 +114,9 @@ void el_diag_jsonl_printer_print(ElDiagPrinter* self, FILE* out, const ElDiagnos
         if (help != diag->help_head) fputc(',', out);
         fputc('{', out);
         fputs("\"template\":", out);
-        escape_json_str(out, help->template);
+        el_json_write_string(out, help->template);
         fputs(",\"formatted\":", out);
-        escape_json_str(out, help->formatted);
+        el_json_write_string(out, help->formatted);
         fputc('}', out);
     }
     fputc(']', out);

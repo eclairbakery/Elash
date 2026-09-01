@@ -3,9 +3,7 @@
 #include <elash/hir/toe.h>
 #include <elash/diag/engine.h>
 
-ElHirToE* el_binder_bind_toi(ElBinder* binder, ElAstToI* in, ElHirType* expected_type, ElStorageClass scls) {
-    if (in == NULL) return NULL;
-
+static ElHirToE* _bind_toi_internal(ElBinder* binder, ElAstToI* in, ElHirType* expected_type, ElStorageClass scls) {
     ElHirToE* toe = NULL;
     switch (in->kind) {
     case EL_AST_TOI_TYPE: {
@@ -39,4 +37,13 @@ ElHirToE* el_binder_bind_toi(ElBinder* binder, ElAstToI* in, ElHirType* expected
     }
 
     return toe;
+}
+
+
+ElHirToE* el_binder_bind_toi(ElBinder* binder, ElAstToI* in, ElHirType* expected_type, ElStorageClass scls) {
+    EL_ASSERT(in != NULL, "should not be NULL");
+    el_prof_begin_sub(binder->prof, binder->pss_toi);
+    ElHirToE* result = _bind_toi_internal(binder, in, expected_type, scls);
+    el_prof_finish_sub(binder->prof, binder->pss_toi);
+    return result;
 }

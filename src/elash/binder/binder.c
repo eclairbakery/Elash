@@ -24,6 +24,7 @@ void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
     binder->builtins = opts.builtins;
     binder->arena    = opts.arena;
     binder->diag     = opts.diag;
+    binder->prof    = opts.prof;
 
     binder->tcache  = opts.tcache;
     binder->bsquery = opts.bsquery;
@@ -31,6 +32,16 @@ void el_binder_init_opts(ElBinder* binder, ElBinderInitOpts opts) {
     binder->loop_depth = 0;
     binder->sym_id_counter = 0;
     binder->current_func = NULL;
+
+    if (binder->prof != NULL) {
+        binder->pss_expr = el_prof_new_sub(binder->prof, EL_SV("Binding expressions"));
+        binder->pss_stmt = el_prof_new_sub(binder->prof, EL_SV("Binding statements"));
+        binder->pss_decl = el_prof_new_sub(binder->prof, EL_SV("Binding declarations"));
+        binder->pss_type = el_prof_new_sub(binder->prof, EL_SV("Binding types"));
+        binder->pss_init = el_prof_new_sub(binder->prof, EL_SV("Binding initializers"));
+        binder->pss_toi  = el_prof_new_sub(binder->prof, EL_SV("Binding ToIs"));
+        binder->pss_toe  = el_prof_new_sub(binder->prof, EL_SV("Binding ToEs"));
+    }
 
     binder->builtin_scope = el_hir_scope_new(NULL);
     register_builtin_type(binder, EL_SV("void"), binder->builtins->type_void);

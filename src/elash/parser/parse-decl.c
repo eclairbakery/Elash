@@ -246,7 +246,7 @@ static ElAstDecl* el_parser_parse_internal_decl(ElParser* parser) {
     return parse_var_internal_decl(parser);
 }
 
-ElAstDecl* el_parser_parse_decl(ElParser* parser) {
+static ElAstDecl* _parse_decl_internal(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_KW_EXTERN)) {
         ElToken extern_tok = parser->current;
         el_parser_advance(parser);
@@ -254,4 +254,11 @@ ElAstDecl* el_parser_parse_decl(ElParser* parser) {
     }
 
     return el_parser_parse_internal_decl(parser);
+}
+
+ElAstDecl* el_parser_parse_decl(ElParser* parser) {
+    el_prof_begin_sub(parser->prof, parser->pss_decl);
+    ElAstDecl* result = _parse_decl_internal(parser);
+    el_prof_finish_sub(parser->prof, parser->pss_decl);
+    return result;
 }

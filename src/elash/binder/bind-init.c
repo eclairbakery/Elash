@@ -36,14 +36,21 @@ ElHirExpr* _el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expe
 }
 
 ElHirExpr* el_binder_bind_init(ElBinder* binder, ElAstInit* in, ElHirType* expected_type, ElStorageClass scls) {
+    EL_ASSERT(in != NULL, "should not be NULL");
+
+    el_prof_begin_sub(binder->prof, binder->pss_init);
+
     ElHirExpr* binded = _el_binder_bind_init(binder, in, expected_type, scls);
     if (binded != NULL && scls == EL_STORAGECLS_STATIC) {
         if (!_el_binder_is_const(binder, binded)) {
+            el_prof_finish_sub(binder->prof, binder->pss_init);
             return el_diag_report(
                 binder->diag, EL_DIAG_ERROR, "sema.bad-static-init",
                 in->span, "static initializer is not constant",
             );
         }
     }
+
+    el_prof_finish_sub(binder->prof, binder->pss_init);
     return binded;
 }

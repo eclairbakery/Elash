@@ -2,7 +2,7 @@
 
 #include <elash/ast/tree/toe.h>
 
-ElAstToE* el_parser_parse_toe(ElParser* parser) {
+static ElAstToE* _parse_toe_internal(ElParser* parser) {
     if (_el_parser_is_complex_expr(parser)) {
         ElAstExpr* expr = el_parser_parse_expr(parser);
         if (expr == NULL) return NULL;
@@ -17,4 +17,11 @@ ElAstToE* el_parser_parse_toe(ElParser* parser) {
     }
 
     return _el_parser_toe_from_ambig(parser, _el_parser_parse_ambig(parser));
+}
+
+ElAstToE* el_parser_parse_toe(ElParser* parser) {
+    el_prof_begin_sub(parser->prof, parser->pss_toe);
+    ElAstToE* result = _parse_toe_internal(parser);
+    el_prof_finish_sub(parser->prof, parser->pss_toe);
+    return result;
 }

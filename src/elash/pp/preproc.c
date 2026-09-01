@@ -4,7 +4,7 @@
 
 bool el_pp_init(
     ElPreproc* pp, ElTokenStream input, const ElSourceDocument* root_doc,
-    ElDynArena* arena, const ElPpIncMap* imap
+    ElDynArena* arena, const ElPpIncMap* imap, ElProfState* prof
 ) {
     pp->frame = NULL;
     pp->include_depth = 0;
@@ -14,6 +14,12 @@ bool el_pp_init(
 
     pp->imap   = imap;
     pp->farena = arena;
+    pp->prof  = prof;
+
+    if (pp->prof != NULL) {
+        pp->pss_directive = el_prof_new_sub(prof, EL_SV("Processing directives"));
+        pp->pss_eval      = el_prof_new_sub(prof, EL_SV("Evaluating expressions"));
+    }
 
     if (!el_tkque_init(&pp->pending))
         return false;

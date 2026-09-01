@@ -3,6 +3,7 @@
 
 #include <elash/defs/platform.h>
 #include <elash/sema/tcache.h>
+#include <elash/util/fopen.h>
 
 #include <elash/diag/engine.h>
 #include <elash/diag/handle.h>
@@ -25,8 +26,10 @@
 #include <elc/driver/observers/dump-hir.h>
 #include <elc/driver/observers/dump-mir.h>
 #include <elc/driver/observers/dump-lir.h>
+#include <elc/driver/observers/timer.h>
 
 #include <elc/codegen/builtin/llvm-backend.h>
+#include <elash/prof/prof.h>
 
 bool elc_driver_init(ElcDriver* driver) {
     if (!el_dynarena_init(&driver->arena)) return false;
@@ -121,6 +124,10 @@ bool elc_driver_register_observers(ElcDriver* driver, const ElcArgs* args) {
     REGISTER_LIR_OBSERVER(ELC_ART_LIR,  dump_lir);
     REGISTER_LIR_OBSERVER(ELC_ART_OLIR, dump_lir);
 
+    if (args->time_reports.is_enabled) {
+        elc_pipeline_add_observer(&driver->pipeline, elc_make_timer_observer());
+    }
+
     return true;
 }
 
@@ -177,6 +184,14 @@ bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
     driver->pctx.optlevel = args->opt;
     driver->pctx.imap     = &args->imap;
 
+    ElProfState prof;
+    if (args->time_reports.is_enabled) {
+        el_prof_init(&prof, &driver->arena);
+        driver->pctx.prof = &prof;
+    } else {
+        driver->pctx.prof = NULL;
+    }
+
     ElSourceDocument src;
     if (!init_source_document(driver, args, &src)) {
         return false;
@@ -197,22 +212,26 @@ bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
             out_path = EL_SV("output.o");
         }
 
-        FILE* f = NULL;
-        if (el_sv_eql(out_path, EL_SV("-"))) {
-            f = stdout;
-        } else if (!el_sv_is_null(out_path)) {
-            const char* path = el_dynarena_make_cstr(&driver->arena, out_path);
-            f = fopen(path, "wb");
-            #if EL_PLATFORM_IS_POSIX
-                if (f == NULL) perror("fopen");
-            #endif
-        }
+        const char* path = el_dynarena_make_cstr(&driver->arena, out_path);
 
-        if (f != NULL) {
-            fwrite(buffer.data, 1, buffer.size, f);
-            if (f != stdout) fclose(f);
-        } else {
-            success = false;
+        bool needs_closing;
+        FILE* f = el_open_ifile(path, &needs_closing);
+
+        fwrite(buffer.data, 1, buffer.size, f);
+        if (needs_closing) fclose(f);
+    }
+
+    if (driver->pctx.prof != NULL) {
+        const char* path = el_dynarena_make_cstr(&driver->arena, args->time_reports.output);
+        bool needs_closing;
+        FILE* out = el_open_ofile(path, &needs_closing);
+        if (out != NULL) {
+            if (args->treport_format == ELC_TREPORT_JSONL) {
+                el_prof_print_jsonl(driver->pctx.prof, out);
+            } else {
+                el_prof_print_console(driver->pctx.prof, out);
+            }
+            if (needs_closing) fclose(out);
         }
     }
 

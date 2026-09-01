@@ -42,10 +42,10 @@ int main(int argc, char** argv) {
     el_lexer_init(&lexer, &doc, EL_LEXER_FLAGS_DEFAULT);
 
     ElPreproc pp;
-    el_pp_init(&pp, el_lexer_as_token_stream(&lexer), &doc, &arena, &imap);
+    el_pp_init(&pp, el_lexer_as_token_stream(&lexer), &doc, &arena, &imap, NULL);
 
     ElParser parser;
-    el_parser_init(&parser, el_pp_as_token_stream(&pp), &diag, &arena, &arena);
+    el_parser_init(&parser, el_pp_as_token_stream(&pp), &diag, &arena, &arena, NULL);
     ElAstModule* orig = el_parser_parse_module(&parser);
     el_parser_destroy(&parser);
 
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     el_unparser_init(&unparser, &toks, &arena);
     el_unparser_unparse_module(&unparser, orig);
 
-    el_parser_init(&parser, el_tkbuf_as_stream(&stream, &toks), &diag, &arena, &arena);
+    el_parser_init(&parser, el_tkbuf_as_stream(&stream, &toks), &diag, &arena, &arena, NULL);
     ElAstModule* repro = el_parser_parse_module(&parser);
     el_parser_destroy(&parser);
 

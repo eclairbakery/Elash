@@ -561,8 +561,6 @@ ElHirExpr* _el_binder_bind_tmember_expr(ElBinder* binder, ElAstExpr* in, ElAstTM
 }
 
 ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
-    if (in == NULL) return NULL;
-
     switch (in->type) {
     case EL_AST_EXPR_BINARY:    return _el_binder_bind_bin_expr(binder, in, &in->as.binary);
     case EL_AST_EXPR_UNARY:     return _el_binder_bind_unary_expr(binder, in, &in->as.unary);
@@ -578,7 +576,15 @@ ElHirExpr* _el_binder_bind_expr_impl(ElBinder* binder, ElAstExpr* in) {
 }
 
 ElHirExpr* el_binder_bind_expr(ElBinder* binder, ElAstExpr* in) {
+    EL_ASSERT(in != NULL, "should not be NULL");
+    el_prof_begin_sub(binder->prof, binder->pss_expr);
+
     ElHirExpr* expr = _el_binder_bind_expr_impl(binder, in);
-    if (expr == NULL) return NULL;
+    if (expr == NULL) {
+        el_prof_finish_sub(binder->prof, binder->pss_expr);
+        return NULL;
+    }
+
+    el_prof_finish_sub(binder->prof, binder->pss_expr);
     return _el_binder_simplify_expr(binder, expr);
 }

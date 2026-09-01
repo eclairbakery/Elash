@@ -122,7 +122,7 @@ static ElHirType* bind_tuple_type(ElBinder* binder, ElAstTupleType* tuple) {
     return el_hir_new_tuple_type(binder->arena, elements, tuple->count);
 }
 
-ElHirType* el_binder_bind_type(ElBinder* binder, ElAstType* in) {
+static ElHirType* _bind_type_internal(ElBinder* binder, ElAstType* in) {
     switch (in->kind) {
     case EL_AST_TYPE_REF: {
         ElHirType* base = el_binder_bind_type(binder ,in->as.ref.base);
@@ -162,4 +162,13 @@ ElHirType* el_binder_bind_type(ElBinder* binder, ElAstType* in) {
     }
 
     EL_UNREACHABLE_ENUM_VAL(ElAstTypeKind, in->kind);
+}
+
+
+ElHirType* el_binder_bind_type(ElBinder* binder, ElAstType* in) {
+    EL_ASSERT(in != NULL, "should not be NULL");
+    el_prof_begin_sub(binder->prof, binder->pss_type);
+    ElHirType* result = _bind_type_internal(binder, in);
+    el_prof_finish_sub(binder->prof, binder->pss_type);
+    return result;
 }

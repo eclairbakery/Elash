@@ -25,12 +25,17 @@ endif
 ###### compiler kind detection ######
 CC_VERSION_OUTPUT := $(shell $(CC) --version)
 
+FSF := Free Software Foundation
 ifeq ($(findstring clang,$(CC_VERSION_OUTPUT)),clang)
     CCKIND := clang
 else ifeq ($(findstring GCC,$(CC_VERSION_OUTPUT)),GCC)
     CCKIND := gcc
-else ifeq ($(findstring icc,$(CC_VERSION_OUTPUT)),icc)
-    CCKIND := intel
+else ifeq ($(findstring $(FSF),$(CC_VERSION_OUTPUT)),$(FSF))
+    CCKIND := gcc
+else ifeq ($(findstring Microsoft,$(CC_VERSION_OUTPUT)),Microsoft)
+    CCKIND := msvc
+else ifeq ($(findstring Intel,$(CC_VERSION_OUTPUT)),Intel)
+    CCKIND := icx
 else
     CCKIND := unknown
 endif
@@ -51,7 +56,7 @@ else
 endif
 
 ########### flags ###########
-CSTD     := -std=c11
+CSTD       := -std=c11
 PIC_CFLAGS := -fPIC
 
 ifneq ($(CCKIND),unknown)
@@ -70,6 +75,11 @@ endif
 
 COMMON_CFLAGS  := $(CSTD) $(WARNINGS) -I$(INCLUDE_DIR)
 COMMON_LDFLAGS := -lm
+ifeq ($(PLATFORM),windows)
+ifneq ($(CCKIND),msvc)
+	COMMON_LDFLAGS += -lpsapi
+endif
+endif
 
 IS_DEBUG := $(filter debug rel-debug debug-san rel-debug-san,$(BUILD))
 IS_SAN   := $(filter debug-san rel-debug-san,$(BUILD))

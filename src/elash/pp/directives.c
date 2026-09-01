@@ -15,7 +15,7 @@ static void report_unexpected_eof(ElPreproc* pp, ElToken hash) {
     );
 }
 
-bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken hash, ElToken* out_tok) {
+static bool _preprocess_directive_internal(ElPreproc* pp, ElToken hash, ElToken* out_tok) {
     ElToken dir;
     if (!_el_pp_read(pp, &dir)) {
         report_unexpected_eof(pp, hash);
@@ -61,6 +61,13 @@ bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken hash, ElToken* out_tok) 
 
     report_unknown_dir(pp, dspan, dir);
     return false;
+}
+
+bool _el_pp_preprocess_directive(ElPreproc* pp, ElToken hash, ElToken* out_tok) {
+    el_prof_begin_sub(pp->prof, pp->pss_directive);
+    bool result = _preprocess_directive_internal(pp, hash, out_tok);
+    el_prof_finish_sub(pp->prof, pp->pss_directive);
+    return result;
 }
 
 bool _el_pp_skip_directive(ElPreproc* pp, ElToken hash) {
