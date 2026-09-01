@@ -108,3 +108,9 @@
 - [ ] Binder test suite
 - [ ] Lowerer test suite
 - [x] Fuzz tests
+
+## Benchmarking
+- [ ] End-to-end benchmark suite
+- [ ] Timers for individual pipeline stages
+- [ ] Add `--time-report[=file]` flag to enable timers and display results
+- [ ] Support human readable and machine readable (`jsonl`) output format via
