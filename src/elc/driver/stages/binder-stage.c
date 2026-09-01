@@ -13,6 +13,7 @@ bool elc_binder_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const
 
         .tcache  = &ctx->tcache,
         .bsquery = ctx->bsquery,
+        .prof   = ctx->prof,
     );
 
     ElHirModule* mod = el_binder_bind_module(&binder, input->as.ast);

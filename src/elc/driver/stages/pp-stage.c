@@ -6,7 +6,7 @@ bool elc_preproc_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, cons
     (void) stage;
 
     ElPreproc* pp = EL_DYNARENA_NEW(ctx->arena, ElPreproc);
-    if (!el_pp_init(pp, *input->as.tks, ctx->root_src, ctx->arena, ctx->imap)) {
+    if (!el_pp_init(pp, *input->as.tks, ctx->root_src, ctx->arena, ctx->imap, ctx->prof)) {
         // TODO: error handling
         return false;
     }

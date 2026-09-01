@@ -180,7 +180,7 @@ void _el_lowerer_lower_return(ElLowerer* lw, ElHirReturnStmt* ret) {
     el_mir_ibuf_push(&lw->ibuf, ret_instr);
 }
 
-void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir) {
+static void _lower_stmt_internal(ElLowerer* lw, ElHirStmt* hir) {
     if (el_lowerer_has_terminator(lw)) return;
 
     switch (hir->kind) {
@@ -208,4 +208,10 @@ void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir) {
     case EL_HIR_STMT_CONTINUE: return _el_lowerer_lower_continue(lw, &hir->as.continue_);
     }
     EL_UNREACHABLE_ENUM_VAL(ElHirStmtKind, hir->kind);
+}
+
+void el_lowerer_lower_stmt(ElLowerer* lw, ElHirStmt* hir) {
+    el_prof_begin_sub(lw->prof, lw->pss_stmt);
+    _lower_stmt_internal(lw, hir);
+    el_prof_finish_sub(lw->prof, lw->pss_stmt);
 }

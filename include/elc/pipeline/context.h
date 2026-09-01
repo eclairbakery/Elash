@@ -9,6 +9,7 @@
 #include <elash/binder/builtin.h>
 
 #include <elash/sema/backends.h>
+#include <elash/prof/prof.h>
 
 #include <elash/pp/include.h>
 #include <elash/source/doc.h>
@@ -20,6 +21,7 @@
 
 typedef struct ElcPipelineContext {
     ElDynArena*   arena;
+    ElProfState* prof;
     ElDiagEngine* diag;
 
     const ElPpIncMap* imap;

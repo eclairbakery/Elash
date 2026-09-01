@@ -18,7 +18,8 @@
 
 void el_lowerer_init(
     ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag,
-    ElTypeCache* tcache, ElBSQuery* bsquery, ElLowererBuiltins* builtins
+    ElTypeCache* tcache, ElBSQuery* bsquery, ElLowererBuiltins* builtins,
+    ElProfState* prof
 ) {
     lw->arena   = arena;
     lw->diag    = diag;
@@ -26,6 +27,14 @@ void el_lowerer_init(
     lw->bsquery = bsquery;
 
     lw->builtins = builtins;
+    lw->prof    = prof;
+
+    if (prof != NULL) {
+        lw->pss_expr = el_prof_new_sub(prof, EL_SV("Lowering expressions"));
+        lw->pss_stmt = el_prof_new_sub(prof, EL_SV("Lowering statements"));
+        lw->pss_decl = el_prof_new_sub(prof, EL_SV("Lowering declarations"));
+        lw->pss_type = el_prof_new_sub(prof, EL_SV("Mapping types"));
+    }
 
     lw->symbol_map     = NULL;
     lw->mir_symbol_map = NULL;

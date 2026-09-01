@@ -1,7 +1,8 @@
 #include <elc/driver/observers/dump-lir.h>
 #include <elc/codegen/lir.h>
+
+#include <elash/util/fopen.h>
 #include <stdio.h>
-#include <string.h>
 
 void elc_dump_lir_observer_exec(
     void* user_data,
@@ -18,15 +19,12 @@ void elc_dump_lir_observer_exec(
 
     const ElcLirHandle* lir = &artifact->as.lir;
 
-    FILE* out = stdout;
-    if (data->path != NULL && strcmp(data->path, "-") != 0) {
-        out = fopen(data->path, "w");
-        if (out == NULL) return;
-    }
+    bool needs_closing;
+    FILE* out = el_open_ofile(data->path, &needs_closing);
 
     lir->dump(lir, out);
 
-    if (out != stdout) fclose(out);
+    if (needs_closing) fclose(out);
 }
 
 ElcObserver elc_make_dump_lir_observer(ElcDumpLirData* data) {

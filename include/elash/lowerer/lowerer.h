@@ -19,6 +19,7 @@
 #include <elash/mir/type.h>
 
 #include <elash/sema/backends.h>
+#include <elash/prof/prof.h>
 
 #include <elash/util/dynarena.h>
 #include <elash/diag/engine.h>
@@ -31,6 +32,13 @@ typedef struct ElLowerer {
     ElBSQuery*    bsquery;
 
     ElLowererBuiltins* builtins;
+
+    ElProfState* prof;
+    ElProfSubstage
+        *pss_expr,
+        *pss_stmt,
+        *pss_decl,
+        *pss_type;
 
     uint32_t current_block_id;
     ElMirFunc* current_func;
@@ -47,7 +55,8 @@ typedef struct ElLowerer {
 
 void el_lowerer_init(
     ElLowerer* lw, ElDynArena* arena, ElDiagEngine* diag,
-    ElTypeCache* tcache, ElBSQuery* bsquery, ElLowererBuiltins* builtins
+    ElTypeCache* tcache, ElBSQuery* bsquery, ElLowererBuiltins* builtins,
+    ElProfState* prof
 );
 void el_lowerer_free(ElLowerer* lw);
 

@@ -558,5 +558,8 @@ ElAstExpr* _el_parser_parse_optional(ElParser* parser) {
 }
 
 ElAstExpr* el_parser_parse_expr(ElParser* parser) {
-    return _el_parser_parse_optional(parser);
+    el_prof_begin_sub(parser->prof, parser->pss_expr);
+    ElAstExpr* result = _el_parser_parse_optional(parser);
+    el_prof_finish_sub(parser->prof, parser->pss_expr);
+    return result;
 }

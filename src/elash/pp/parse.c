@@ -502,7 +502,7 @@ static ElPpValue* parse_logical_or(ElPreproc* pp) {
     return expr;
 }
 
-ElPpValue* _el_pp_eval(ElPreproc* pp) {
+static ElPpValue* _eval_internal(ElPreproc* pp) {
     ElPpValue* expr = parse_logical_or(pp);
     if (expr == NULL) return NULL;
 
@@ -517,4 +517,11 @@ ElPpValue* _el_pp_eval(ElPreproc* pp) {
     }
 
     return expr;
+}
+
+ElPpValue* _el_pp_eval(ElPreproc* pp) {
+    el_prof_begin_sub(pp->prof, pp->pss_eval);
+    ElPpValue* result = _eval_internal(pp);
+    el_prof_finish_sub(pp->prof, pp->pss_eval);
+    return result;
 }

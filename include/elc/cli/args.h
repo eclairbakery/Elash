@@ -22,6 +22,11 @@ typedef enum ElcDiagFormat {
     ELC_DIAG_JSONL,
 } ElcDiagFormat;
 
+typedef enum ElcTimeReportFormat {
+    ELC_TREPORT_CONSOLE,
+    ELC_TREPORT_JSONL,
+} ElcTimeReportFormat;
+
 typedef struct ElcArgs {
     ElStringView input;  // filename or - for stdin
     ElStringView output; // filename or - for stdout
@@ -43,6 +48,9 @@ typedef struct ElcArgs {
     ElcPreference color;
 
     ElcDiagFormat dformat;
+
+    ElcCliDumpSwitch time_reports;
+    ElcTimeReportFormat treport_format;
 
     bool stdlib;
     bool corelib;

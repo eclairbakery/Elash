@@ -178,7 +178,7 @@ ElAstStmt* _el_parser_parse_block(ElParser* parser, ElToken lbrace_tok) {
     return el_ast_new_block_stmt(parser->aarena, el_srcspan_merge(lbrace_tok.span, rbrace_tok.span), head);
 }
 
-ElAstStmt* el_parser_parse_stmt(ElParser* parser) {
+static ElAstStmt* _parse_stmt_internal(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_KW_RETURN)) {
         ElToken return_tok = el_parser_advance(parser);
         return _el_parser_parse_return(parser, return_tok);
@@ -223,4 +223,11 @@ ElAstStmt* el_parser_parse_stmt(ElParser* parser) {
     }
 
     return _el_parser_parse_expr_stmt(parser);
+}
+
+ElAstStmt* el_parser_parse_stmt(ElParser* parser) {
+    el_prof_begin_sub(parser->prof, parser->pss_stmt);
+    ElAstStmt* result = _parse_stmt_internal(parser);
+    el_prof_finish_sub(parser->prof, parser->pss_stmt);
+    return result;
 }

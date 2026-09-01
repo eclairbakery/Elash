@@ -35,7 +35,7 @@ ElParser p(const char* code, ElDiagEngine* diag) {
     el_diag_engine_init(diag, &arena);
 
     ElParser parser;
-    el_parser_init(&parser, toks, diag, &arena, &arena);
+    el_parser_init(&parser, toks, diag, &arena, &arena, NULL);
     return parser;
 }
 

@@ -69,7 +69,7 @@ static void lower_func_decl(ElLowerer* lw, ElHirFuncDecl* hir_func) {
     el_mir_module_add_func(lw->current_mod, func);
 }
 
-void el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
+static void _lower_global_decl_internal(ElLowerer* lw, ElHirDecl* decl) {
     switch (decl->kind) {
     case EL_HIR_DECL_VAR_DEF: {
         ElHirSymbol* sym = decl->as.var_def.var;
@@ -109,7 +109,13 @@ void el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
     }
 }
 
-void el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
+void el_lowerer_lower_global_decl(ElLowerer* lw, ElHirDecl* decl) {
+    el_prof_begin_sub(lw->prof, lw->pss_decl);
+    _lower_global_decl_internal(lw, decl);
+    el_prof_finish_sub(lw->prof, lw->pss_decl);
+}
+
+static void _lower_local_decl_internal(ElLowerer* lw, ElHirDecl* decl) {
     switch (decl->kind) {
     case EL_HIR_DECL_VAR_DEF: {
         // ugly but (i guess) works
@@ -152,4 +158,10 @@ void el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
     case EL_HIR_DECL_NONE:
         break;
     }
+}
+
+void el_lowerer_lower_local_decl(ElLowerer* lw, ElHirDecl* decl) {
+    el_prof_begin_sub(lw->prof, lw->pss_decl);
+    _lower_local_decl_internal(lw, decl);
+    el_prof_finish_sub(lw->prof, lw->pss_decl);
 }

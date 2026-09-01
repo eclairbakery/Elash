@@ -303,7 +303,7 @@ static ElHirDecl* bind_typedef(ElBinder* binder, ElAstDecl* in, ElAstTypedef* ty
     return el_hir_decl_none(binder->arena, in->span);
 }
 
-ElHirDecl* el_binder_bind_decl(ElBinder* binder, ElAstDecl* in) {
+static ElHirDecl* _bind_decl_internal(ElBinder* binder, ElAstDecl* in) {
     switch (in->type) {
     case EL_AST_DECL_VAR_DEF:
         return bind_var_def(binder, in, &in->as.var_def);
@@ -319,4 +319,12 @@ ElHirDecl* el_binder_bind_decl(ElBinder* binder, ElAstDecl* in) {
         return bind_alias(binder, in, &in->as.alias);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstDeclType, in->type);
+}
+
+ElHirDecl* el_binder_bind_decl(ElBinder* binder, ElAstDecl* in) {
+    if (in == NULL) return NULL;
+    el_prof_begin_sub(binder->prof, binder->pss_decl);
+    ElHirDecl* result = _bind_decl_internal(binder, in);
+    el_prof_finish_sub(binder->prof, binder->pss_decl);
+    return result;
 }

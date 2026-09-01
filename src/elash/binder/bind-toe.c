@@ -6,9 +6,7 @@
 
 #include <elash/hir/toe.h>
 
-ElHirToE* el_binder_bind_toe(ElBinder* binder, ElAstToE* in) {
-    if (in == NULL) return NULL;
-
+static ElHirToE* _bind_toe_internal(ElBinder* binder, ElAstToE* in) {
     switch (in->kind) {
     case EL_AST_TOE_TYPE: {
         ElHirType* type = el_binder_bind_type(binder, in->as.type);
@@ -25,4 +23,12 @@ ElHirToE* el_binder_bind_toe(ElBinder* binder, ElAstToE* in) {
     }
 
     EL_UNREACHABLE_ENUM_VAL(ElAstToEKind, in->kind);
+}
+
+ElHirToE* el_binder_bind_toe(ElBinder* binder, ElAstToE* in) {
+    EL_ASSERT(in != NULL, "should not be NULL");
+    el_prof_begin_sub(binder->prof, binder->pss_toe);
+    ElHirToE* result = _bind_toe_internal(binder, in);
+    el_prof_finish_sub(binder->prof, binder->pss_toe);
+    return result;
 }

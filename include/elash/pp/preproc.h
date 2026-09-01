@@ -9,6 +9,7 @@
 
 #include <elash/pp/include.h>
 #include <elash/pp/scope.h>
+#include <elash/prof/prof.h>
 
 #include <elash/source/doc.h>
 
@@ -36,6 +37,11 @@ typedef struct ElPreproc {
 
     ElDiagEngine* diag;
 
+    ElProfState* prof;
+    ElProfSubstage
+        *pss_directive,
+        *pss_eval;
+
     ElPpScope* builtin_scope;
     ElPpScope* global_scope;
     ElPpScope* current_scope;
@@ -43,7 +49,7 @@ typedef struct ElPreproc {
 
 bool el_pp_init(
     ElPreproc* pp, ElTokenStream input, const ElSourceDocument* root_doc,
-    ElDynArena* arena, const ElPpIncMap* imap
+    ElDynArena* arena, const ElPpIncMap* imap, ElProfState* prof
 );
 void el_pp_free(ElPreproc* pp);
 

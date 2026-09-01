@@ -17,6 +17,7 @@
 #include <elash/ast/tree/toi.h>
 
 #include <elash/diag/engine.h>
+#include <elash/prof/prof.h>
 
 typedef struct ElParser {
     ElTokenStream tokens;
@@ -25,12 +26,23 @@ typedef struct ElParser {
     ElDynArena* farena;
     ElDynArena* aarena;
 
+    ElProfState* prof;
+    ElProfSubstage
+        *pss_expr,
+        *pss_stmt,
+        *pss_decl,
+        *pss_type,
+        *pss_init,
+        *pss_toi,
+        *pss_toe;
+
     ElToken current;
     ElTokenQueue lookahead;
 } ElParser;
 
 void el_parser_init(
-    ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine, ElDynArena* farena, ElDynArena* aarena
+    ElParser* parser, ElTokenStream tokens, ElDiagEngine* engine,
+    ElDynArena* farena, ElDynArena* aarena, ElProfState* prof
 );
 void el_parser_destroy(ElParser* parser);
 

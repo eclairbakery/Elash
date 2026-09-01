@@ -4,7 +4,7 @@
 
 bool el_pp_init(
     ElPreproc* pp, ElTokenStream input, const ElSourceDocument* root_doc,
-    ElDynArena* arena, const ElPpIncMap* imap
+    ElDynArena* arena, const ElPpIncMap* imap, ElProfState* prof
 ) {
     pp->frame = NULL;
     pp->include_depth = 0;
@@ -14,6 +14,12 @@ bool el_pp_init(
 
     pp->imap   = imap;
     pp->farena = arena;
+    pp->prof  = prof;
+
+    if (pp->prof != NULL) {
+        pp->pss_directive = el_prof_new_sub(prof, EL_SV("Processing directives"));
+        pp->pss_eval      = el_prof_new_sub(prof, EL_SV("Evaluating expressions"));
+    }
 
     if (!el_tkque_init(&pp->pending))
         return false;
@@ -268,11 +274,12 @@ ElToken _el_pp_advance(ElPreproc* pp) {
 }
 
 bool _el_pp_match(ElPreproc* pp, ElTokenType type) {
-    ElToken tok;
-    if (!_el_pp_peek(pp, &tok) || tok.type != type) {
+    ElToken tok = {0}; // this zero initialization is not needed however the compiler
+                       // is yelling at me and i guess it's the simples way to fix it
+
+    if (!_el_pp_peek(pp, &tok) || tok.type != type)
         return false;
 
-    }
     _el_pp_advance(pp);
     return true;
 }

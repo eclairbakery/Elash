@@ -99,7 +99,7 @@ static ElAstInit* parse_designated_init(ElParser* parser, ElToken lbrace_tok) {
     return el_ast_new_desig_init(parser->aarena, el_srcspan_merge(lbrace_tok.span, rbrace_tok.span), head, count);
 }
 
-ElAstInit* el_parser_parse_init(ElParser* parser) {
+static ElAstInit* _parse_init_internal(ElParser* parser) {
     if (el_parser_check(parser, EL_TT_LBRACE)) {
         ElToken lbrace_tok = el_parser_advance(parser);
 
@@ -118,4 +118,11 @@ ElAstInit* el_parser_parse_init(ElParser* parser) {
     ElAstExpr* expr = el_parser_parse_expr(parser);
     if (expr == NULL) return NULL;
     return el_ast_new_init_expr(parser->aarena, expr);
+}
+
+ElAstInit* el_parser_parse_init(ElParser* parser) {
+    el_prof_begin_sub(parser->prof, parser->pss_init);
+    ElAstInit* result = _parse_init_internal(parser);
+    el_prof_finish_sub(parser->prof, parser->pss_init);
+    return result;
 }
