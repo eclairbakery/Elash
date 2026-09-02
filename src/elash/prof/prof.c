@@ -132,6 +132,7 @@ void el_prof_begin(ElProfState* prof, ElStringView name) {
     ElProfStage* stage = EL_DYNARENA_NEW_STRUCT(prof->arena, ElProfStage, {
         .name  = name,
         .start = stat_now(),
+        .running = true,
     });
 
     if (prof->tail != NULL) {
@@ -151,9 +152,61 @@ void el_prof_finish(ElProfState* prof) {
     EL_ASSERT(prof->active_sub == NULL,
               "benchmark substages are still active");
 
-    ElProfStage* stage = prof->active_stage;
+    el_prof_finish_stage(prof, prof->active_stage);
+}
+
+void el_prof_finish_stage(ElProfState* prof, ElProfStage* stage) {
+    if (prof == NULL || stage == NULL) return;
+    if (!stage->running) return;
     stage->finish = stat_now();
-    prof->active_stage = NULL;
+    stat_add(&stage->total, stat_diff(stage->finish, stage->start));
+    stage->running = false;
+    if (prof->active_stage == stage) prof->active_stage = NULL;
+}
+
+ElProfStage* el_prof_current_stage(ElProfState* prof) {
+    return prof == NULL ? NULL : prof->active_stage;
+}
+
+ElProfScope* el_prof_enter_stage(ElProfState* prof, ElProfStage* stage) {
+    if (prof == NULL) return NULL;
+
+    ElProfStat now = stat_now();
+    if (prof->active_sub != NULL) {
+        stat_add(&prof->active_sub->substage->total, stat_diff(now, prof->active_sub->start));
+    }
+
+    ElProfScope* scope = EL_DYNARENA_NEW_STRUCT(prof->arena, ElProfScope, {
+        .stage = stage, .previous = prof->active_stage, .previous_scope = prof->active_scope,
+    });
+
+    prof->active_scope = scope;
+    prof->active_stage = stage;
+    stage->start = now;
+    stage->running = true;
+
+    if (prof->active_sub != NULL)
+        prof->active_sub->start = now;
+    return scope;
+}
+
+void el_prof_leave_stage(ElProfState* prof, ElProfScope* scope) {
+    if (prof == NULL) return;
+
+    ElProfStat now = stat_now();
+    if (prof->active_stage != NULL && prof->active_stage->running) {
+        stat_add(&prof->active_stage->total, stat_diff(now, prof->active_stage->start));
+        prof->active_stage->running = false;
+    }
+
+    if (prof->active_sub != NULL) {
+        stat_add(&prof->active_sub->substage->total, stat_diff(now, prof->active_sub->start));
+    }
+
+    prof->active_stage = scope->previous;
+    prof->active_scope = scope->previous_scope;
+    if (prof->active_sub != NULL)
+        prof->active_sub->start = now;
 }
 
 ElProfSubstage* el_prof_new_sub(ElProfState* prof, ElStringView name) {
@@ -167,14 +220,13 @@ ElProfSubstage* el_prof_new_sub(ElProfState* prof, ElStringView name) {
     });
 
     // advanced linked list append
-    ElProfStage* stage = prof->active_stage;
-    if (stage->sub.tail != NULL) {
-        stage->sub.tail->next = substage;
+    if (prof->active_stage->sub.tail != NULL) {
+        prof->active_stage->sub.tail->next = substage;
     } else {
-        stage->sub.head = substage;
+        prof->active_stage->sub.head = substage;
     }
 
-    stage->sub.tail = substage;
+    prof->active_stage->sub.tail = substage;
     return substage;
 }
 
@@ -187,6 +239,7 @@ void el_prof_begin_sub(ElProfState* prof, ElProfSubstage* substage) {
     if (prof->active_sub != NULL) {
         stat_add(&prof->active_sub->substage->total,
                  stat_diff(now, prof->active_sub->start));
+        prof->active_sub->start = now;
     }
 
     substage->entered_count++;

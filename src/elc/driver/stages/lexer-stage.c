@@ -2,12 +2,18 @@
 
 #include <elash/lexer/lexer.h>
 #include <elash/diag/handle.h>
+#include <elash/prof/prof.h>
 
 bool elc_lexer_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const ElcArtifact* input, ElcArtifact* output) {
     (void) stage;
 
     ElLexer* lexer = EL_DYNARENA_NEW(ctx->arena, ElLexer);
-    if (el_lexer_init(lexer, input->as.src, EL_LEXER_FLAGS_DEFAULT) != EL_LEXERR_SUCCESS) {
+    ElLexerStatus status = el_lexer_init_prof(
+        lexer, input->as.src, EL_LEXER_FLAGS_DEFAULT,
+        ctx->prof, el_prof_current_stage(ctx->prof)
+    );
+
+    if (status != EL_LEXERR_SUCCESS) {
         el_diag_handle_lexer_error(ctx->diag, &lexer->last_err_details);
         return false;
     }
@@ -19,6 +25,7 @@ bool elc_lexer_stage_exec(const ElcStage* stage, ElcPipelineContext* ctx, const 
         ElTkBufStream* tkbuf_ctx = EL_DYNARENA_NEW(ctx->arena, ElTkBufStream);
         stream = el_tkbuf_as_stream(tkbuf_ctx, ctx->token_dump_bufs[ELC_ART_TKS]);
     }
+
     output->as.tks = EL_DYNARENA_NEW(ctx->arena, ElTokenStream);
     *output->as.tks = stream;
     return true;

@@ -4,6 +4,7 @@
 
 #include <elash/source/doc.h>
 #include <elash/diag/handle.h>
+#include <elash/prof/prof.h>
 #include <elash/defs/sv.h>
 
 #include <ctype.h>
@@ -70,11 +71,22 @@ static inline ElLexerStatus ret_tok_with_lexeme_auto(ElLexer* lexer, ElTokenType
 }
 
 ElLexerStatus el_lexer_init(ElLexer* lexer, const ElSourceDocument* doc, ElLexerFlags flags) {
+    return el_lexer_init_prof(lexer, doc, flags, NULL, NULL);
+}
+
+ElLexerStatus el_lexer_init_prof(
+    ElLexer* lexer, const ElSourceDocument* doc, ElLexerFlags flags,
+    ElProfState* prof, ElProfStage* prof_stage
+) {
     lexer->doc = doc;
     lexer->current_loc = EL_SOURCE_LOC_ZERO;
     lexer->token_start_loc = EL_SOURCE_LOC_ZERO;
     lexer->last_err_details = EL_LEXER_RESULT_SUCCESS;
     lexer->flags = flags;
+
+    lexer->prof = prof;
+    lexer->prof_stage = prof_stage;
+
     return EL_LEXERR_SUCCESS;
 }
 
@@ -491,6 +503,8 @@ ElLexerStatus el_lexer_next_token(ElLexer* lexer, ElToken* out) {
 
 static ElToken token_stream_next(ElTokenStream* stream, ElDiagEngine* engine) {
     ElLexer* lexer = (ElLexer*)stream->ctx;
+    ElProfScope* scope = el_prof_enter_stage(lexer->prof, lexer->prof_stage);
+
     ElToken tok;
     ElLexerStatus err = el_lexer_next_token(lexer, &tok);
 
@@ -504,6 +518,8 @@ static ElToken token_stream_next(ElTokenStream* stream, ElDiagEngine* engine) {
         tok.lexeme = el_srcspan_to_sv(tok.span);
     }
 
+    el_prof_leave_stage(lexer->prof, scope);
+
     return tok;
 }
 
@@ -511,5 +527,7 @@ ElTokenStream el_lexer_as_token_stream(ElLexer* lexer) {
     return (ElTokenStream) {
         .next = token_stream_next,
         .ctx = lexer,
+        .prof = lexer->prof,
+        .prof_stage = lexer->prof_stage,
     };
 }

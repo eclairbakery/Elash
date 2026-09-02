@@ -13,7 +13,10 @@ void elc_timer_observer_exec(
     if (event == ELC_OBS_START) {
         el_prof_begin(ctx->prof, stage_name);
     } else if (event == ELC_OBS_FINISH) {
-        el_prof_finish(ctx->prof);
+        ElProfStage* active = el_prof_current_stage(ctx->prof);
+        if (active != NULL && el_sv_eql(active->name, stage_name)) {
+            el_prof_finish_stage(ctx->prof, active);
+        }
     }
 }
 

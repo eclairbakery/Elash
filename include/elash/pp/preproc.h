@@ -38,6 +38,7 @@ typedef struct ElPreproc {
     ElDiagEngine* diag;
 
     ElProfState* prof;
+    ElProfStage* prof_stage;
     ElProfSubstage
         *pss_directive,
         *pss_eval;

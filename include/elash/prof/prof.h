@@ -13,6 +13,7 @@ typedef struct ElProfStat {
 
 typedef struct ElProfStage ElProfStage;
 typedef struct ElProfSubstage ElProfSubstage;
+typedef struct ElProfScope ElProfScope;
 
 struct ElProfSubstage {
     ElStringView name;
@@ -41,6 +42,14 @@ struct ElProfStage {
         ElProfSubstage* tail;
     } sub;
     ElProfStage* next;
+    ElProfStat total;
+    bool running;
+};
+
+struct ElProfScope {
+    ElProfStage* stage;
+    ElProfStage* previous;
+    ElProfScope* previous_scope;
 };
 
 typedef struct ElProfState {
@@ -50,6 +59,7 @@ typedef struct ElProfState {
 
     ElProfStage* active_stage;
     ElProfSubFrame* active_sub;
+    ElProfScope* active_scope;
 } ElProfState;
 
 /// @note Unlike most functions in this codebase, the prof api is no-op/returns NULL
@@ -63,6 +73,11 @@ void el_prof_init(ElProfState* prof, ElDynArena* arena);
 
 void el_prof_begin(ElProfState* prof, ElStringView name);
 void el_prof_finish(ElProfState* prof);
+void el_prof_finish_stage(ElProfState* prof, ElProfStage* stage);
+
+ElProfStage* el_prof_current_stage(ElProfState* prof);
+ElProfScope* el_prof_enter_stage(ElProfState* prof, ElProfStage* stage);
+void el_prof_leave_stage(ElProfState* prof, ElProfScope* scope);
 
 ElProfSubstage* el_prof_new_sub(ElProfState* prof, ElStringView name);
 void el_prof_begin_sub(ElProfState* prof, ElProfSubstage* substage);

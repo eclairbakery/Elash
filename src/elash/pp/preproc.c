@@ -15,6 +15,7 @@ bool el_pp_init(
     pp->imap   = imap;
     pp->farena = arena;
     pp->prof  = prof;
+    pp->prof_stage = el_prof_current_stage(prof);
 
     if (pp->prof != NULL) {
         pp->pss_directive = el_prof_new_sub(prof, EL_SV("Processing directives"));
@@ -300,10 +301,14 @@ bool _el_pp_expect(ElPreproc* pp, ElTokenType type) {
 
 static ElToken _el_pp_token_stream_next(ElTokenStream* self, ElDiagEngine* diag) {
     ElPreproc* pp = self->ctx;
+    ElProfScope* scope = el_prof_enter_stage(pp->prof, pp->prof_stage);
+
     ElToken tok;
     if (!el_pp_next(pp, &tok, diag)) {
-        return (ElToken){ .type = EL_TT_EOF };
+        el_prof_leave_stage(pp->prof, scope);
+        return (ElToken) { .type = EL_TT_EOF };
     }
+    el_prof_leave_stage(pp->prof, scope);
     return tok;
 }
 
@@ -311,5 +316,7 @@ ElTokenStream el_pp_as_token_stream(ElPreproc* pp) {
     return (ElTokenStream) {
         .next = _el_pp_token_stream_next,
         .ctx = pp,
+        .prof = pp->prof,
+        .prof_stage = pp->prof_stage,
     };
 }

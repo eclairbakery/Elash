@@ -2,16 +2,7 @@
 #include <elash/prof/prof.h> // IWYU pragma: export
 
 static inline ElProfStat el_prof_stage_stat(const ElProfStage* stage) {
-    ElProfStat diff = {
-        .wall_sec = stage->finish.wall_sec - stage->start.wall_sec,
-        .user_sec = stage->finish.user_sec - stage->start.user_sec,
-        .sys_sec  = stage->finish.sys_sec  - stage->start.sys_sec,
-    };
-
-    if (diff.wall_sec < 0) diff.wall_sec = 0;
-    if (diff.user_sec < 0) diff.user_sec = 0;
-    if (diff.sys_sec  < 0) diff.sys_sec  = 0;
-    return diff;
+    return stage->total;
 }
 
 // other = not captured by any subcategory

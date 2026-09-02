@@ -135,7 +135,8 @@ bool _el_pp_handle_include(ElPreproc* pp, ElSourceSpan dspan) {
     if (el_srcdoc_init_from_file(doc, el_dynarena_make_cstr(pp->iarena, file.path)) != 0) return false;
 
     ElLexer* lexer = EL_DYNARENA_NEW(pp->iarena, ElLexer);
-    el_lexer_init(lexer, doc, EL_LEXER_FLAGS_DEFAULT);
+    el_lexer_init_prof(lexer, doc, EL_LEXER_FLAGS_DEFAULT, pp->prof,
+        pp->frame->stream.prof_stage);
 
     _el_pp_push_frame(pp, el_lexer_as_token_stream(lexer), doc);
     return true;

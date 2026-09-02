@@ -8,6 +8,9 @@
 #include <elash/lexer/token.h>
 #include <elash/lexer/tokstream.h>
 
+typedef struct ElProfState ElProfState;
+typedef struct ElProfStage ElProfStage;
+
 /// Behavior flags for controlling tokenization behavior
 /// @memberof ElLexer
 typedef enum ElLexerFlags {
@@ -41,6 +44,9 @@ typedef struct ElLexer {
     ElSourceLocation current_loc;
     ElSourceLocation token_start_loc;
 
+    ElProfState* prof;
+    ElProfStage* prof_stage;
+
     ElLexerResult last_err_details;
     ElLexerFlags flags;
 } ElLexer;
@@ -48,6 +54,10 @@ typedef struct ElLexer {
 /// Initializes lexer with a source document and onfiguration flags
 /// @memberof ElLexer
 ElLexerStatus el_lexer_init(ElLexer* lexer, const ElSourceDocument* doc, ElLexerFlags flags);
+ElLexerStatus el_lexer_init_prof(
+    ElLexer* lexer, const ElSourceDocument* doc, ElLexerFlags flags,
+    ElProfState* prof, ElProfStage* prof_stage
+);
 
 /// Rewinds lexer position to the beginning of the active document
 /// @memberof ElLexer
