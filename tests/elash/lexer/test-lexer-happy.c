@@ -41,7 +41,7 @@ Test(el_lexer_happy, basic_tokens) {
     assert_token(&lexer, EL_TT_STRING_LITERAL, "hello");
     assert_token(&lexer, EL_TT_EOF, "");
 
-    el_srcdoc_destroy(&doc);
+    el_srcdoc_free(&doc);
 }
 
 Test(el_lexer_happy, keywords) {
@@ -60,7 +60,7 @@ Test(el_lexer_happy, keywords) {
     assert_token(&lexer, EL_TT_KW_CONTINUE, "continue");
     assert_token(&lexer, EL_TT_EOF, "");
 
-    el_srcdoc_destroy(&doc);
+    el_srcdoc_free(&doc);
 }
 
 Test(el_lexer_happy, operators) {
@@ -125,7 +125,7 @@ Test(el_lexer_happy, operators) {
     assert_token(&lexer, EL_TT_SHR_ASSIGN, ">>=");
 
     assert_token(&lexer, EL_TT_EOF, "");
-    el_srcdoc_destroy(&doc);
+    el_srcdoc_free(&doc);
 }
 
 // lexer should allow char literals with more than one characters,
@@ -140,7 +140,7 @@ Test(el_lexer_happy, multi_char_literal) {
     assert_token(&lexer, EL_TT_CHAR_LITERAL, "abc");
     assert_token(&lexer, EL_TT_EOF, "");
 
-    el_srcdoc_destroy(&doc);
+    el_srcdoc_free(&doc);
 }
 
 Test(el_lexer_happy, delimiters) {
@@ -165,7 +165,7 @@ Test(el_lexer_happy, delimiters) {
     assert_token(&lexer, EL_TT_ELLIPSIS, "...");
     assert_token(&lexer, EL_TT_EOF, "");
 
-    el_srcdoc_destroy(&doc);
+    el_srcdoc_free(&doc);
 }
 
 Test(el_lexer_happy, comments_skipped) {
@@ -180,7 +180,7 @@ Test(el_lexer_happy, comments_skipped) {
     assert_token(&lexer, EL_TT_IDENT, "baz");
     assert_token(&lexer, EL_TT_EOF, "");
 
-    el_srcdoc_destroy(&doc);
+    el_srcdoc_free(&doc);
 }
 
 Test(el_lexer_happy, comments_kept) {
@@ -197,7 +197,7 @@ Test(el_lexer_happy, comments_kept) {
     assert_token(&lexer, EL_TT_IDENT, "baz");
     assert_token(&lexer, EL_TT_EOF, "");
 
-    el_srcdoc_destroy(&doc);
+    el_srcdoc_free(&doc);
 }
 
 Test(el_lexer_happy, number_literals) {
@@ -212,5 +212,5 @@ Test(el_lexer_happy, number_literals) {
     assert_token(&lexer, EL_TT_INT_LITERAL, "0x0123456789ABCDEF");
     assert_token(&lexer, EL_TT_EOF, "");
 
-    el_srcdoc_destroy(&doc);
+    el_srcdoc_free(&doc);
 }

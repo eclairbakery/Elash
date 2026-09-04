@@ -134,7 +134,7 @@ bool elc_driver_register_observers(ElcDriver* driver, const ElcArgs* args) {
 #define STDIN_READ_BUF_SIZE 4096
 
 static bool init_source_document(ElcDriver* driver, const ElcArgs* args, ElSourceDocument* src) {
-    ElSrcDocErrorCode err;
+    ElSrcDocStatus err;
 
     if (el_sv_eql(args->input, EL_SV("-"))) {
         err = el_srcdoc_init_empty(src, EL_SV("<stdin>"));
@@ -242,6 +242,6 @@ bool elc_driver_run(ElcDriver* driver, const ElcArgs* args) {
     }
     el_diag_engine_print(&driver->diag, &printer, stdout);
 
-    el_srcdoc_destroy(&src);
+    el_srcdoc_free(&src);
     return success;
 }

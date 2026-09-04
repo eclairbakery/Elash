@@ -12,34 +12,41 @@ typedef struct ElSourceDocument {
     ElStringView filename;
 } ElSourceDocument;
 
-ElSrcDocErrorCode el_srcdoc_init_empty(ElSourceDocument* srcdoc, ElStringView filename);
-ElSrcDocErrorCode el_srcdoc_init_from_str(ElSourceDocument* srcdoc, ElStringView sv, ElStringView filename);
-ElSrcDocErrorCode el_srcdoc_init_from_file(ElSourceDocument* srcdoc, const char* path);
-ElSrcDocErrorCode el_srcdoc_init_from_strbuf(ElSourceDocument* srcdoc, const ElStringBuf* buf, ElStringView filename);
-void              el_srcdoc_init_from_strbuf_move(ElSourceDocument* srcdoc, ElStringBuf* buf, ElStringView filename);
+/// Creates an empty source document with given file name.
+ElSrcDocStatus el_srcdoc_init_empty(ElSourceDocument* srcdoc, ElStringView filename);
+/// Creates source document with the provided content and file name.
+ElSrcDocStatus el_srcdoc_init_from_str(ElSourceDocument* srcdoc, ElStringView sv, ElStringView filename);
+/// Creates a source document by reading content from the file at the given path.
+ElSrcDocStatus el_srcdoc_init_from_file(ElSourceDocument* srcdoc, const char* path);
+/// Creates a source document by copying content from the provided string buffer.
+ElSrcDocStatus el_srcdoc_init_from_strbuf(ElSourceDocument* srcdoc, const ElStringBuf* buf, ElStringView filename);
+/// Creates a source document by taking ownership of the content from the provided string buffer.
+void el_srcdoc_init_from_strbuf_move(ElSourceDocument* srcdoc, ElStringBuf* buf, ElStringView filename);
 
-ElSrcDocErrorCode el_srcdoc_copy(const ElSourceDocument* src, ElSourceDocument* dst);
-void              el_srcdoc_move(ElSourceDocument* src, ElSourceDocument* dst);
+/// Creates a deep copy of the source document.
+ElSrcDocStatus el_srcdoc_copy(const ElSourceDocument* src, ElSourceDocument* dst);
+/// Moves the content from the source document to the destination.
+void el_srcdoc_move(ElSourceDocument* src, ElSourceDocument* dst);
 
-void              el_srcdoc_destroy(ElSourceDocument* srcdoc);
-void              el_srcdoc_clear(ElSourceDocument* srcdoc);
+/// Frees the resources associated with the source document.
+void el_srcdoc_free(ElSourceDocument* srcdoc);
+/// Clears the content of the source document.
+void el_srcdoc_clear(ElSourceDocument* srcdoc);
 
-ElSrcDocErrorCode el_srcdoc_append_token(ElSourceDocument* srcdoc, const ElToken* tok);
-ElSrcDocErrorCode el_srcdoc_append_str(ElSourceDocument* srcdoc, ElStringView sv);
+/// Appends the raw text form of the token to the source document.
+ElSrcDocStatus el_srcdoc_append_token(ElSourceDocument* srcdoc, const ElToken* tok);
+/// Appends a string view to the source document.
+ElSrcDocStatus el_srcdoc_append_str(ElSourceDocument* srcdoc, ElStringView sv);
 
-ElSrcDocErrorCode el_srcdoc_concat(const ElSourceDocument* src1,
-                                   const ElSourceDocument* src2,
-                                   ElSourceDocument* dst,
-                                   ElStringView filename);
+/// Concatenates two source documents into a new one.
+ElSrcDocStatus el_srcdoc_concat(
+    const ElSourceDocument* src1, const ElSourceDocument* src2,
+    ElSourceDocument* dst, ElStringView filename
+);
 
-ElStringView      el_srcdoc_content(const ElSourceDocument* srcdoc);
-usize             el_srcdoc_length(const ElSourceDocument* srcdoc);
-ElSrcDocErrorCode el_srcdoc_print(const ElSourceDocument* srcdoc, FILE* out);
-
-////// IMPLEMENTATION DETAILS //////////////////////
-// note: those functions are implementation
-// details and should not be called directly
-// outside internal el-srcdoc implementation.
-ElSrcDocErrorCode _el_strdoc_ret_err(bool result);
-bool _el_strdoc_get_file_size(FILE* f, usize* out_size);
-////////////////////////////////////////////////////
+/// Returns a string view of the document content.
+ElStringView el_srcdoc_content(const ElSourceDocument* srcdoc);
+/// Returns the length of the document content.
+usize el_srcdoc_length(const ElSourceDocument* srcdoc);
+/// Prints the document content to the specified file stream.
+ElSrcDocStatus el_srcdoc_print(const ElSourceDocument* srcdoc, FILE* out);

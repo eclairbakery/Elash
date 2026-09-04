@@ -93,7 +93,7 @@
 - [ ] ~~Parser docs~~ *(moved to 0.3.0 or later)*
 - [ ] ~~Binder docs~~ *(moved to 0.3.0 or later)*
 - [ ] ~~Lowerer docs~~ *(moved to 0.3.0 or later)*
-- [ ] Srcdoc docs
+- [x] Source doc docs
 
 ### The Language
 - [ ] Setup initial language documentation site
@@ -101,6 +101,7 @@
 
 ## Stability & Hardening
 - [x] Support multiple source files in e2e cases
+- [ ] Source doc test suite
 - [ ] Preproc test suite
 - [x] Parser test suite
 - [x] Unparser test suite

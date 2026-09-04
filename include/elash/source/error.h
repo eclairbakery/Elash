@@ -1,6 +1,6 @@
 #pragma once
 
-typedef enum ElSrcDocErrorCode {
+typedef enum ElSrcDocStatus {
     EL_SRCDOC_ERR_SUCCESS,
 
     EL_SRCDOC_ERR_ALLOC_FAILED,
@@ -8,5 +8,5 @@ typedef enum ElSrcDocErrorCode {
     EL_SRCDOC_ERR_FTELL_FAILED,
     EL_SRCDOC_ERR_FREAD_FAILED,
     EL_SRCDOC_ERR_FWRITE_FAILED,
-} ElSrcDocErrorCode;
+} ElSrcDocStatus;
 

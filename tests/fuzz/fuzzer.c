@@ -286,6 +286,6 @@ int main(int argc, char** argv) {
     el_srcdoc_print(&doc, stdout);
 
     el_tkbuf_destroy(&tokens);
-    el_srcdoc_destroy(&doc);
+    el_srcdoc_free(&doc);
     el_dynarena_free(&arena);
 }

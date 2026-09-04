@@ -21,7 +21,7 @@ static void assert_lexer_error(const char* input, ElLexerStatus expected_error) 
                  "Expected error " EL_SV_FMT ", got " EL_SV_FMT " for input '%s'",
                  EL_SV_FARG(expected_err_sv), EL_SV_FARG(err_sv), input);
 
-    el_srcdoc_destroy(&doc);
+    el_srcdoc_free(&doc);
 }
 
 Test(el_lexer_unhappy, unexpected_char) {
