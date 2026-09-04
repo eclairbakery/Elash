@@ -31,7 +31,7 @@ ElHirBlockStmt _el_binder_bind_block(ElBinder* binder, ElAstBlockStmt* in) {
     return (ElHirBlockStmt) { .stmts = head };
 }
 
-ElHirStmt* _el_binder_bind_return(ElBinder* binder, ElAstStmt* in) {
+static ElHirStmt* bind_return(ElBinder* binder, ElAstStmt* in) {
     ElHirExpr* val = NULL;
     if (in->as.return_.value != NULL) {
         val = el_binder_bind_init(
@@ -87,7 +87,7 @@ skip:
         (SPAN), "cannot assign to rvalue",                   \
     )                                                        \
 
-ElHirStmt* _el_binder_bind_assign(ElBinder* binder, ElAstStmt* in, ElAstAssignStmt* assign) {
+static ElHirStmt* bind_assign(ElBinder* binder, ElAstStmt* in, ElAstAssignStmt* assign) {
     ElHirExpr* target = el_binder_bind_expr(binder, assign->target);
     if (!_el_binder_is_lvalue(target)) {
         REPORT_ASSIGN_TO_RVALUE(binder, in->span);
@@ -103,7 +103,7 @@ ElHirStmt* _el_binder_bind_assign(ElBinder* binder, ElAstStmt* in, ElAstAssignSt
     );
 }
 
-ElHirStmt* _el_binder_bind_compound_assign(ElBinder* binder, ElAstStmt* in, ElAstCompoundAssignStmt* cassign) {
+static ElHirStmt* bind_compound_assign(ElBinder* binder, ElAstStmt* in, ElAstCompoundAssignStmt* cassign) {
     ElHirExpr* target = el_binder_bind_expr(binder, cassign->target);
     if (!_el_binder_is_lvalue(target)) {
         REPORT_ASSIGN_TO_RVALUE(binder, in->span);
@@ -119,14 +119,99 @@ ElHirStmt* _el_binder_bind_compound_assign(ElBinder* binder, ElAstStmt* in, ElAs
     );
 }
 
+static ElHirStmt* bind_if(ElBinder* binder, ElAstStmt* in, ElAstIfStmt* if_) {
+    bool has_init = if_->init != NULL;
+    if (has_init) _el_binder_push_scope(binder);
+
+    ElHirStmt* init_stmt = NULL;
+    if (has_init) {
+        init_stmt = el_binder_bind_stmt(binder, if_->init);
+        if (init_stmt == NULL) goto e1;
+    }
+
+    ElHirExpr* cond = el_binder_bind_expr(binder, if_->cond);
+    if (cond == NULL) goto e1;
+
+    cond = _el_binder_implicit_cast(binder, if_->cond->span, cond, binder->builtins->type_bool);
+    if (cond == NULL) goto e1;
+
+    ElHirStmt* then = el_binder_bind_stmt(binder, if_->then);
+    if (then == NULL) goto e1;
+
+    ElHirStmt* else_ = NULL;
+    if (if_->else_ != NULL) {
+        else_ = el_binder_bind_stmt(binder, if_->else_);
+        if (else_ == NULL) goto e1;
+    }
+
+    if (has_init) _el_binder_pop_scope(binder);
+
+    ElHirStmt* if_stmt = el_hir_new_if_stmt(
+        binder->arena, in->span,
+        cond, then, else_
+    );
+
+    if (!has_init) return if_stmt;
+
+    // we perform desugaring directly here so we don't need to add any
+    // additional logic to the lowerer and new fields to the hir structures
+    ElHirStmt *head = NULL, *tail = NULL;
+    el_hir_stmt_list_append(&head, &tail, init_stmt);
+    el_hir_stmt_list_append(&head, &tail, if_stmt);
+    return el_hir_new_block_stmt(binder->arena, in->span, head);
+
+e1:
+    if (has_init)
+        _el_binder_pop_scope(binder);
+    return NULL;
+}
+
+static ElHirStmt* bind_while(ElBinder* binder, ElAstStmt* in, ElAstWhileStmt* while_) {
+    bool has_init = while_->init != NULL;
+    if (has_init) _el_binder_push_scope(binder);
+
+    ElHirStmt* init_stmt = NULL;
+    if (has_init) {
+        init_stmt = el_binder_bind_stmt(binder, while_->init);
+        if (init_stmt == NULL) goto e1;
+    }
+
+    binder->loop_depth++;
+    ElHirExpr* cond = el_binder_bind_expr(binder, while_->cond);
+    if (cond == NULL) goto e2;
+
+    cond = _el_binder_implicit_cast(binder, while_->cond->span, cond, binder->builtins->type_bool);
+    if (cond == NULL) goto e2;
+
+    ElHirStmt* body = el_binder_bind_stmt(binder, while_->body);
+    if (body == NULL) goto e2;
+
+    binder->loop_depth--;
+    if (has_init) _el_binder_pop_scope(binder);
+
+    ElHirStmt* while_stmt = el_hir_new_while_stmt(binder->arena, in->span, cond, body);
+    if (!has_init) return while_stmt;
+
+    ElHirStmt *head = NULL, *tail = NULL;
+    el_hir_stmt_list_append(&head, &tail, init_stmt);
+    el_hir_stmt_list_append(&head, &tail, while_stmt);
+    return el_hir_new_block_stmt(binder->arena, in->span, head);
+
+e2:
+    binder->loop_depth--;
+e1:
+    if (has_init) _el_binder_pop_scope(binder);
+    return NULL;
+}
+
 static ElHirStmt* _bind_stmt_internal(ElBinder* binder, ElAstStmt* in) {
     switch (in->type) {
     case EL_AST_STMT_BLOCK: {
+        _el_binder_push_scope(binder);
         ElHirBlockStmt block = _el_binder_bind_block(binder, &in->as.block);
+        _el_binder_pop_scope(binder);
         return el_hir_new_block_stmt(binder->arena, in->span, block.stmts);
     }
-    case EL_AST_STMT_RETURN:
-        return _el_binder_bind_return(binder, in);
     case EL_AST_STMT_EXPR: {
         ElHirExpr* expr = el_binder_bind_expr(binder, in->as.expr);
         if (expr != NULL) {
@@ -134,48 +219,19 @@ static ElHirStmt* _bind_stmt_internal(ElBinder* binder, ElAstStmt* in) {
         }
         return el_hir_new_expr_stmt(binder->arena, in->span, expr);
     }
-
-    case EL_AST_STMT_IF: {
-        ElHirExpr* cond = el_binder_bind_expr(binder, in->as.if_.cond);
-        if (cond == NULL) return NULL;
-        cond = _el_binder_implicit_cast(binder, in->as.if_.cond->span, cond, binder->builtins->type_bool);
-        if (cond == NULL) return NULL;
-
-        ElHirStmt* then = el_binder_bind_stmt(binder, in->as.if_.then);
-        if (then == NULL) return NULL;
-
-        ElHirStmt* else_ = NULL;
-        if (in->as.if_.else_ != NULL) {
-            else_ = el_binder_bind_stmt(binder, in->as.if_.else_);
-            if (else_ == NULL) return NULL;
-        }
-
-        return el_hir_new_if_stmt(
-            binder->arena, in->span,
-            cond, then, else_
-        );
+    case EL_AST_STMT_DECL: {
+        ElHirDecl* decl = el_binder_bind_decl(binder, in->as.decl);
+        if (decl == NULL) return NULL;
+        return el_hir_new_decl_stmt(binder->arena, in->span, decl);
     }
-    case EL_AST_STMT_WHILE: {
-        binder->loop_depth++;
-        ElHirExpr* cond = el_binder_bind_expr(binder, in->as.while_.cond);
-        if (cond == NULL)
-            return binder->loop_depth--, NULL;
 
-        cond = _el_binder_implicit_cast(binder, in->as.while_.cond->span, cond, binder->builtins->type_bool);
-        if (cond == NULL)
-            return binder->loop_depth--, NULL;
+    case EL_AST_STMT_IF:
+        return bind_if(binder, in, &in->as.if_);
+    case EL_AST_STMT_WHILE:
+        return bind_while(binder, in, &in->as.while_);
 
-        ElHirStmt* body = el_binder_bind_stmt(binder, in->as.while_.body);
-        if (body == NULL)
-            return binder->loop_depth--, NULL;
-
-        binder->loop_depth--;
-
-        return el_hir_new_while_stmt(
-            binder->arena, in->span,
-            cond, body
-        );
-    }
+    case EL_AST_STMT_RETURN:
+        return bind_return(binder, in);
 
     case EL_AST_STMT_BREAK:
         if (binder->loop_depth <= 0)
@@ -193,14 +249,9 @@ static ElHirStmt* _bind_stmt_internal(ElBinder* binder, ElAstStmt* in) {
         return el_hir_new_continue_stmt(binder->arena, in->span);
 
     case EL_AST_STMT_ASSIGN:
-        return _el_binder_bind_assign(binder, in, &in->as.assign);
+        return bind_assign(binder, in, &in->as.assign);
     case EL_AST_STMT_COMPOUND_ASSIGN:
-        return _el_binder_bind_compound_assign(binder, in, &in->as.cassign);
-    case EL_AST_STMT_DECL: {
-        ElHirDecl* decl = el_binder_bind_decl(binder, in->as.decl);
-        if (!decl) return NULL;
-        return el_hir_new_decl_stmt(binder->arena, in->span, decl);
-    }
+        return bind_compound_assign(binder, in, &in->as.cassign);
     }
     EL_UNREACHABLE_ENUM_VAL(ElAstStmtType, in->type);
 }

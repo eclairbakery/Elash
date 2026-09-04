@@ -58,6 +58,9 @@ bool el_unparser_unparse_stmt(ElUnparser* unpar, ElAstStmt* stmt) {
     case EL_AST_STMT_IF:
         if (!el_unparser_push_kw(unpar, EL_TT_KW_IF))            return false;
         if (!el_unparser_push_punct(unpar, EL_TT_LPAREN))        return false;
+        if (stmt->as.if_.init != NULL) {
+            if (!el_unparser_unparse_stmt(unpar, stmt->as.if_.init)) return false;
+        }
         if (!el_unparser_unparse_expr(unpar, stmt->as.if_.cond)) return false;
         if (!el_unparser_push_punct(unpar, EL_TT_RPAREN))        return false;
         if (!el_unparser_unparse_stmt(unpar, stmt->as.if_.then)) return false;
@@ -70,6 +73,9 @@ bool el_unparser_unparse_stmt(ElUnparser* unpar, ElAstStmt* stmt) {
     case EL_AST_STMT_WHILE:
         if (!el_unparser_push_kw(unpar, EL_TT_KW_WHILE))            return false;
         if (!el_unparser_push_punct(unpar, EL_TT_LPAREN))           return false;
+        if (stmt->as.while_.init != NULL) {
+            if (!el_unparser_unparse_stmt(unpar, stmt->as.while_.init)) return false;
+        }
         if (!el_unparser_unparse_expr(unpar, stmt->as.while_.cond)) return false;
         if (!el_unparser_push_punct(unpar, EL_TT_RPAREN))           return false;
         return el_unparser_unparse_stmt(unpar, stmt->as.while_.body);
