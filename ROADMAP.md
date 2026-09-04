@@ -3,7 +3,7 @@
 ## Language Features
 ### Statements
 - [x] Init-statements in `if` and `while`
-- [ ] Post-iteration statement in `while` loop
+- [ ] Add `for (init; cond; post)` loop
 - [x] Initializers as `return` values
 - [ ] Warn when the result or an expression without side effects is ignored
 - [ ] Support `if case` and `while case` for optionals
