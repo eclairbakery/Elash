@@ -2,7 +2,7 @@
 
 ## Language Features
 ### Statements
-- [ ] Init-statements in `if` and `while`
+- [x] Init-statements in `if` and `while`
 - [ ] Post-iteration statement in `while` loop
 - [x] Initializers as `return` values
 - [ ] Warn when the result or an expression without side effects is ignored

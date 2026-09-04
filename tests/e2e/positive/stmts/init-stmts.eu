@@ -1,0 +1,57 @@
+bool flag = false;
+int set() {
+    flag = true;
+    return 49;
+}
+
+int main() {
+    if (int n = 0; n != 0)
+        return 1;
+
+    if (int n = 10; n == 0) {
+        return 2;
+    } else if (n == 20) {
+        return 3;
+    } else if (n == 10) {
+        // Yes.
+    } else {
+        return 4;
+    }
+
+    uint x = 0, holder;
+    while (uint copy = x; copy == 0) {
+        // the init stmt should be evaluated exactly once before the first iteration
+        // so this normally would be an infinite loop.
+        if (++x >= 10) break;
+        holder = copy;
+    }
+
+    if (x != 10 || holder != 0)
+        return 5;
+
+    bool executed = false;
+
+    char variable = 'X';
+    if (char variable = 'Y'; variable == 'Y') {
+        char variable = 'Z';
+
+        if (variable != 'Z')
+            return 6;
+
+        executed = true;
+    }
+
+    if (!executed)
+        return 7;
+    if (variable != 'X')
+        return 8;
+
+    uint counter = 1;
+    if (++counter; counter != 2)
+        return 9;
+
+    if (int value = set(); !flag || value != 49)
+        return 10;
+
+    return 0;
+}

@@ -133,8 +133,8 @@ static ElAstStmt* gen_stmt(ElDynArena* arena, int depth) {
     case 3: return el_ast_new_assign_stmt(arena, NSPAN, gen_expr(arena, depth - 1), gen_init(arena, depth - 1));
     case 4: return el_ast_new_block_stmt(arena, NSPAN, gen_stmt(arena, depth - 1));
     case 5: return el_ast_new_compound_assign_stmt(arena, NSPAN, gen_cassign_op(), gen_expr(arena, depth - 1), gen_init(arena, depth - 1));
-    case 6: return el_ast_new_if_stmt(arena, NSPAN, gen_expr(arena, depth - 1), gen_stmt(arena, depth - 1), NULL);
-    case 7: return el_ast_new_while_stmt(arena, NSPAN, gen_expr(arena, depth - 1), gen_stmt(arena, depth - 1));
+    case 6: return el_ast_new_if_stmt(arena, NSPAN, gen_stmt(arena, depth - 1), gen_expr(arena, depth - 1), gen_stmt(arena, depth - 1), NULL);
+    case 7: return el_ast_new_while_stmt(arena, NSPAN, gen_stmt(arena, depth - 1), gen_expr(arena, depth - 1), gen_stmt(arena, depth - 1));
     case 8: return el_ast_new_break_stmt(arena, NSPAN);
     case 9: return el_ast_new_continue_stmt(arena, NSPAN);
     }

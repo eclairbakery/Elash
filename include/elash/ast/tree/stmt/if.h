@@ -7,6 +7,7 @@ typedef struct ElAstExpr ElAstExpr;
 typedef struct ElAstStmt ElAstStmt;
 
 typedef struct ElAstIfStmt {
+    ElAstStmt* init; // nullable
     ElAstExpr* cond;
     ElAstStmt* then;
     ElAstStmt* else_; // nullable
@@ -14,5 +15,5 @@ typedef struct ElAstIfStmt {
 
 ElAstStmt* el_ast_new_if_stmt(
     ElDynArena* arena, ElSourceSpan span,
-    ElAstExpr* cond, ElAstStmt* then, ElAstStmt* else_
+    ElAstStmt* init, ElAstExpr* cond, ElAstStmt* then, ElAstStmt* else_
 );
