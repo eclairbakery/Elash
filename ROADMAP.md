@@ -36,12 +36,12 @@
 - [x] Support passing array types directly in len() function
 - [x] Add `sizeof` function
 - [x] Add `alignof` function
-- [ ] Add `offsetof` function
+- [ ] ~~Add `offsetof` function~~ *(moved to 0.3.0 or later)*
 
 ### Driver/CLI
 - [x] `-I[src/sys] <name>=<path>` flag
 - [x] `--no-corelib` and `--no-stdlib` flags
-- [ ] Predefined modes (`release`, `debug`)
+- [ ] ~~Predefined modes (`release`, `debug`)~~ *(moved to 0.3.0)*
 - [ ] ~~Invoke system linker~~ *(moved to 0.3.0)*
 - [ ] ~~Produce final executable~~ *(moved to 0.3.0)*
 - [ ] Don't report warnings from system headers
@@ -60,15 +60,15 @@
 - [x] Implement conditional compilation directives
 - [ ] Implement loops (`#while`, `#for`)
 - [ ] Support predefined preprocessor functions and macros
-- [ ] Builtin constants (`ELC_MODE`, `ELC_VERSION`, `ELC_OPTLVL`)
+- [ ] ~~Builtin constants (`ELC_MODE`, `ELC_VERSION`, `ELC_OPTLVL`)~~ *(moved to 0.3.0)*
 
 ## Library
 ### Corelib
-- [ ] `str` module
+- [ ] ~~`str` module~~ *(moved to 0.3.0)*
 
 ### Stdlib
-- [ ] `io` module
-- [ ] `mem` module
+- [ ] ~~`io` module~~ *(moved to 0.3.0)*
+- [ ] ~~`mem` module~~ *(moved to 0.3.0)*
 
 ## Lowering
 - [ ] ~~Perform early MIR optimizations~~ *(moved to 0.3.0)*
@@ -85,15 +85,14 @@
 
 #### Frontend
 - [x] Lower `T&?` and `T[&]?` to just `T*` in MIR
-- [ ] Omit null checks in release mode
 
 ## Documentation
 ### Compiler internals
 - [x] Lexer docs
-- [ ] Preproc docs
-- [ ] Parser docs
-- [ ] Binder docs
-- [ ] Lowerer docs
+- [ ] ~~Preproc docs~~ *(moved to 0.3.0 or later)*
+- [ ] ~~Parser docs~~ *(moved to 0.3.0 or later)*
+- [ ] ~~Binder docs~~ *(moved to 0.3.0 or later)*
+- [ ] ~~Lowerer docs~~ *(moved to 0.3.0 or later)*
 - [ ] Srcdoc docs
 
 ### The Language
@@ -105,8 +104,8 @@
 - [ ] Preproc test suite
 - [x] Parser test suite
 - [x] Unparser test suite
-- [ ] Binder test suite
-- [ ] Lowerer test suite
+- [ ] ~~Binder test suite~~ *(moved to 0.3.0 or later)*
+- [ ] ~~Lowerer test suite~~ *(moved to 0.3.0 or later)*
 - [x] Fuzz tests
 
 ## Benchmarking & Profiling
