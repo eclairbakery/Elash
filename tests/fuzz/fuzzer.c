@@ -35,6 +35,10 @@ static ElAstExpr* gen_literal(ElDynArena* arena);
 // NOLINTBEGIN(readability-magic-numbers)
 // NOLINTBEGIN(bugprone-switch-missing-default-case)
 
+static inline int nd(int depth) {
+    return depth > 0 ? depth - 1 : 0;
+}
+
 static ElAstIdent* gen_ident(ElDynArena* arena) {
     char buf[32];
     snprintf(buf, sizeof(buf), "id%d", rand() % 1000);
@@ -48,20 +52,20 @@ static ElAstType* gen_type(ElDynArena* arena, int depth) {
         usize count = (rand() % 3) + 1;
         ElAstDecl* fields = NULL;
         ElAstDecl* tail = NULL;
-        for (usize i = 0; i < count; i++) el_ast_append_decl(&fields, &tail, gen_decl(arena, depth - 1));
+        for (usize i = 0; i < count; i++) el_ast_append_decl(&fields, &tail, gen_decl(arena, nd(depth)));
         return el_ast_new_type_struct(arena, NSPAN, fields, count);
     }
     case 1: {
         usize count = (rand() % 3) + 1;
         ElAstType* head = NULL;
         ElAstType* tail = NULL;
-        for (usize i = 0; i < count; i++) el_ast_type_list_append(&head, &tail, gen_type(arena, depth - 1));
+        for (usize i = 0; i < count; i++) el_ast_type_list_append(&head, &tail, gen_type(arena, nd(depth)));
         return el_ast_new_type_tuple(arena, NSPAN, head, count);
     }
     case 2: return el_ast_new_type_name(arena, NSPAN, gen_ident(arena));
-    case 3: return el_ast_new_type_ref(arena, NSPAN, gen_type(arena, depth - 1));
-    case 4: return el_ast_new_type_array(arena, NSPAN, gen_type(arena, depth - 1), gen_expr(arena, depth - 1));
-    case 5: return el_ast_new_type_slice(arena, NSPAN, gen_type(arena, depth - 1), rand() % 2 == 0);
+    case 3: return el_ast_new_type_ref(arena, NSPAN, gen_type(arena, nd(depth)));
+    case 4: return el_ast_new_type_array(arena, NSPAN, gen_type(arena, nd(depth)), gen_expr(arena, nd(depth)));
+    case 5: return el_ast_new_type_slice(arena, NSPAN, gen_type(arena, nd(depth)), rand() % 2 == 0);
     }
     EL_UNREACHABLE("shouldn't get here");
 }
@@ -78,11 +82,25 @@ static ElAstExpr* gen_literal(ElDynArena* arena) {
     EL_UNREACHABLE("shouldn't get here");
 }
 
+static ElAstDeclarator* gen_declarators(ElDynArena* arena, int depth, bool allow_init) {
+    usize count = (rand() % 3) + 1;
+
+    ElAstDeclarator* head = NULL;
+    ElAstDeclarator* tail = NULL;
+
+    for (usize i = 0; i < count; i++)
+        el_ast_append_declarator(&head, &tail, el_ast_new_declarator(
+            arena, gen_ident(arena),
+                allow_init && (rand() % 2 == 0) ? gen_init(arena, nd(depth)) : NULL));
+
+    return head;
+}
+
 static ElAstInit* gen_brace_init(ElDynArena* arena, int depth) {
     if (depth <= 0) return el_ast_new_init_empty(arena, NSPAN);
     switch (rand() % 3) {
     case 0: return el_ast_new_init_empty(arena, NSPAN);
-    case 1: return el_ast_new_init_list(arena, NSPAN, gen_init(arena, depth - 1), 1);
+    case 1: return el_ast_new_init_list(arena, NSPAN, gen_init(arena, nd(depth)), 1);
     case 2: return el_ast_new_desig_init(arena, NSPAN, NULL, 0);
     }
     EL_UNREACHABLE("shouldn't get here");
@@ -93,22 +111,22 @@ static ElAstExpr* gen_expr(ElDynArena* arena, int depth) {
     switch (rand() % 9) {
     case 0: return gen_literal(arena);
     case 1: return el_ast_new_ident(arena, NSPAN, gen_ident(arena)->name);
-    case 2: return el_ast_new_bin_expr(arena, NSPAN, rand() % 14, gen_expr(arena, depth - 1), gen_expr(arena, depth - 1));
-    case 3: return el_ast_new_unary_expr(arena, NSPAN, rand() % 8, gen_expr(arena, depth - 1));
-    case 4: return el_ast_new_typedinit(arena, NSPAN, EL_STORAGECLS_LOCAL, gen_type(arena, depth - 1), gen_brace_init(arena, depth - 1));
-    case 5: return el_ast_new_call_expr(arena, NSPAN, gen_expr(arena, depth - 1), gen_toi(arena, depth - 1), 1);
-    case 6: return el_ast_new_cast_expr(arena, NSPAN, rand() % 2, gen_expr(arena, depth - 1), gen_type(arena, depth - 1));
-    case 7: return el_ast_new_member_expr(arena, NSPAN, gen_expr(arena, depth - 1), gen_ident(arena)->name, rand() % 2 == 0);
-    case 8: return el_ast_new_tmember_expr(arena, NSPAN, gen_expr(arena, depth - 1), rand() % 5, NSPAN, rand() % 2 == 0);
+    case 2: return el_ast_new_bin_expr(arena, NSPAN, rand() % 14, gen_expr(arena, nd(depth)), gen_expr(arena, nd(depth)));
+    case 3: return el_ast_new_unary_expr(arena, NSPAN, rand() % 8, gen_expr(arena, nd(depth)));
+    case 4: return el_ast_new_typedinit(arena, NSPAN, EL_STORAGECLS_LOCAL, gen_type(arena, nd(depth)), gen_brace_init(arena, nd(depth)));
+    case 5: return el_ast_new_call_expr(arena, NSPAN, gen_expr(arena, nd(depth)), gen_toi(arena, nd(depth)), 1);
+    case 6: return el_ast_new_cast_expr(arena, NSPAN, rand() % 2, gen_expr(arena, nd(depth)), gen_type(arena, nd(depth)));
+    case 7: return el_ast_new_member_expr(arena, NSPAN, gen_expr(arena, nd(depth)), gen_ident(arena)->name, rand() % 2 == 0);
+    case 8: return el_ast_new_tmember_expr(arena, NSPAN, gen_expr(arena, nd(depth)), rand() % 5, NSPAN, rand() % 2 == 0);
     }
     EL_UNREACHABLE("shouldn't get here");
 }
 
 static ElAstInit* gen_init(ElDynArena* arena, int depth) {
-    if (depth <= 0) return el_ast_new_init_expr(arena, gen_expr(arena, depth - 1));
+    if (depth <= 0) return el_ast_new_init_expr(arena, gen_expr(arena, nd(depth)));
     switch (rand() % 3) {
-    case 0: return el_ast_new_init_expr(arena, gen_expr(arena, depth - 1));
-    case 1: return el_ast_new_init_list(arena, NSPAN, gen_init(arena, depth - 1), 1);
+    case 0: return el_ast_new_init_expr(arena, gen_expr(arena, nd(depth)));
+    case 1: return el_ast_new_init_list(arena, NSPAN, gen_init(arena, nd(depth)), 1);
     case 2: return el_ast_new_desig_init(arena, NSPAN, NULL, 0);
     }
     EL_UNREACHABLE("shouldn't get here");
@@ -124,17 +142,38 @@ static ElSemaBinOp gen_cassign_op(void) {
     return ops[rand() % (sizeof(ops) / sizeof(ops[0]))];
 }
 
+static ElAstDecl* gen_init_decl(ElDynArena* arena, int depth) {
+    if (depth <= 0) return el_ast_new_var_decl(arena, NSPAN, gen_type(arena, depth + 1), gen_declarators(arena, depth, false));
+    switch (rand() % 4) {
+    case 0: return el_ast_new_alias(arena, NSPAN, gen_ident(arena)->name, *gen_toe(arena, nd(depth)));
+    case 1: return el_ast_new_typedef(arena, NSPAN, gen_ident(arena)->name, gen_type(arena, nd(depth)));
+    case 2: return el_ast_new_var_def(arena, NSPAN, gen_type(arena, nd(depth)), gen_declarators(arena, depth, true), rand() % 2 == 0);
+    case 3: return el_ast_new_var_decl(arena, NSPAN, gen_type(arena, nd(depth)), gen_declarators(arena, depth, false));
+    }
+    EL_UNREACHABLE("shouldn't get here");
+}
+
+static ElAstStmt* gen_init_stmt(ElDynArena* arena, int depth) {
+    switch (rand() % 4) {
+    case 0: return el_ast_new_expr_stmt(arena, NSPAN, gen_expr(arena, nd(depth)));
+    case 1: return el_ast_new_decl_stmt(arena, NSPAN, gen_init_decl(arena, nd(depth)));
+    case 2: return el_ast_new_assign_stmt(arena, NSPAN, gen_expr(arena, nd(depth)), gen_init(arena, nd(depth)));
+    case 3: return el_ast_new_compound_assign_stmt(arena, NSPAN, gen_cassign_op(), gen_expr(arena, nd(depth)), gen_init(arena, nd(depth)));
+    }
+    EL_UNREACHABLE("shouldn't get here");
+}
+
 static ElAstStmt* gen_stmt(ElDynArena* arena, int depth) {
-    if (depth <= 0) return el_ast_new_expr_stmt(arena, NSPAN, gen_expr(arena, depth - 1));
+    if (depth <= 0) return el_ast_new_expr_stmt(arena, NSPAN, gen_expr(arena, nd(depth)));
     switch (rand() % 10) {
-    case 0: return el_ast_new_expr_stmt(arena, NSPAN, gen_expr(arena, depth - 1));
-    case 1: return el_ast_new_return_stmt(arena, NSPAN, gen_init(arena, depth - 1));
-    case 2: return el_ast_new_decl_stmt(arena, NSPAN, gen_decl(arena, depth - 1));
-    case 3: return el_ast_new_assign_stmt(arena, NSPAN, gen_expr(arena, depth - 1), gen_init(arena, depth - 1));
-    case 4: return el_ast_new_block_stmt(arena, NSPAN, gen_stmt(arena, depth - 1));
-    case 5: return el_ast_new_compound_assign_stmt(arena, NSPAN, gen_cassign_op(), gen_expr(arena, depth - 1), gen_init(arena, depth - 1));
-    case 6: return el_ast_new_if_stmt(arena, NSPAN, gen_stmt(arena, depth - 1), gen_expr(arena, depth - 1), gen_stmt(arena, depth - 1), NULL);
-    case 7: return el_ast_new_while_stmt(arena, NSPAN, gen_stmt(arena, depth - 1), gen_expr(arena, depth - 1), gen_stmt(arena, depth - 1));
+    case 0: return el_ast_new_expr_stmt(arena, NSPAN, gen_expr(arena, nd(depth)));
+    case 1: return el_ast_new_return_stmt(arena, NSPAN, gen_init(arena, nd(depth)));
+    case 2: return el_ast_new_decl_stmt(arena, NSPAN, gen_decl(arena, nd(depth)));
+    case 3: return el_ast_new_assign_stmt(arena, NSPAN, gen_expr(arena, nd(depth)), gen_init(arena, nd(depth)));
+    case 4: return el_ast_new_block_stmt(arena, NSPAN, gen_stmt(arena, nd(depth)));
+    case 5: return el_ast_new_compound_assign_stmt(arena, NSPAN, gen_cassign_op(), gen_expr(arena, nd(depth)), gen_init(arena, nd(depth)));
+    case 6: return el_ast_new_if_stmt(arena, NSPAN, (rand() % 2 == 0) ? gen_init_stmt(arena, nd(depth)) : NULL, gen_expr(arena, nd(depth)), gen_stmt(arena, nd(depth)), NULL);
+    case 7: return el_ast_new_while_stmt(arena, NSPAN, (rand() % 2 == 0) ? gen_init_stmt(arena, nd(depth)) : NULL, gen_expr(arena, nd(depth)), gen_stmt(arena, nd(depth)));
     case 8: return el_ast_new_break_stmt(arena, NSPAN);
     case 9: return el_ast_new_continue_stmt(arena, NSPAN);
     }
@@ -146,7 +185,7 @@ static ElAstStmt* gen_stmt_list(ElDynArena* arena, int depth) {
     ElAstStmt* head = NULL;
     ElAstStmt* tail = NULL;
     for (uint i = 0; i < count; i++) {
-        el_ast_stmt_list_append(&head, &tail, gen_stmt(arena, depth > 0 ? depth - 1 : 0));
+        el_ast_stmt_list_append(&head, &tail, gen_stmt(arena, nd(depth)));
     }
     return head;
 }
@@ -157,54 +196,40 @@ static ElAstBlockStmt* gen_block(ElDynArena* arena, int depth) {
     });
 }
 
-static ElAstDeclarator* gen_declarators(ElDynArena* arena, int depth, bool allow_init) {
-    usize count = (rand() % 3) + 1;
-
-    ElAstDeclarator* head = NULL;
-    ElAstDeclarator* tail = NULL;
-
-    for (usize i = 0; i < count; i++)
-        el_ast_append_declarator(&head, &tail, el_ast_new_declarator(
-            arena, gen_ident(arena),
-                allow_init && (rand() % 2 == 0) ? gen_init(arena, depth > 0 ? depth - 1 : 0) : NULL));
-
-    return head;
-}
-
 static ElAstDecl* gen_decl(ElDynArena* arena, int depth) {
     if (depth <= 0) return el_ast_new_var_decl(arena, NSPAN, gen_type(arena, depth + 1), gen_declarators(arena, depth, false));
     switch (rand() % 6) {
-        case 0: return el_ast_new_alias(arena, NSPAN, gen_ident(arena)->name, *gen_toe(arena, depth > 0 ? depth - 1 : 0));
-        case 1: return el_ast_new_typedef(arena, NSPAN, gen_ident(arena)->name, gen_type(arena, depth > 0 ? depth - 1 : 0));
-        case 2: return el_ast_new_var_def(arena, NSPAN, gen_type(arena, depth > 0 ? depth - 1 : 0), gen_declarators(arena, depth, true), rand() % 2 == 0);
-        case 3: return el_ast_new_var_decl(arena, NSPAN, gen_type(arena, depth > 0 ? depth - 1 : 0), gen_declarators(arena, depth, false));
+        case 0: return el_ast_new_alias(arena, NSPAN, gen_ident(arena)->name, *gen_toe(arena, nd(depth)));
+        case 1: return el_ast_new_typedef(arena, NSPAN, gen_ident(arena)->name, gen_type(arena, nd(depth)));
+        case 2: return el_ast_new_var_def(arena, NSPAN, gen_type(arena, nd(depth)), gen_declarators(arena, depth, true), rand() % 2 == 0);
+        case 3: return el_ast_new_var_decl(arena, NSPAN, gen_type(arena, nd(depth)), gen_declarators(arena, depth, false));
         case 4:
             return el_ast_new_func_def(arena, NSPAN, (ElAstFuncSignature) {
-                NSPAN, gen_type(arena, depth > 0 ? depth - 1 : 0), gen_ident(arena), el_ast_make_func_param_list()
-            }, gen_block(arena, depth > 0 ? depth - 1 : 0));
+                NSPAN, gen_type(arena, nd(depth)), gen_ident(arena), el_ast_make_func_param_list()
+            }, gen_block(arena, nd(depth)));
         case 5:
             return el_ast_new_func_decl(arena, NSPAN, (ElAstFuncSignature){
-                NSPAN, gen_type(arena, depth > 0 ? depth - 1 : 0), gen_ident(arena), el_ast_make_func_param_list()
+                NSPAN, gen_type(arena, nd(depth)), gen_ident(arena), el_ast_make_func_param_list()
             });
     }
     EL_UNREACHABLE("shouldn't get here");
 }
 
 static ElAstToE* gen_toe(ElDynArena* arena, int depth) {
-    if (depth <= 0) return el_ast_new_toe_type(arena, gen_type(arena, depth - 1));
+    if (depth <= 0) return el_ast_new_toe_type(arena, gen_type(arena, nd(depth)));
     switch (rand() % 3) {
-    case 0: return el_ast_new_toe_type(arena, gen_type(arena, depth - 1));
-    case 1: return el_ast_new_toe_expr(arena, gen_expr(arena, depth - 1));
+    case 0: return el_ast_new_toe_type(arena, gen_type(arena, nd(depth)));
+    case 1: return el_ast_new_toe_expr(arena, gen_expr(arena, nd(depth)));
     case 2: return el_ast_new_toe_unr(arena, el_ast_new_unr_ident(arena, NSPAN, gen_ident(arena)));
     }
     EL_UNREACHABLE("shouldn't get here");
 }
 
 static ElAstToI* gen_toi(ElDynArena* arena, int depth) {
-    if (depth <= 0) return el_ast_new_toi_init(arena, gen_init(arena, depth - 1));
+    if (depth <= 0) return el_ast_new_toi_init(arena, gen_init(arena, nd(depth)));
     switch (rand() % 3) {
-    case 0: return el_ast_new_toi_type(arena, gen_type(arena, depth - 1));
-    case 1: return el_ast_new_toi_init(arena, gen_init(arena, depth - 1));
+    case 0: return el_ast_new_toi_type(arena, gen_type(arena, nd(depth)));
+    case 1: return el_ast_new_toi_init(arena, gen_init(arena, nd(depth)));
     case 2: return el_ast_new_toi_unr(arena, el_ast_new_unr_ident(arena, NSPAN, gen_ident(arena)));
     }
     EL_UNREACHABLE("shouldn't get here");
